@@ -9,9 +9,11 @@
 //! cargo run --example custom_files
 //! ```
 
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::term;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    term,
+    term::termcolor::{ColorChoice, StandardStream},
+};
 use std::ops::Range;
 
 fn main() -> anyhow::Result<()> {
@@ -21,12 +23,8 @@ fn main() -> anyhow::Result<()> {
     let file_id1 = files.add("1.greeting", "bye world").unwrap();
 
     let messages = vec![
-        Message::UnwantedGreetings {
-            greetings: vec![(file_id0, 0..5), (file_id1, 0..3)],
-        },
-        Message::OverTheTopExclamations {
-            exclamations: vec![(file_id0, 11..12)],
-        },
+        Message::UnwantedGreetings { greetings: vec![(file_id0, 0..5), (file_id1, 0..3)] },
+        Message::OverTheTopExclamations { exclamations: vec![(file_id0, 11..12)] },
     ];
 
     let writer = StandardStream::stderr(ColorChoice::Always);
@@ -60,15 +58,9 @@ mod files {
             use std::cmp::Ordering;
 
             match line_index.cmp(&self.line_starts.len()) {
-                Ordering::Less => Ok(*self
-                    .line_starts
-                    .get(line_index)
-                    .expect("failed despite previous check")),
+                Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
                 Ordering::Equal => Ok(self.source.len()),
-                Ordering::Greater => Err(files::Error::LineTooLarge {
-                    given: line_index,
-                    max: self.line_starts.len() - 1,
-                }),
+                Ordering::Greater => Err(files::Error::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
             }
         }
     }
@@ -90,11 +82,7 @@ mod files {
 
         /// Add a file to the database, returning the handle that can be used to
         /// refer to it again.
-        pub fn add(
-            &mut self,
-            name: impl Into<String>,
-            source: impl Into<String>,
-        ) -> Option<FileId> {
+        pub fn add(&mut self, name: impl Into<String>, source: impl Into<String>) -> Option<FileId> {
             use std::convert::TryFrom;
 
             let file_id = FileId(u32::try_from(self.files.len()).ok()?);
@@ -102,20 +90,14 @@ mod files {
             let source = source.into();
             let line_starts = files::line_starts(&source).collect();
 
-            self.files.push(File {
-                name,
-                line_starts,
-                source,
-            });
+            self.files.push(File { name, line_starts, source });
 
             Some(file_id)
         }
 
         /// Get the file corresponding to the given id.
         fn get(&self, file_id: FileId) -> Result<&File, files::Error> {
-            self.files
-                .get(file_id.0 as usize)
-                .ok_or(files::Error::FileMissing)
+            self.files.get(file_id.0 as usize).ok_or(files::Error::FileMissing)
         }
     }
 
@@ -133,17 +115,10 @@ mod files {
         }
 
         fn line_index(&self, file_id: FileId, byte_index: usize) -> Result<usize, files::Error> {
-            self.get(file_id)?
-                .line_starts
-                .binary_search(&byte_index)
-                .or_else(|next_line| Ok(next_line - 1))
+            self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
         }
 
-        fn line_range(
-            &self,
-            file_id: FileId,
-            line_index: usize,
-        ) -> Result<Range<usize>, files::Error> {
+        fn line_range(&self, file_id: FileId, line_index: usize) -> Result<Range<usize>, files::Error> {
             let file = self.get(file_id)?;
             let line_start = file.line_start(line_index)?;
             let next_line_start = file.line_start(line_index + 1)?;
@@ -155,12 +130,8 @@ mod files {
 
 /// A Diagnostic message.
 enum Message {
-    UnwantedGreetings {
-        greetings: Vec<(files::FileId, Range<usize>)>,
-    },
-    OverTheTopExclamations {
-        exclamations: Vec<(files::FileId, Range<usize>)>,
-    },
+    UnwantedGreetings { greetings: Vec<(files::FileId, Range<usize>)> },
+    OverTheTopExclamations { exclamations: Vec<(files::FileId, Range<usize>)> },
 }
 
 impl Message {
@@ -171,23 +142,16 @@ impl Message {
                 .with_labels(
                     greetings
                         .iter()
-                        .map(|(file_id, range)| {
-                            Label::primary(*file_id, range.clone()).with_message("a greeting")
-                        })
+                        .map(|(file_id, range)| Label::primary(*file_id, range.clone()).with_message("a greeting"))
                         .collect(),
                 )
-                .with_notes(vec![
-                    "found greetings!".to_owned(),
-                    "pleas no greetings :(".to_owned(),
-                ]),
+                .with_notes(vec!["found greetings!".to_owned(), "pleas no greetings :(".to_owned()]),
             Message::OverTheTopExclamations { exclamations } => Diagnostic::error()
                 .with_message("over-the-top exclamations")
                 .with_labels(
                     exclamations
                         .iter()
-                        .map(|(file_id, range)| {
-                            Label::primary(*file_id, range.clone()).with_message("an exclamation")
-                        })
+                        .map(|(file_id, range)| Label::primary(*file_id, range.clone()).with_message("an exclamation"))
                         .collect(),
                 )
                 .with_notes(vec!["ridiculous!".to_owned()]),

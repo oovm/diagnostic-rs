@@ -7,12 +7,13 @@
 //! cargo run --example peg_calculator
 //! ```
 
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::SimpleFile;
-use codespan_reporting::term;
-use codespan_reporting::term::termcolor::{ColorChoice, StandardStream};
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFile,
+    term,
+    term::termcolor::{ColorChoice, StandardStream},
+};
+use rustyline::{error::ReadlineError, Editor};
 
 peg::parser! {
     grammar arithmetic() for str {
@@ -56,9 +57,7 @@ fn main() -> anyhow::Result<()> {
                 let start = error.location.offset;
                 let diagnostic = Diagnostic::error()
                     .with_message("parse error")
-                    .with_labels(vec![
-                        Label::primary((), start..start).with_message("parse error")
-                    ])
+                    .with_labels(vec![Label::primary((), start..start).with_message("parse error")])
                     .with_notes(vec![format!("expected: {}", error.expected)]);
 
                 term::emit(&mut writer.lock(), &config, &file, &diagnostic)?;

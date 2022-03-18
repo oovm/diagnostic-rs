@@ -1,6 +1,8 @@
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::{SimpleFile, SimpleFiles};
-use codespan_reporting::term::{termcolor::Color, Chars, Config, DisplayStyle, Styles};
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::{SimpleFile, SimpleFiles},
+    term::{termcolor::Color, Chars, Config, DisplayStyle, Styles},
+};
 
 mod support;
 
@@ -18,10 +20,7 @@ macro_rules! test_emit {
     (rich_color) => {
         #[test]
         fn rich_color() {
-            let config = Config {
-                display_style: DisplayStyle::Rich,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Rich, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_color(&config));
         }
@@ -29,10 +28,7 @@ macro_rules! test_emit {
     (medium_color) => {
         #[test]
         fn medium_color() {
-            let config = Config {
-                display_style: DisplayStyle::Medium,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Medium, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_color(&config));
         }
@@ -40,10 +36,7 @@ macro_rules! test_emit {
     (short_color) => {
         #[test]
         fn short_color() {
-            let config = Config {
-                display_style: DisplayStyle::Short,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Short, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_color(&config));
         }
@@ -51,10 +44,7 @@ macro_rules! test_emit {
     (rich_no_color) => {
         #[test]
         fn rich_no_color() {
-            let config = Config {
-                display_style: DisplayStyle::Rich,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Rich, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
         }
@@ -62,10 +52,7 @@ macro_rules! test_emit {
     (medium_no_color) => {
         #[test]
         fn medium_no_color() {
-            let config = Config {
-                display_style: DisplayStyle::Medium,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Medium, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
         }
@@ -73,10 +60,7 @@ macro_rules! test_emit {
     (short_no_color) => {
         #[test]
         fn short_no_color() {
-            let config = Config {
-                display_style: DisplayStyle::Short,
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Short, ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
         }
@@ -84,11 +68,7 @@ macro_rules! test_emit {
     (rich_ascii_no_color) => {
         #[test]
         fn rich_ascii_no_color() {
-            let config = Config {
-                display_style: DisplayStyle::Rich,
-                chars: Chars::ascii(),
-                ..TEST_CONFIG.clone()
-            };
+            let config = Config { display_style: DisplayStyle::Rich, chars: Chars::ascii(), ..TEST_CONFIG.clone() };
 
             insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
         }
@@ -728,20 +708,14 @@ mod tabbed {
 
     #[test]
     fn tab_width_3_no_color() {
-        let config = Config {
-            tab_width: 3,
-            ..TEST_CONFIG.clone()
-        };
+        let config = Config { tab_width: 3, ..TEST_CONFIG.clone() };
 
         insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
     }
 
     #[test]
     fn tab_width_6_no_color() {
-        let config = Config {
-            tab_width: 6,
-            ..TEST_CONFIG.clone()
-        };
+        let config = Config { tab_width: 6, ..TEST_CONFIG.clone() };
 
         insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
     }
@@ -794,30 +768,21 @@ mod tab_columns {
 
     #[test]
     fn tab_width_2_no_color() {
-        let config = Config {
-            tab_width: 2,
-            ..TEST_CONFIG.clone()
-        };
+        let config = Config { tab_width: 2, ..TEST_CONFIG.clone() };
 
         insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
     }
 
     #[test]
     fn tab_width_3_no_color() {
-        let config = Config {
-            tab_width: 3,
-            ..TEST_CONFIG.clone()
-        };
+        let config = Config { tab_width: 3, ..TEST_CONFIG.clone() };
 
         insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
     }
 
     #[test]
     fn tab_width_6_no_color() {
-        let config = Config {
-            tab_width: 6,
-            ..TEST_CONFIG.clone()
-        };
+        let config = Config { tab_width: 6, ..TEST_CONFIG.clone() };
 
         insta::assert_snapshot!(TEST_DATA.emit_no_color(&config));
     }

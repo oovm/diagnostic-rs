@@ -7,10 +7,15 @@
 //! cargo run --example readme_preview svg > diagnostic/assets/readme_preview.svg
 //! ```
 
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::SimpleFile;
-use codespan_reporting::term::termcolor::{Color, ColorSpec, StandardStream, WriteColor};
-use codespan_reporting::term::{self, ColorArg};
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFile,
+    term::{
+        self,
+        termcolor::{Color, ColorSpec, StandardStream, WriteColor},
+        ColorArg,
+    },
+};
 use std::io::{self, Write};
 use structopt::StructOpt;
 
@@ -245,10 +250,7 @@ pub struct SvgWriter<W> {
 
 impl<W> SvgWriter<W> {
     pub fn new(upstream: W) -> SvgWriter<W> {
-        SvgWriter {
-            upstream,
-            color: ColorSpec::new(),
-        }
+        SvgWriter { upstream, color: ColorSpec::new() }
     }
 }
 
@@ -272,7 +274,8 @@ impl<W: Write> WriteColor for SvgWriter<W> {
 
         if self.color == *spec {
             return Ok(());
-        } else {
+        }
+        else {
             if !self.color.is_none() {
                 write!(self, "</span>")?;
             }
@@ -282,7 +285,8 @@ impl<W: Write> WriteColor for SvgWriter<W> {
         if spec.is_none() {
             write!(self, "</span>")?;
             return Ok(());
-        } else {
+        }
+        else {
             write!(self, "<span class=\"")?;
         }
 

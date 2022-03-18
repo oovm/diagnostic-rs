@@ -1,6 +1,8 @@
-use codespan_reporting::diagnostic::Diagnostic;
-use codespan_reporting::files::Files;
-use codespan_reporting::term::{emit, Config};
+use codespan_reporting::{
+    diagnostic::Diagnostic,
+    files::Files,
+    term::{emit, Config},
+};
 use termcolor::{Buffer, WriteColor};
 
 mod color_buffer;

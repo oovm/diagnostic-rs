@@ -12,22 +12,19 @@ use codespan_reporting::files::{Error, Files};
 // absolute no-no, breaking much of what we enjoy about Cargo!
 use lsp_types::{Position as LspPosition, Range as LspRange};
 
-fn location_to_position(
-    line_str: &str,
-    line: usize,
-    column: usize,
-    byte_index: usize,
-) -> Result<LspPosition, Error> {
+fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: usize) -> Result<LspPosition, Error> {
     if column > line_str.len() {
         let max = line_str.len();
         let given = column;
 
         Err(Error::ColumnTooLarge { given, max })
-    } else if !line_str.is_char_boundary(column) {
+    }
+    else if !line_str.is_char_boundary(column) {
         let given = byte_index;
 
         Err(Error::InvalidCharBoundary { given })
-    } else {
+    }
+    else {
         let line_utf16 = line_str[..column].encode_utf16();
         let character = line_utf16.count() as u32;
         let line = line as u32;
@@ -36,11 +33,7 @@ fn location_to_position(
     }
 }
 
-pub fn byte_index_to_position<'a, F>(
-    files: &'a F,
-    file_id: F::FileId,
-    byte_index: usize,
-) -> Result<LspPosition, Error>
+pub fn byte_index_to_position<'a, F>(files: &'a F, file_id: F::FileId, byte_index: usize) -> Result<LspPosition, Error>
 where
     F: Files<'a> + ?Sized,
 {
@@ -50,26 +43,16 @@ where
     let line_index = files.line_index(file_id, byte_index)?;
     let line_span = files.line_range(file_id, line_index).unwrap();
 
-    let line_str = source
-        .get(line_span.clone())
-        .ok_or_else(|| Error::IndexTooLarge {
-            given: if line_span.start >= source.len() {
-                line_span.start
-            } else {
-                line_span.end
-            },
-            max: source.len() - 1,
-        })?;
+    let line_str = source.get(line_span.clone()).ok_or_else(|| Error::IndexTooLarge {
+        given: if line_span.start >= source.len() { line_span.start } else { line_span.end },
+        max: source.len() - 1,
+    })?;
     let column = byte_index - line_span.start;
 
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range<'a, F>(
-    files: &'a F,
-    file_id: F::FileId,
-    span: Range<usize>,
-) -> Result<LspRange, Error>
+pub fn byte_span_to_range<'a, F>(files: &'a F, file_id: F::FileId, span: Range<usize>) -> Result<LspRange, Error>
 where
     F: Files<'a> + ?Sized,
 {
@@ -98,19 +81,13 @@ fn character_to_line_offset(line: &str, character: u32) -> Result<usize, Error> 
     // Handle positions after the last character on the line
     if character_offset == character {
         Ok(line_len)
-    } else {
-        Err(Error::ColumnTooLarge {
-            given: character_offset as usize,
-            max: line.len(),
-        })
+    }
+    else {
+        Err(Error::ColumnTooLarge { given: character_offset as usize, max: line.len() })
     }
 }
 
-pub fn position_to_byte_index<'a, F>(
-    files: &'a F,
-    file_id: F::FileId,
-    position: &LspPosition,
-) -> Result<usize, Error>
+pub fn position_to_byte_index<'a, F>(files: &'a F, file_id: F::FileId, position: &LspPosition) -> Result<usize, Error>
 where
     F: Files<'a> + ?Sized,
 {
@@ -125,16 +102,11 @@ where
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<'a, F>(
-    files: &'a F,
-    file_id: F::FileId,
-    range: &LspRange,
-) -> Result<Range<usize>, Error>
+pub fn range_to_byte_span<'a, F>(files: &'a F, file_id: F::FileId, range: &LspRange) -> Result<Range<usize>, Error>
 where
     F: Files<'a> + ?Sized,
 {
-    Ok(position_to_byte_index(files, file_id, &range.start)?
-        ..position_to_byte_index(files, file_id, &range.end)?)
+    Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }
 
 #[cfg(test)]
@@ -152,15 +124,7 @@ test
 "#;
         let mut files = SimpleFiles::new();
         let file_id = files.add("test", text);
-        let pos = position_to_byte_index(
-            &files,
-            file_id,
-            &LspPosition {
-                line: 3,
-                character: 2,
-            },
-        )
-        .unwrap();
+        let pos = position_to_byte_index(&files, file_id, &LspPosition { line: 3, character: 2 }).unwrap();
         assert_eq!(
             Location {
                 // One-based
@@ -180,24 +144,10 @@ test
         let mut files = SimpleFiles::new();
         let file_id = files.add("unicode", UNICODE);
 
-        let result = position_to_byte_index(
-            &files,
-            file_id,
-            &LspPosition {
-                line: 0,
-                character: 3,
-            },
-        );
+        let result = position_to_byte_index(&files, file_id, &LspPosition { line: 0, character: 3 });
         assert_eq!(result.unwrap(), 5);
 
-        let result = position_to_byte_index(
-            &files,
-            file_id,
-            &LspPosition {
-                line: 0,
-                character: 6,
-            },
-        );
+        let result = position_to_byte_index(&files, file_id, &LspPosition { line: 0, character: 6 });
         assert_eq!(result.unwrap(), 10);
     }
 
@@ -208,30 +158,12 @@ test
         let file_id2 = files.add("unicode newline", "\n".to_string() + UNICODE);
 
         let result = byte_index_to_position(&files, file_id, 5);
-        assert_eq!(
-            result.unwrap(),
-            LspPosition {
-                line: 0,
-                character: 3,
-            }
-        );
+        assert_eq!(result.unwrap(), LspPosition { line: 0, character: 3 });
 
         let result = byte_index_to_position(&files, file_id, 10);
-        assert_eq!(
-            result.unwrap(),
-            LspPosition {
-                line: 0,
-                character: 6,
-            }
-        );
+        assert_eq!(result.unwrap(), LspPosition { line: 0, character: 6 });
 
         let result = byte_index_to_position(&files, file_id2, 11);
-        assert_eq!(
-            result.unwrap(),
-            LspPosition {
-                line: 1,
-                character: 6,
-            }
-        );
+        assert_eq!(result.unwrap(), LspPosition { line: 1, character: 6 });
     }
 }

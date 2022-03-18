@@ -1,9 +1,13 @@
 use std::ops::Range;
 
-use crate::diagnostic::{Diagnostic, LabelStyle};
-use crate::errors::{DiagnosticError, Files, Location};
-use crate::term::renderer::{Locus, MultiLabel, Renderer, SingleLabel};
-use crate::term::Config;
+use crate::{
+    diagnostic::{Diagnostic, LabelStyle},
+    errors::{DiagnosticError, Files, Location},
+    term::{
+        renderer::{Locus, MultiLabel, Renderer, SingleLabel},
+        Config,
+    },
+};
 
 /// Calculate the number of decimal digits in `n`.
 // TODO: simplify after https://github.com/rust-lang/rust/issues/70887 resolves
@@ -98,15 +102,11 @@ where
             // NOTE: This could be made more efficient by using an associative
             // data structure like a hashmap or B-tree,  but we use a vector to
             // preserve the order that unique errors appear in the list of labels.
-            let labeled_file = match labeled_files
-                .iter_mut()
-                .find(|labeled_file| label.file_id == labeled_file.file_id)
-            {
+            let labeled_file = match labeled_files.iter_mut().find(|labeled_file| label.file_id == labeled_file.file_id) {
                 Some(labeled_file) => {
                     // another diagnostic also referenced this file
                     if labeled_file.max_label_style > label.style
-                        || (labeled_file.max_label_style == label.style
-                            && labeled_file.start > label.range.start)
+                        || (labeled_file.max_label_style == label.style && labeled_file.start > label.range.start)
                     {
                         // this label has a higher style or has the same style but starts earlier
                         labeled_file.start = label.range.start;
@@ -127,9 +127,7 @@ where
                         max_label_style: label.style,
                     });
                     // this unwrap should never fail because we just pushed an element
-                    labeled_files
-                        .last_mut()
-                        .expect("just pushed an element that disappeared")
+                    labeled_files.last_mut().expect("just pushed an element that disappeared")
                 }
             };
 
@@ -138,7 +136,8 @@ where
             for offset in 1..self.config.before_label_lines + 1 {
                 let index = if let Some(index) = start_line_index.checked_sub(offset) {
                     index
-                } else {
+                }
+                else {
                     // we are going from smallest to largest offset, so if
                     // the offset can not be subtracted from the start we
                     // reached the first line
@@ -146,10 +145,10 @@ where
                 };
 
                 if let Ok(range) = files.line_range(label.file_id, index) {
-                    let line =
-                        labeled_file.get_or_insert_line(index, range, start_line_number - offset);
+                    let line = labeled_file.get_or_insert_line(index, range, start_line_number - offset);
                     line.must_render = true;
-                } else {
+                }
+                else {
                     break;
                 }
             }
@@ -157,15 +156,13 @@ where
             // insert context lines after label
             // start from 1 because 0 would be the end of the label itself
             for offset in 1..self.config.after_label_lines + 1 {
-                let index = end_line_index
-                    .checked_add(offset)
-                    .expect("line index too big");
+                let index = end_line_index.checked_add(offset).expect("line index too big");
 
                 if let Ok(range) = files.line_range(label.file_id, index) {
-                    let line =
-                        labeled_file.get_or_insert_line(index, range, end_line_number + offset);
+                    let line = labeled_file.get_or_insert_line(index, range, end_line_number + offset);
                     line.must_render = true;
-                } else {
+                }
+                else {
                     break;
                 }
             }
@@ -180,14 +177,9 @@ where
                 let label_start = label.range.start - start_line_range.start;
                 // Ensure that we print at least one caret, even when we
                 // have a zero-length source range.
-                let label_end =
-                    usize::max(label.range.end - start_line_range.start, label_start + 1);
+                let label_end = usize::max(label.range.end - start_line_range.start, label_start + 1);
 
-                let line = labeled_file.get_or_insert_line(
-                    start_line_index,
-                    start_line_range,
-                    start_line_number,
-                );
+                let line = labeled_file.get_or_insert_line(start_line_index, start_line_range, start_line_number);
 
                 // Ensure that the single line labels are lexicographically
                 // sorted by the range of source code that they cover.
@@ -202,12 +194,12 @@ where
                     Ok(index) | Err(index) => index,
                 };
 
-                line.single_labels
-                    .insert(index, (label.style, label_start..label_end, &label.message));
+                line.single_labels.insert(index, (label.style, label_start..label_end, &label.message));
 
                 // If this line is not rendered, the SingleLabel is not visible.
                 line.must_render = true;
-            } else {
+            }
+            else {
                 // Multiple lines
                 //
                 // ```text
@@ -226,17 +218,9 @@ where
                 // First labeled line
                 let label_start = label.range.start - start_line_range.start;
 
-                let start_line = labeled_file.get_or_insert_line(
-                    start_line_index,
-                    start_line_range.clone(),
-                    start_line_number,
-                );
+                let start_line = labeled_file.get_or_insert_line(start_line_index, start_line_range.clone(), start_line_number);
 
-                start_line.multi_labels.push((
-                    label_index,
-                    label.style,
-                    MultiLabel::Top(label_start),
-                ));
+                start_line.multi_labels.push((label_index, label.style, MultiLabel::Top(label_start)));
 
                 // The first line has to be rendered so the start of the label is visible.
                 start_line.must_render = true;
@@ -256,8 +240,7 @@ where
 
                     let line = labeled_file.get_or_insert_line(line_index, line_range, line_number);
 
-                    line.multi_labels
-                        .push((label_index, label.style, MultiLabel::Left));
+                    line.multi_labels.push((label_index, label.style, MultiLabel::Left));
 
                     // The line should be rendered to match the configuration of how much context to show.
                     line.must_render |=
@@ -276,17 +259,9 @@ where
                 // ```
                 let label_end = label.range.end - end_line_range.start;
 
-                let end_line = labeled_file.get_or_insert_line(
-                    end_line_index,
-                    end_line_range,
-                    end_line_number,
-                );
+                let end_line = labeled_file.get_or_insert_line(end_line_index, end_line_range, end_line_number);
 
-                end_line.multi_labels.push((
-                    label_index,
-                    label.style,
-                    MultiLabel::Bottom(label_end, &label.message),
-                ));
+                end_line.multi_labels.push((label_index, label.style, MultiLabel::Bottom(label_end, &label.message)));
 
                 // The last line has to be rendered so the end of the label is visible.
                 end_line.must_render = true;
@@ -325,26 +300,12 @@ where
             // ┌─ test:2:9
             // ```
             if !labeled_file.lines.is_empty() {
-                renderer.render_snippet_start(
-                    outer_padding,
-                    &Locus {
-                        name: labeled_file.name,
-                        location: labeled_file.location,
-                    },
-                )?;
-                renderer.render_snippet_empty(
-                    outer_padding,
-                    self.diagnostic.severity,
-                    labeled_file.num_multi_labels,
-                    &[],
-                )?;
+                renderer
+                    .render_snippet_start(outer_padding, &Locus { name: labeled_file.name, location: labeled_file.location })?;
+                renderer.render_snippet_empty(outer_padding, self.diagnostic.severity, labeled_file.num_multi_labels, &[])?;
             }
 
-            let mut lines = labeled_file
-                .lines
-                .iter()
-                .filter(|(_, line)| line.must_render)
-                .peekable();
+            let mut lines = labeled_file.lines.iter().filter(|(_, line)| line.must_render).peekable();
 
             while let Some((line_index, line)) = lines.next() {
                 renderer.render_snippet_source(
@@ -370,10 +331,8 @@ where
 
                             // This line was not intended to be rendered initially.
                             // To render the line right, we have to get back the original labels.
-                            let labels = labeled_file
-                                .lines
-                                .get(&(line_index + 1))
-                                .map_or(&[][..], |line| &line.multi_labels[..]);
+                            let labels =
+                                labeled_file.lines.get(&(line_index + 1)).map_or(&[][..], |line| &line.multi_labels[..]);
 
                             renderer.render_snippet_source(
                                 outer_padding,
@@ -409,14 +368,10 @@ where
                 // We don't render a border if we are at the final newline
                 // without trailing notes, because it would end up looking too
                 // spaced-out in combination with the final new line.
-            } else {
+            }
+            else {
                 // Render the trailing snippet border.
-                renderer.render_snippet_empty(
-                    outer_padding,
-                    self.diagnostic.severity,
-                    labeled_file.num_multi_labels,
-                    &[],
-                )?;
+                renderer.render_snippet_empty(outer_padding, self.diagnostic.severity, labeled_file.num_multi_labels, &[])?;
             }
         }
 
@@ -443,14 +398,8 @@ impl<'diagnostic, FileId> ShortDiagnostic<'diagnostic, FileId>
 where
     FileId: Copy + PartialEq,
 {
-    pub fn new(
-        diagnostic: &'diagnostic Diagnostic<FileId>,
-        show_notes: bool,
-    ) -> ShortDiagnostic<'diagnostic, FileId> {
-        ShortDiagnostic {
-            diagnostic,
-            show_notes,
-        }
+    pub fn new(diagnostic: &'diagnostic Diagnostic<FileId>, show_notes: bool) -> ShortDiagnostic<'diagnostic, FileId> {
+        ShortDiagnostic { diagnostic, show_notes }
     }
 
     pub fn render<'files>(

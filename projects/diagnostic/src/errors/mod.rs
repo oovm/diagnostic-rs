@@ -23,9 +23,7 @@
 //!
 //! [`salsa`]: https://crates.io/crates/salsa
 
-use std::error::Error;
-use std::fmt::Display;
-use std::ops::Range;
+use std::{error::Error, fmt::Display, ops::Range};
 
 /// An enum representing an error that happened while looking up a file or a piece of content in that file.
 #[derive(Debug)]
@@ -140,12 +138,7 @@ pub trait Files<'a> {
     ///
     /// [`errors`]: crate::errors
     /// [`column_index`]: crate::errors::column_index
-    fn column_number(
-        &'a self,
-        id: Self::FileId,
-        line_index: usize,
-        byte_index: usize,
-    ) -> Result<usize, DiagnosticError> {
+    fn column_number(&'a self, id: Self::FileId, line_index: usize, byte_index: usize) -> Result<usize, DiagnosticError> {
         let source = self.source(id)?;
         let line_range = self.line_range(id, line_index)?;
         let column_index = column_index(source.as_ref(), line_range, byte_index);
@@ -208,9 +201,7 @@ pub struct Location {
 pub fn column_index(source: &str, line_range: Range<usize>, byte_index: usize) -> usize {
     let end_index = std::cmp::min(byte_index, std::cmp::min(line_range.end, source.len()));
 
-    (line_range.start..end_index)
-        .filter(|byte_index| source.is_char_boundary(byte_index + 1))
-        .count()
+    (line_range.start..end_index).filter(|byte_index| source.is_char_boundary(byte_index + 1)).count()
 }
 
 /// Return the starting byte index of each line in the source string.
@@ -279,11 +270,7 @@ where
 {
     /// Create a new source file.
     pub fn new(name: Name, source: Source) -> SimpleFile<Name, Source> {
-        SimpleFile {
-            name,
-            line_starts: line_starts(source.as_ref()).collect(),
-            source,
-        }
+        SimpleFile { name, line_starts: line_starts(source.as_ref()).collect(), source }
     }
 
     /// Return the name of the file.
@@ -302,16 +289,9 @@ where
         use std::cmp::Ordering;
 
         match line_index.cmp(&self.line_starts.len()) {
-            Ordering::Less => Ok(self
-                .line_starts
-                .get(line_index)
-                .cloned()
-                .expect("failed despite previous check")),
+            Ordering::Less => Ok(self.line_starts.get(line_index).cloned().expect("failed despite previous check")),
             Ordering::Equal => Ok(self.source.as_ref().len()),
-            Ordering::Greater => Err(DiagnosticError::LineTooLarge {
-                given: line_index,
-                max: self.line_starts.len() - 1,
-            }),
+            Ordering::Greater => Err(DiagnosticError::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
         }
     }
 }
@@ -334,10 +314,7 @@ where
     }
 
     fn line_index(&self, (): (), byte_index: usize) -> Result<usize, DiagnosticError> {
-        Ok(self
-            .line_starts
-            .binary_search(&byte_index)
-            .unwrap_or_else(|next_line| next_line - 1))
+        Ok(self.line_starts.binary_search(&byte_index).unwrap_or_else(|next_line| next_line - 1))
     }
 
     fn line_range(&self, (): (), line_index: usize) -> Result<Range<usize>, DiagnosticError> {

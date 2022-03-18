@@ -1,5 +1,4 @@
-use std::io;
-use std::io::prelude::*;
+use std::{io, io::prelude::*};
 use termcolor::{ColorSpec, WriteColor};
 
 // Color tester from:
@@ -41,10 +40,7 @@ pub struct ColorBuffer {
 
 impl ColorBuffer {
     pub fn new() -> ColorBuffer {
-        ColorBuffer {
-            buf: Vec::new(),
-            color: ColorSpec::new(),
-        }
+        ColorBuffer { buf: Vec::new(), color: ColorSpec::new() }
     }
 
     pub fn into_string(self) -> String {
@@ -73,14 +69,16 @@ impl WriteColor for ColorBuffer {
 
         if self.color == *spec {
             return Ok(());
-        } else {
+        }
+        else {
             self.color = spec.clone();
         }
 
         if spec.is_none() {
             write!(self, "{{/}}")?;
             return Ok(());
-        } else {
+        }
+        else {
             write!(self, "{{")?;
         }
 

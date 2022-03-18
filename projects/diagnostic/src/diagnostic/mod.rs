@@ -2,8 +2,7 @@
 
 #[cfg(feature = "serialization")]
 use serde::{Deserialize, Serialize};
-use std::ops::Range;
-use std::string::ToString;
+use std::{ops::Range, string::ToString};
 
 /// A severity level for diagnostic messages.
 ///
@@ -58,17 +57,8 @@ pub struct Label<FileId> {
 
 impl<FileId> Label<FileId> {
     /// Create a new label.
-    pub fn new(
-        style: LabelStyle,
-        file_id: FileId,
-        range: impl Into<Range<usize>>,
-    ) -> Label<FileId> {
-        Label {
-            style,
-            file_id,
-            range: range.into(),
-            message: String::new(),
-        }
+    pub fn new(style: LabelStyle, file_id: FileId, range: impl Into<Range<usize>>) -> Label<FileId> {
+        Label { style, file_id, range: range.into(), message: String::new() }
     }
 
     /// Create a new label with a style of [`LabelStyle::Primary`].
@@ -121,13 +111,7 @@ pub struct Diagnostic<FileId> {
 impl<FileId> Diagnostic<FileId> {
     /// Create a new diagnostic.
     pub fn new(severity: Severity) -> Diagnostic<FileId> {
-        Diagnostic {
-            severity,
-            code: None,
-            message: String::new(),
-            labels: Vec::new(),
-            notes: Vec::new(),
-        }
+        Diagnostic { severity, code: None, message: String::new(), labels: Vec::new(), notes: Vec::new() }
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Bug`].

@@ -70,7 +70,6 @@ pub enum DisplayStyle {
     ///        found type `String`
     ///
     /// error[E0002]: Bad config found
-    ///
     /// ```
     Rich,
     /// Output a condensed diagnostic, with a line number, severity, message and notes (if any).

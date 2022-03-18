@@ -1,9 +1,9 @@
 [package]
 name = "diagnostic"
 version = "0.0.0"
-readme = "../README.md"
+readme = "Readme.md"
 license = "Apache-2.0"
-authors = ["Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
+authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
 description = "Beautiful diagnostic reporting for text-based programming languages"
 homepage = "https://github.com/brendanzab/codespan"
 repository = "https://github.com/brendanzab/codespan"

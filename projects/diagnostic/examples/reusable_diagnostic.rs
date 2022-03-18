@@ -1,7 +1,8 @@
-use codespan_reporting::diagnostic::{Diagnostic, Label};
-use codespan_reporting::files::SimpleFile;
-use codespan_reporting::term::termcolor::StandardStream;
-use codespan_reporting::term::{self, ColorArg};
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFile,
+    term::{self, termcolor::StandardStream, ColorArg},
+};
 use std::ops::Range;
 use structopt::StructOpt;
 
@@ -31,10 +32,7 @@ fn main() -> anyhow::Result<()> {
     );
 
     let errors = [
-        Error::MismatchType(
-            Item::new(20..23, "i32"),
-            Item::new(31..45, "\"hello, world\""),
-        ),
+        Error::MismatchType(Item::new(20..23, "i32"), Item::new(31..45, "\"hello, world\"")),
         Error::MutatingImmutable(Item::new(20..23, "foo"), Item::new(51..59, "foo += 1")),
     ];
 
@@ -57,34 +55,25 @@ enum Error {
 impl Error {
     fn report(&self) -> Diagnostic<()> {
         match self {
-            Error::MismatchType(left, right) => Diagnostic::error()
-                .with_code("E0308")
-                .with_message("mismatch types")
-                .with_labels(vec![
-                    Label::primary((), right.range.clone()).with_message(format!(
-                        "Expected `{}`, found: `{}`",
-                        left.content, right.content,
-                    )),
+            Error::MismatchType(left, right) => {
+                Diagnostic::error().with_code("E0308").with_message("mismatch types").with_labels(vec![
+                    Label::primary((), right.range.clone())
+                        .with_message(format!("Expected `{}`, found: `{}`", left.content, right.content,)),
                     Label::secondary((), left.range.clone()).with_message("expected due to this"),
-                ]),
+                ])
+            }
             Error::MutatingImmutable(original, mutating) => Diagnostic::error()
                 .with_code("E0384")
-                .with_message(format!(
-                    "cannot mutate immutable variable `{}`",
-                    original.content,
-                ))
+                .with_message(format!("cannot mutate immutable variable `{}`", original.content,))
                 .with_labels(vec![
-                    Label::secondary((), original.range.clone()).with_message(unindent::unindent(
-                        &format!(
-                            r#"
+                    Label::secondary((), original.range.clone()).with_message(unindent::unindent(&format!(
+                        r#"
                                 first assignment to `{0}`
                                 help: make this binding mutable: `mut {0}`
                             "#,
-                            original.content,
-                        ),
-                    )),
-                    Label::primary((), mutating.range.clone())
-                        .with_message("cannot assign twice to immutable variable"),
+                        original.content,
+                    ))),
+                    Label::primary((), mutating.range.clone()).with_message("cannot assign twice to immutable variable"),
                 ]),
         }
     }

@@ -1,18 +1,17 @@
 //! Terminal back-end for emitting diagnostics.
 
 use std::str::FromStr;
+
+pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
 
-use crate::diagnostic::Diagnostic;
-use crate::errors::Files;
+use crate::{diagnostic::Diagnostic, errors::Files};
+
+pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
 mod config;
 mod renderer;
 mod views;
-
-pub use termcolor;
-
-pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
 /// A command line argument that configures the coloring of the output.
 ///
@@ -24,8 +23,7 @@ pub use self::config::{Chars, Config, DisplayStyle, Styles};
 /// # Example
 ///
 /// ```rust
-/// use codespan_reporting::term::termcolor::StandardStream;
-/// use codespan_reporting::term::ColorArg;
+/// use codespan_reporting::term::{termcolor::StandardStream, ColorArg};
 /// use structopt::StructOpt;
 ///
 /// #[derive(Debug, StructOpt)]
@@ -90,8 +88,10 @@ pub fn emit<'files, F: Files<'files>>(
     files: &'files F,
     diagnostic: &Diagnostic<F::FileId>,
 ) -> Result<(), super::errors::DiagnosticError> {
-    use self::renderer::Renderer;
-    use self::views::{RichDiagnostic, ShortDiagnostic};
+    use self::{
+        renderer::Renderer,
+        views::{RichDiagnostic, ShortDiagnostic},
+    };
 
     let mut renderer = Renderer::new(writer, config);
     match config.display_style {
@@ -103,10 +103,9 @@ pub fn emit<'files, F: Files<'files>>(
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{diagnostic::Label, errors::SimpleFiles};
 
-    use crate::diagnostic::Label;
-    use crate::errors::SimpleFiles;
+    use super::*;
 
     #[test]
     fn unsized_emit() {
