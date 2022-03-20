@@ -7,4 +7,4 @@ pub use errors::{DiagnosticError, DiagnosticResult};
 pub mod diagnostic;
 pub mod errors;
 pub mod term;
-
+mod text_cache;

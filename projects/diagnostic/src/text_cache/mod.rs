@@ -11,18 +11,16 @@
 
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
-use std::convert::TryFrom;
+use std::fs::read_to_string;
 use std::ops::Range;
+use std::path::PathBuf;
 
-use diagnostic::{
-    diagnostic::{Diagnostic, Label},
-    term,
-    term::termcolor::{ColorChoice, StandardStream},
-};
-use diagnostic::errors::{DiagnosticError, Files};
+use crate::{diagnostic::{Diagnostic, Label}, DiagnosticResult, term, term::termcolor::{ColorChoice, StandardStream}};
+use crate::errors::{DiagnosticError, line_starts};
 
+#[test]
 fn main() -> anyhow::Result<()> {
-    let mut files = files::TextCache::new();
+    let mut files = TextCache::new();
 
     let file_id0 = files.add("0.greeting", "hello world!").unwrap();
     let file_id1 = files.add("1.greeting", "bye world").unwrap();
@@ -42,11 +40,6 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// An opaque file identifier.
-#[derive(Copy, Clone, PartialEq, Eq)]
-pub struct FileId(u32);
-
-
 #[derive(Debug, Clone)]
 pub struct TextCache {
     files: BTreeMap<String, FileCache>,
@@ -57,6 +50,8 @@ pub struct TextCache {
 pub struct FileCache {
     /// The name of the file.
     name: String,
+    /// path
+    path: Option<PathBuf>,
     /// The source code of the file.
     source: String,
     /// The starting byte indices in the source code.
@@ -64,6 +59,17 @@ pub struct FileCache {
 }
 
 impl FileCache {
+    fn update(&mut self) -> DiagnosticResult {
+        match &self.path {
+            Some(s) => {
+                self.source = read_to_string(s)?;
+                self.line_starts = line_starts(&self.source).collect();
+            }
+            None => {}
+        }
+        Ok(())
+    }
+
     fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
@@ -73,41 +79,63 @@ impl FileCache {
     }
 }
 
-impl TextCache {
-    /// Create a new errors database.
-    pub fn new() -> TextCache {
-        TextCache { files: Default::default() }
+impl Default for TextCache {
+    fn default() -> Self {
+        Self {
+            files: Default::default()
+        }
     }
+}
 
+impl TextCache {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn add(&mut self, name: impl Into<String>, source: impl Into<String>) -> Option<FileId> {
-        let file_id = FileId(u32::try_from(self.files.len()).ok()?);
-        let name = name.into();
-        let source = source.into();
-        let line_starts = files::line_starts(&source).collect();
-        self.files.push(FileCache { name, line_starts, source });
-        Some(file_id)
+    pub fn add(&mut self, name: String, path: Option<PathBuf>) -> DiagnosticResult {
+        let mut file = FileCache { name, line_starts: vec![], source: String::new(), path };
+        file.update()?;
+
+        match &path {
+            Some(s) => {
+                let line_starts = line_starts(&read_to_string(s)?).collect();
+                self.files.insert(name.clone(), FileCache { name, line_starts, source, path });
+            }
+            None => {
+                self.files.insert(name.clone(), file);
+            }
+        }
+        Ok(())
+    }
+    pub fn update(&mut self, name: &str) -> DiagnosticResult {
+        match self.files.get_mut(name) {
+            Some(s) => {
+                s.update()
+            }
+            None => { Ok(()) }
+        }
     }
 
     /// Get the file corresponding to the given id.
-    fn get(&self, file_id: FileId) -> Result<&FileCache, DiagnosticError> {
-        self.files.get(file_id.0 as usize).ok_or(DiagnosticError::FileMissing)
+    fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
+        // match self.files.get(file) {
+        //     None => {}
+        //     Some(_) => {}
+        // }
+        self.files.get(file).ok_or(DiagnosticError::FileMissing)
     }
 
-    fn name(&self, file_id: FileId) -> Result<&str, DiagnosticError> {
+    fn name(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(self.get(file_id)?.name.as_ref())
     }
 
-    fn source(&self, file_id: FileId) -> Result<&str, DiagnosticError> {
+    fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(&self.get(file_id)?.source)
     }
 
-    fn line_index(&self, file_id: FileId, byte_index: usize) -> Result<usize, DiagnosticError> {
+    fn line_index(&self, file_id: &str, byte_index: usize) -> Result<usize, DiagnosticError> {
         self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
 
-    fn line_range(&self, file_id: FileId, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+    fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
         let file = self.get(file_id)?;
         let line_start = file.line_start(line_index)?;
         let next_line_start = file.line_start(line_index + 1)?;
@@ -118,12 +146,12 @@ impl TextCache {
 
 /// A Diagnostic message.
 enum Message {
-    UnwantedGreetings { greetings: Vec<(files::FileId, Range<usize>)> },
-    OverTheTopExclamations { exclamations: Vec<(files::FileId, Range<usize>)> },
+    UnwantedGreetings { greetings: Vec<(String, Range<usize>)> },
+    OverTheTopExclamations { exclamations: Vec<(String, Range<usize>)> },
 }
 
 impl Message {
-    fn to_diagnostic(&self) -> Diagnostic<files::FileId> {
+    fn to_diagnostic(&self) -> Diagnostic<String> {
         match self {
             Message::UnwantedGreetings { greetings } => Diagnostic::error()
                 .with_message("greetings are not allowed")
