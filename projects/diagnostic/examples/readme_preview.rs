@@ -7,7 +7,7 @@
 //! cargo run --example readme_preview svg > diagnostic/assets/readme_preview.svg
 //! ```
 
-use codespan_reporting::{
+use diagnostic::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFile,
     term::{

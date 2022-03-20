@@ -1,4 +1,4 @@
-use codespan_reporting::{
+use diagnostic::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFile,
     term::{self, termcolor::StandardStream, ColorArg},

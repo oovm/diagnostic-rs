@@ -9,12 +9,17 @@
 //! cargo run --example custom_files
 //! ```
 
-use codespan_reporting::{
+use std::cmp::Ordering;
+use std::collections::BTreeMap;
+use std::convert::TryFrom;
+use std::ops::Range;
+
+use diagnostic::{
     diagnostic::{Diagnostic, Label},
     term,
     term::termcolor::{ColorChoice, StandardStream},
 };
-use std::ops::Range;
+use diagnostic::errors::{DiagnosticError, Files};
 
 fn main() -> anyhow::Result<()> {
     let mut files = files::TextCache::new();
@@ -37,94 +42,77 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// A module containing the file implementation
-mod files {
-    use codespan_reporting::files;
-    use std::ops::Range;
+/// An opaque file identifier.
+#[derive(Copy, Clone, PartialEq, Eq)]
+pub struct FileId(u32);
 
-    /// A file that is backed by an `Arc<String>`.
-    #[derive(Debug, Clone)]
-    struct File {
-        /// The name of the file.
-        name: String,
-        /// The source code of the file.
-        source: String,
-        /// The starting byte indices in the source code.
-        line_starts: Vec<usize>,
-    }
 
-    impl File {
-        fn line_start(&self, line_index: usize) -> Result<usize, files::Error> {
-            use std::cmp::Ordering;
+#[derive(Debug, Clone)]
+pub struct TextCache {
+    files: BTreeMap<String, FileCache>,
+}
 
-            match line_index.cmp(&self.line_starts.len()) {
-                Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
-                Ordering::Equal => Ok(self.source.len()),
-                Ordering::Greater => Err(files::Error::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
-            }
+/// A file that is backed by an `Arc<String>`.
+#[derive(Debug, Clone)]
+pub struct FileCache {
+    /// The name of the file.
+    name: String,
+    /// The source code of the file.
+    source: String,
+    /// The starting byte indices in the source code.
+    line_starts: Vec<usize>,
+}
+
+impl FileCache {
+    fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
+        match line_index.cmp(&self.line_starts.len()) {
+            Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
+            Ordering::Equal => Ok(self.source.len()),
+            Ordering::Greater => Err(DiagnosticError::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
         }
     }
+}
 
-    /// An opaque file identifier.
-    #[derive(Copy, Clone, PartialEq, Eq)]
-    pub struct FileId(u32);
-
-    #[derive(Debug, Clone)]
-    pub struct TextCache {
-        files: Vec<File>,
+impl TextCache {
+    /// Create a new errors database.
+    pub fn new() -> TextCache {
+        TextCache { files: Default::default() }
     }
 
-    impl TextCache {
-        /// Create a new errors database.
-        pub fn new() -> TextCache {
-            TextCache { files: Vec::new() }
-        }
-
-        /// Add a file to the database, returning the handle that can be used to
-        /// refer to it again.
-        pub fn add(&mut self, name: impl Into<String>, source: impl Into<String>) -> Option<FileId> {
-            use std::convert::TryFrom;
-
-            let file_id = FileId(u32::try_from(self.files.len()).ok()?);
-            let name = name.into();
-            let source = source.into();
-            let line_starts = files::line_starts(&source).collect();
-
-            self.files.push(File { name, line_starts, source });
-
-            Some(file_id)
-        }
-
-        /// Get the file corresponding to the given id.
-        fn get(&self, file_id: FileId) -> Result<&File, files::Error> {
-            self.files.get(file_id.0 as usize).ok_or(files::Error::FileMissing)
-        }
+    /// Add a file to the database, returning the handle that can be used to
+    /// refer to it again.
+    pub fn add(&mut self, name: impl Into<String>, source: impl Into<String>) -> Option<FileId> {
+        let file_id = FileId(u32::try_from(self.files.len()).ok()?);
+        let name = name.into();
+        let source = source.into();
+        let line_starts = files::line_starts(&source).collect();
+        self.files.push(FileCache { name, line_starts, source });
+        Some(file_id)
     }
 
-    impl<'files> files::Files<'files> for TextCache {
-        type FileId = FileId;
-        type Name = &'files str;
-        type Source = &'files str;
+    /// Get the file corresponding to the given id.
+    fn get(&self, file_id: FileId) -> Result<&FileCache, DiagnosticError> {
+        self.files.get(file_id.0 as usize).ok_or(DiagnosticError::FileMissing)
+    }
 
-        fn name(&self, file_id: FileId) -> Result<&str, files::Error> {
-            Ok(self.get(file_id)?.name.as_ref())
-        }
+    fn name(&self, file_id: FileId) -> Result<&str, DiagnosticError> {
+        Ok(self.get(file_id)?.name.as_ref())
+    }
 
-        fn source(&self, file_id: FileId) -> Result<&str, files::Error> {
-            Ok(&self.get(file_id)?.source)
-        }
+    fn source(&self, file_id: FileId) -> Result<&str, DiagnosticError> {
+        Ok(&self.get(file_id)?.source)
+    }
 
-        fn line_index(&self, file_id: FileId, byte_index: usize) -> Result<usize, files::Error> {
-            self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
-        }
+    fn line_index(&self, file_id: FileId, byte_index: usize) -> Result<usize, DiagnosticError> {
+        self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
+    }
 
-        fn line_range(&self, file_id: FileId, line_index: usize) -> Result<Range<usize>, files::Error> {
-            let file = self.get(file_id)?;
-            let line_start = file.line_start(line_index)?;
-            let next_line_start = file.line_start(line_index + 1)?;
+    fn line_range(&self, file_id: FileId, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+        let file = self.get(file_id)?;
+        let line_start = file.line_start(line_index)?;
+        let next_line_start = file.line_start(line_index + 1)?;
 
-            Ok(line_start..next_line_start)
-        }
+        Ok(line_start..next_line_start)
     }
 }
 

@@ -7,7 +7,7 @@
 //! cargo run --example peg_calculator
 //! ```
 
-use codespan_reporting::{
+use diagnostic::{
     diagnostic::{Diagnostic, Label},
     files::SimpleFile,
     term,

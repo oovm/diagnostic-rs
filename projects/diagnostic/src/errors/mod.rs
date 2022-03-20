@@ -25,6 +25,8 @@
 
 use std::{error::Error, fmt::Display, ops::Range};
 
+pub type DiagnosticResult<T=()> = Result<T, DiagnosticError>;
+
 /// An enum representing an error that happened while looking up a file or a piece of content in that file.
 #[derive(Debug)]
 #[non_exhaustive]
