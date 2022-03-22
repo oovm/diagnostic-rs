@@ -6,6 +6,7 @@ pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
 
 use crate::{diagnostic::Diagnostic, errors::Files};
+use crate::text_cache::TextCache;
 
 pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
@@ -82,11 +83,11 @@ impl From<ColorArg> for ColorChoice {
 /// * a file was removed from the file database.
 /// * a file was changed so that it is too small to have an index
 /// * IO fails
-pub fn emit<'files, F: Files<'files>>(
+pub fn emit<'files>(
     writer: &mut dyn WriteColor,
     config: &Config,
-    files: &'files F,
-    diagnostic: &Diagnostic<F::FileId>,
+    files: &'files TextCache,
+    diagnostic: &Diagnostic<String>,
 ) -> Result<(), super::errors::DiagnosticError> {
     use self::{
         renderer::Renderer,

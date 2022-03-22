@@ -20,14 +20,14 @@ use crate::errors::{DiagnosticError, line_starts};
 
 #[test]
 fn main() -> anyhow::Result<()> {
-    let mut files = TextCache::new();
+    let mut files = TextCache::default();
 
-    let file_id0 = files.add("0.greeting", "hello world!").unwrap();
-    let file_id1 = files.add("1.greeting", "bye world").unwrap();
+    files.add("0.greeting".to_string(), None).ok();
+    files.add("1.greeting".to_string(), None).ok();
 
     let messages = vec![
-        Message::UnwantedGreetings { greetings: vec![(file_id0, 0..5), (file_id1, 0..3)] },
-        Message::OverTheTopExclamations { exclamations: vec![(file_id0, 11..12)] },
+        Message::UnwantedGreetings { greetings: vec![(0..5), (0..3)] },
+        Message::OverTheTopExclamations { exclamations: vec![(11..12)] },
     ];
 
     let writer = StandardStream::stderr(ColorChoice::Always);
@@ -90,28 +90,20 @@ impl Default for TextCache {
 impl TextCache {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn add(&mut self, name: String, path: Option<PathBuf>) -> DiagnosticResult {
-        let mut file = FileCache { name, line_starts: vec![], source: String::new(), path };
+    pub fn add(&mut self, file_id: String, file_path: Option<PathBuf>) -> DiagnosticResult {
+        let mut file = FileCache { name: file_id, line_starts: vec![], source: String::new(), path: file_path };
         file.update()?;
-
-        match &path {
-            Some(s) => {
-                let line_starts = line_starts(&read_to_string(s)?).collect();
-                self.files.insert(name.clone(), FileCache { name, line_starts, source, path });
-            }
-            None => {
-                self.files.insert(name.clone(), file);
-            }
-        }
+        self.files.insert(file_id.clone(), file);
         Ok(())
     }
     pub fn update(&mut self, name: &str) -> DiagnosticResult {
         match self.files.get_mut(name) {
             Some(s) => {
-                s.update()
+                s.update()?
             }
-            None => { Ok(()) }
+            None => {  }
         }
+        Ok(())
     }
 
     /// Get the file corresponding to the given id.
@@ -146,8 +138,8 @@ impl TextCache {
 
 /// A Diagnostic message.
 enum Message {
-    UnwantedGreetings { greetings: Vec<(String, Range<usize>)> },
-    OverTheTopExclamations { exclamations: Vec<(String, Range<usize>)> },
+    UnwantedGreetings { greetings: Vec<Range<usize>> },
+    OverTheTopExclamations { exclamations: Vec<Range<usize>> },
 }
 
 impl Message {
