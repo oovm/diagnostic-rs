@@ -87,7 +87,7 @@ pub fn emit<'files>(
     writer: &mut dyn WriteColor,
     config: &Config,
     files: &'files TextCache,
-    diagnostic: &Diagnostic<String>,
+    diagnostic: &Diagnostic,
 ) -> Result<(), super::errors::DiagnosticError> {
     use self::{
         renderer::Renderer,

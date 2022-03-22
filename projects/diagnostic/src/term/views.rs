@@ -8,6 +8,7 @@ use crate::{
         Config,
     },
 };
+use crate::text_cache::TextCache;
 
 /// Calculate the number of decimal digits in `n`.
 // TODO: simplify after https://github.com/rust-lang/rust/issues/70887 resolves
@@ -18,29 +19,25 @@ fn count_digits(n: usize) -> usize {
 }
 
 /// Output a richly formatted diagnostic, with source code previews.
-pub struct RichDiagnostic<'diagnostic, 'config, FileId> {
-    diagnostic: &'diagnostic Diagnostic<FileId>,
+pub struct RichDiagnostic<'diagnostic, 'config> {
+    diagnostic: &'diagnostic Diagnostic,
     config: &'config Config,
 }
 
-impl<'diagnostic, 'config, FileId> RichDiagnostic<'diagnostic, 'config, FileId>
-where
-    FileId: Copy + PartialEq,
+impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
 {
     pub fn new(
-        diagnostic: &'diagnostic Diagnostic<FileId>,
+        diagnostic: &'diagnostic Diagnostic,
         config: &'config Config,
-    ) -> RichDiagnostic<'diagnostic, 'config, FileId> {
+    ) -> RichDiagnostic<'diagnostic, 'config> {
         RichDiagnostic { diagnostic, config }
     }
 
     pub fn render<'files>(
         &self,
-        files: &'files impl Files<'files, FileId = FileId>,
+        files: &'files TextCache,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
-    where
-        FileId: 'files,
     {
         use std::collections::BTreeMap;
 
@@ -89,12 +86,12 @@ where
 
         // Group labels by file
         for label in &self.diagnostic.labels {
-            let start_line_index = files.line_index(label.file_id, label.range.start)?;
-            let start_line_number = files.line_number(label.file_id, start_line_index)?;
-            let start_line_range = files.line_range(label.file_id, start_line_index)?;
-            let end_line_index = files.line_index(label.file_id, label.range.end)?;
-            let end_line_number = files.line_number(label.file_id, end_line_index)?;
-            let end_line_range = files.line_range(label.file_id, end_line_index)?;
+            let start_line_index = files.line_index(&label.file_id, label.range.start)?;
+            let start_line_number = files.line_number(&label.file_id, start_line_index)?;
+            let start_line_range = files.line_range(&label.file_id, start_line_index)?;
+            let end_line_index = files.line_index(&label.file_id, label.range.end)?;
+            let end_line_number = files.line_number(&label.file_id, end_line_index)?;
+            let end_line_range = files.line_range(&label.file_id, end_line_index)?;
 
             outer_padding = std::cmp::max(outer_padding, count_digits(start_line_number));
             outer_padding = std::cmp::max(outer_padding, count_digits(end_line_number));
@@ -389,26 +386,22 @@ where
 }
 
 /// Output a short diagnostic, with a line number, severity, and message.
-pub struct ShortDiagnostic<'diagnostic, FileId> {
-    diagnostic: &'diagnostic Diagnostic<FileId>,
+pub struct ShortDiagnostic<'diagnostic> {
+    diagnostic: &'diagnostic Diagnostic,
     show_notes: bool,
 }
 
-impl<'diagnostic, FileId> ShortDiagnostic<'diagnostic, FileId>
-where
-    FileId: Copy + PartialEq,
+impl<'diagnostic> ShortDiagnostic<'diagnostic>
 {
-    pub fn new(diagnostic: &'diagnostic Diagnostic<FileId>, show_notes: bool) -> ShortDiagnostic<'diagnostic, FileId> {
+    pub fn new(diagnostic: &'diagnostic Diagnostic, show_notes: bool) -> ShortDiagnostic<'diagnostic> {
         ShortDiagnostic { diagnostic, show_notes }
     }
 
     pub fn render<'files>(
         &self,
-        files: &'files impl Files<'files, FileId = FileId>,
+        files: &'files TextCache,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
-    where
-        FileId: 'files,
     {
         // Located headers
         //

@@ -107,7 +107,7 @@ impl TextCache {
     }
 
     /// Get the file corresponding to the given id.
-    fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
+   pub fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
         // match self.files.get(file) {
         //     None => {}
         //     Some(_) => {}
@@ -115,19 +115,19 @@ impl TextCache {
         self.files.get(file).ok_or(DiagnosticError::FileMissing)
     }
 
-    fn name(&self, file_id: &str) -> Result<&str, DiagnosticError> {
+    pub fn name(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(self.get(file_id)?.name.as_ref())
     }
 
-    fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {
+    pub fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(&self.get(file_id)?.source)
     }
 
-    fn line_index(&self, file_id: &str, byte_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn line_index(&self, file_id: &str, byte_index: usize) -> Result<usize, DiagnosticError> {
         self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
 
-    fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+    pub fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
         let file = self.get(file_id)?;
         let line_start = file.line_start(line_index)?;
         let next_line_start = file.line_start(line_index + 1)?;
@@ -143,7 +143,7 @@ enum Message {
 }
 
 impl Message {
-    fn to_diagnostic(&self) -> Diagnostic<String> {
+    fn to_diagnostic(&self) -> Diagnostic {
         match self {
             Message::UnwantedGreetings { greetings } => Diagnostic::error()
                 .with_message("greetings are not allowed")

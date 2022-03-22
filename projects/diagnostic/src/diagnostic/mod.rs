@@ -43,11 +43,11 @@ pub enum LabelStyle {
 /// A label describing an underlined region of code associated with a diagnostic.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
-pub struct Label<FileId> {
+pub struct Label {
     /// The style of the label.
     pub style: LabelStyle,
     /// The file that we are labelling.
-    pub file_id: FileId,
+    pub file_id: String,
     /// The range in bytes we are going to include in the final snippet.
     pub range: Range<usize>,
     /// An optional message to provide some additional information for the
@@ -55,28 +55,28 @@ pub struct Label<FileId> {
     pub message: String,
 }
 
-impl<FileId> Label<FileId> {
+impl Label {
     /// Create a new label.
-    pub fn new(style: LabelStyle, file_id: FileId, range: impl Into<Range<usize>>) -> Label<FileId> {
+    pub fn new(style: LabelStyle, file_id: String, range: impl Into<Range<usize>>) -> Label {
         Label { style, file_id, range: range.into(), message: String::new() }
     }
 
     /// Create a new label with a style of [`LabelStyle::Primary`].
     ///
     /// [`LabelStyle::Primary`]: LabelStyle::Primary
-    pub fn primary(file_id: FileId, range: impl Into<Range<usize>>) -> Label<FileId> {
+    pub fn primary(file_id: String, range: impl Into<Range<usize>>) -> Label {
         Label::new(LabelStyle::Primary, file_id, range)
     }
 
     /// Create a new label with a style of [`LabelStyle::Secondary`].
     ///
     /// [`LabelStyle::Secondary`]: LabelStyle::Secondary
-    pub fn secondary(file_id: FileId, range: impl Into<Range<usize>>) -> Label<FileId> {
+    pub fn secondary(file_id: String, range: impl Into<Range<usize>>) -> Label {
         Label::new(LabelStyle::Secondary, file_id, range)
     }
 
     /// Add a message to the diagnostic.
-    pub fn with_message(mut self, message: impl ToString) -> Label<FileId> {
+    pub fn with_message(mut self, message: impl ToString) -> Label {
         self.message = message.to_string();
         self
     }
@@ -88,7 +88,7 @@ impl<FileId> Label<FileId> {
 /// The position of a Diagnostic is considered to be the position of the [`Label`] that has the earliest starting position and has the highest style which appears in all the labels of the diagnostic.
 #[derive(Clone, Debug, PartialEq, Eq)]
 #[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
-pub struct Diagnostic<FileId> {
+pub struct Diagnostic {
     /// The overall severity of the diagnostic
     pub severity: Severity,
     /// An optional code that identifies this diagnostic.
@@ -102,73 +102,73 @@ pub struct Diagnostic<FileId> {
     /// Source labels that describe the cause of the diagnostic.
     /// The order of the labels inside the vector does not have any meaning.
     /// The labels are always arranged in the order they appear in the source code.
-    pub labels: Vec<Label<FileId>>,
+    pub labels: Vec<Label>,
     /// Notes that are associated with the primary cause of the diagnostic.
     /// These can include line breaks for improved formatting.
     pub notes: Vec<String>,
 }
 
-impl<FileId> Diagnostic<FileId> {
+impl Diagnostic {
     /// Create a new diagnostic.
-    pub fn new(severity: Severity) -> Diagnostic<FileId> {
+    pub fn new(severity: Severity) -> Diagnostic {
         Diagnostic { severity, code: None, message: String::new(), labels: Vec::new(), notes: Vec::new() }
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Bug`].
     ///
     /// [`Severity::Bug`]: Severity::Bug
-    pub fn bug() -> Diagnostic<FileId> {
+    pub fn bug() -> Diagnostic {
         Diagnostic::new(Severity::Bug)
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Error`].
     ///
     /// [`Severity::Error`]: Severity::Error
-    pub fn error() -> Diagnostic<FileId> {
+    pub fn error() -> Diagnostic {
         Diagnostic::new(Severity::Error)
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Warning`].
     ///
     /// [`Severity::Warning`]: Severity::Warning
-    pub fn warning() -> Diagnostic<FileId> {
+    pub fn warning() -> Diagnostic {
         Diagnostic::new(Severity::Warning)
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Note`].
     ///
     /// [`Severity::Note`]: Severity::Note
-    pub fn note() -> Diagnostic<FileId> {
+    pub fn note() -> Diagnostic {
         Diagnostic::new(Severity::Note)
     }
 
     /// Create a new diagnostic with a severity of [`Severity::Help`].
     ///
     /// [`Severity::Help`]: Severity::Help
-    pub fn help() -> Diagnostic<FileId> {
+    pub fn help() -> Diagnostic {
         Diagnostic::new(Severity::Help)
     }
 
     /// Set the error code of the diagnostic.
-    pub fn with_code(mut self, code: impl ToString) -> Diagnostic<FileId> {
+    pub fn with_code(mut self, code: impl ToString) -> Diagnostic {
         self.code = Some(code.to_string());
         self
     }
 
     /// Set the message of the diagnostic.
-    pub fn with_message(mut self, message: impl ToString) -> Diagnostic<FileId> {
+    pub fn with_message(mut self, message: impl ToString) -> Diagnostic {
         self.message = message.to_string();
         self
     }
 
     /// Add some labels to the diagnostic.
-    pub fn with_labels(mut self, mut labels: Vec<Label<FileId>>) -> Diagnostic<FileId> {
+    pub fn with_labels(mut self, mut labels: Vec<Label>) -> Diagnostic {
         self.labels.append(&mut labels);
         self
     }
 
     /// Add some notes to the diagnostic.
-    pub fn with_notes(mut self, mut notes: Vec<String>) -> Diagnostic<FileId> {
+    pub fn with_notes(mut self, mut notes: Vec<String>) -> Diagnostic {
         self.notes.append(&mut notes);
         self
     }
