@@ -16,7 +16,7 @@ use std::ops::Range;
 use std::path::PathBuf;
 
 use crate::{diagnostic::{Diagnostic, Label}, DiagnosticResult, term, term::termcolor::{ColorChoice, StandardStream}};
-use crate::errors::{DiagnosticError, line_starts};
+use crate::errors::{column_index, DiagnosticError, line_starts, Location};
 
 #[test]
 fn main() -> anyhow::Result<()> {
@@ -101,32 +101,86 @@ impl TextCache {
             Some(s) => {
                 s.update()?
             }
-            None => {  }
+            None => {}
         }
         Ok(())
     }
 
     /// Get the file corresponding to the given id.
-   pub fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
+    pub fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
         // match self.files.get(file) {
         //     None => {}
         //     Some(_) => {}
         // }
         self.files.get(file).ok_or(DiagnosticError::FileMissing)
     }
-
+    /// The user-facing name of a file.
     pub fn name(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(self.get(file_id)?.name.as_ref())
     }
-
+    /// The source code of a file.
     pub fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {
         Ok(&self.get(file_id)?.source)
     }
-
+    /// The index of the line at the given byte index.
+    /// If the byte index is past the end of the file, returns the maximum line index in the file.
+    /// This means that this function only fails if the file is not present.
+    ///
+    /// # Note for trait implementors
+    ///
+    /// This can be implemented efficiently by performing a binary search over
+    /// a list of line starts that was computed by calling the [`line_starts`]
+    /// function that is exported from the [`errors`] module. It might be useful
+    /// to pre-compute and cache these line starts.
+    ///
+    /// [`line_starts`]: crate::errors::line_starts
+    /// [`errors`]: crate::errors
     pub fn line_index(&self, file_id: &str, byte_index: usize) -> Result<usize, DiagnosticError> {
         self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
+    /// The user-facing line number at the given line index.
+    /// It is not necessarily checked that the specified line index
+    /// is actually in the file.
+    ///
+    /// # Note for trait implementors
+    ///
+    /// This is usually 1-indexed from the beginning of the file, but
+    /// can be useful for implementing something like the
+    /// [C preprocessor's `#line` macro][line-macro].
+    ///
+    /// [line-macro]: https://en.cppreference.com/w/c/preprocessor/line
+    #[allow(unused_variables)]
+    pub fn line_number(&self, file_id: &str, line_index: usize) -> Result<usize, DiagnosticError> {
+        Ok(line_index + 1)
+    }
+    /// The user-facing column number at the given line index and byte index.
+    ///
+    /// # Note for trait implementors
+    ///
+    /// This is usually 1-indexed from the the start of the line.
+    /// A default implementation is provided, based on the [`column_index`]
+    /// function that is exported from the [`errors`] module.
+    ///
+    /// [`errors`]: crate::errors
+    /// [`column_index`]: crate::errors::column_index
+    pub fn column_number(&self, file_id: &str, line_index: usize, byte_index: usize) -> Result<usize, DiagnosticError> {
+        let source = self.source(file_id)?;
+        let line_range = self.line_range(file_id, line_index)?;
+        let column_index = column_index(source.as_ref(), line_range, byte_index);
 
+        Ok(column_index + 1)
+    }
+    /// Convenience method for returning line and column number at the given
+    /// byte index in the file.
+    pub fn location(&self, file_id: &str, byte_index: usize) -> Result<Location, DiagnosticError> {
+        let line_index = self.line_index(file_id, byte_index)?;
+
+        Ok(Location {
+            line_number: self.line_number(file_id, line_index)?,
+            column_number: self.column_number(file_id, line_index, byte_index)?,
+        })
+    }
+    /// The byte range of line in the source of the file.
     pub fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
         let file = self.get(file_id)?;
         let line_start = file.line_start(line_index)?;

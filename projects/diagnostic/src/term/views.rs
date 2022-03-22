@@ -107,7 +107,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                     {
                         // this label has a higher style or has the same style but starts earlier
                         labeled_file.start = label.range.start;
-                        labeled_file.location = files.location(label.file_id, label.range.start)?;
+                        labeled_file.location = files.location(&label.file_id, label.range.start)?;
                         labeled_file.max_label_style = label.style;
                     }
                     labeled_file
@@ -115,10 +115,10 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                 None => {
                     // no other diagnostic referenced this file yet
                     labeled_files.push(LabeledFile {
-                        file_id: label.file_id,
+                        file_id: label.file_id.clone(),
                         start: label.range.start,
-                        name: files.name(label.file_id)?.to_string(),
-                        location: files.location(label.file_id, label.range.start)?,
+                        name: files.name(&label.file_id)?.to_string(),
+                        location: files.location(&label.file_id, label.range.start)?,
                         num_multi_labels: 0,
                         lines: BTreeMap::new(),
                         max_label_style: label.style,
@@ -141,7 +141,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                     break;
                 };
 
-                if let Ok(range) = files.line_range(label.file_id, index) {
+                if let Ok(range) = files.line_range(&label.file_id, index) {
                     let line = labeled_file.get_or_insert_line(index, range, start_line_number - offset);
                     line.must_render = true;
                 }
@@ -155,7 +155,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
             for offset in 1..self.config.after_label_lines + 1 {
                 let index = end_line_index.checked_add(offset).expect("line index too big");
 
-                if let Ok(range) = files.line_range(label.file_id, index) {
+                if let Ok(range) = files.line_range(&label.file_id, index) {
                     let line = labeled_file.get_or_insert_line(index, range, end_line_number + offset);
                     line.must_render = true;
                 }
@@ -230,8 +230,8 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                 // 7 │ │     _ 0 => "Buzz"
                 // ```
                 for line_index in (start_line_index + 1)..end_line_index {
-                    let line_range = files.line_range(label.file_id, line_index)?;
-                    let line_number = files.line_number(label.file_id, line_index)?;
+                    let line_range = files.line_range(&label.file_id, line_index)?;
+                    let line_number = files.line_number(&label.file_id, line_index)?;
 
                     outer_padding = std::cmp::max(outer_padding, count_digits(line_number));
 
@@ -288,7 +288,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
         // ```
         let mut labeled_files = labeled_files.into_iter().peekable();
         while let Some(labeled_file) = labeled_files.next() {
-            let source = files.source(labeled_file.file_id)?;
+            let source = files.source(&labeled_file.file_id)?;
             let source = source.as_ref();
 
             // Top left border and locus.
@@ -333,8 +333,8 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
 
                             renderer.render_snippet_source(
                                 outer_padding,
-                                files.line_number(file_id, line_index + 1)?,
-                                &source[files.line_range(file_id, line_index + 1)?],
+                                files.line_number(&file_id, line_index + 1)?,
+                                &source[files.line_range(&file_id, line_index + 1)?],
                                 self.diagnostic.severity,
                                 &[],
                                 labeled_file.num_multi_labels,
@@ -415,8 +415,8 @@ impl<'diagnostic> ShortDiagnostic<'diagnostic>
 
             renderer.render_header(
                 Some(&Locus {
-                    name: files.name(label.file_id)?.to_string(),
-                    location: files.location(label.file_id, label.range.start)?,
+                    name: files.name(&label.file_id)?.to_string(),
+                    location: files.location(&label.file_id, label.range.start)?,
                 }),
                 self.diagnostic.severity,
                 self.diagnostic.code.as_deref(),

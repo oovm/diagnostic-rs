@@ -327,65 +327,7 @@ where
     }
 }
 
-/// A file database that can store multiple source errors.
-///
-/// This is useful for simple language tests, but it might be worth creating a
-/// custom implementation when a language scales beyond a certain size.
-/// It is a glorified `Vec<SimpleFile>` that implements the `Files` trait.
-#[derive(Debug, Default, Clone)]
-pub struct SimpleFiles<Name, Source> {
-    files: Vec<SimpleFile<Name, Source>>,
-}
 
-impl<Name, Source> SimpleFiles<Name, Source>
-where
-    Name: Display,
-    Source: AsRef<str>,
-{
-    /// Create a new errors database.
-    pub fn new() -> SimpleFiles<Name, Source> {
-        SimpleFiles { files: Vec::new() }
-    }
-
-    /// Add a file to the database, returning the handle that can be used to
-    /// refer to it again.
-    pub fn add(&mut self, name: Name, source: Source) -> usize {
-        let file_id = self.files.len();
-        self.files.push(SimpleFile::new(name, source));
-        file_id
-    }
-
-    /// Get the file corresponding to the given id.
-    pub fn get(&self, file_id: usize) -> Result<&SimpleFile<Name, Source>, DiagnosticError> {
-        self.files.get(file_id).ok_or(DiagnosticError::FileMissing)
-    }
-}
-
-impl<'a, Name, Source> Files<'a> for SimpleFiles<Name, Source>
-where
-    Name: 'a + Display + Clone,
-    Source: 'a + AsRef<str>,
-{
-    type FileId = usize;
-    type Name = Name;
-    type Source = &'a str;
-
-    fn name(&self, file_id: usize) -> Result<Name, DiagnosticError> {
-        Ok(self.get(file_id)?.name().clone())
-    }
-
-    fn source(&self, file_id: usize) -> Result<&str, DiagnosticError> {
-        Ok(self.get(file_id)?.source().as_ref())
-    }
-
-    fn line_index(&self, file_id: usize, byte_index: usize) -> Result<usize, DiagnosticError> {
-        self.get(file_id)?.line_index((), byte_index)
-    }
-
-    fn line_range(&self, file_id: usize, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
-        self.get(file_id)?.line_range((), line_index)
-    }
-}
 
 #[cfg(test)]
 mod test {

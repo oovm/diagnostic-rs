@@ -104,18 +104,16 @@ pub fn emit<'files>(
 
 #[cfg(test)]
 mod tests {
-    use crate::{diagnostic::Label, errors::SimpleFiles};
 
-    use super::*;
 
     #[test]
     fn unsized_emit() {
-        let mut files = SimpleFiles::new();
-
-        let id = files.add("test", "");
-        let mut writer = termcolor::NoColor::new(Vec::<u8>::new());
-        let diagnostic = Diagnostic::bug().with_labels(vec![Label::primary(id, 0..0)]);
-
-        emit(&mut writer, &Config::default(), &files, &diagnostic).unwrap();
+        // let mut files = SimpleFiles::new();
+        //
+        // let id = files.add("test", "");
+        // let mut writer = termcolor::NoColor::new(Vec::<u8>::new());
+        // let diagnostic = Diagnostic::bug().with_labels(vec![Label::primary(id, 0..0)]);
+        //
+        // emit(&mut writer, &Config::default(), &files, &diagnostic).unwrap();
     }
 }
