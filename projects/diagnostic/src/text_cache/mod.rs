@@ -15,30 +15,8 @@ use std::fs::read_to_string;
 use std::ops::Range;
 use std::path::PathBuf;
 
-use crate::{diagnostic::{Diagnostic, Label}, DiagnosticResult, term, term::termcolor::{ColorChoice, StandardStream}};
+use crate::DiagnosticResult;
 use crate::errors::{column_index, DiagnosticError, line_starts, Location};
-
-#[test]
-fn main() -> anyhow::Result<()> {
-    let mut files = TextStore::default();
-
-    files.anonymous("0.greeting", "None");
-    files.anonymous("1.greeting", "None");
-
-    let messages = vec![
-        Message::UnwantedGreetings { greetings: vec![(0..5), (0..3)] },
-        Message::OverTheTopExclamations { exclamations: vec![(11..12)] },
-    ];
-
-    let writer = StandardStream::stderr(ColorChoice::Always);
-    let config = term::Config::default();
-    for message in &messages {
-        let writer = &mut writer.lock();
-        term::emit(writer, &config, &files, &message.to_diagnostic())?;
-    }
-
-    Ok(())
-}
 
 #[derive(Debug, Clone)]
 pub struct TextStore {
@@ -121,7 +99,7 @@ impl TextStore {
         self.files.insert(file.name.clone(), file);
         Ok(())
     }
-    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>)  {
+    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) {
         let mut file = TextCache::anonymous(file_id, file_text);
         self.files.insert(file.name.clone(), file);
     }
@@ -216,36 +194,5 @@ impl TextStore {
         let line_start = file.line_start(line_index)?;
         let next_line_start = file.line_start(line_index + 1)?;
         Ok(line_start..next_line_start)
-    }
-}
-
-/// A Diagnostic message.
-enum Message {
-    UnwantedGreetings { greetings: Vec<Range<usize>> },
-    OverTheTopExclamations { exclamations: Vec<Range<usize>> },
-}
-
-impl Message {
-    fn to_diagnostic(&self) -> Diagnostic {
-        match self {
-            Message::UnwantedGreetings { greetings } => Diagnostic::error()
-                .with_message("greetings are not allowed")
-                .with_labels(
-                    greetings
-                        .iter()
-                        .map(|range| Label::primary("primary".to_string(), range.clone()).with_message("a greeting"))
-                        .collect(),
-                )
-                .with_notes(vec!["found greetings!".to_owned(), "pleas no greetings :(".to_owned()]),
-            Message::OverTheTopExclamations { exclamations } => Diagnostic::error()
-                .with_message("over-the-top exclamations")
-                .with_labels(
-                    exclamations
-                        .iter()
-                        .map(|range| Label::primary("*file_id".to_string(), range.clone()).with_message("an exclamation"))
-                        .collect(),
-                )
-                .with_notes(vec!["ridiculous!".to_owned()]),
-        }
     }
 }
