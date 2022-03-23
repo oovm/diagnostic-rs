@@ -5,8 +5,8 @@ use std::str::FromStr;
 pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
 
-use crate::{diagnostic::Diagnostic, errors::Files};
-use crate::text_cache::TextCache;
+use crate::{diagnostic::Diagnostic};
+use crate::text_cache::TextStore;
 
 pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
@@ -86,7 +86,7 @@ impl From<ColorArg> for ColorChoice {
 pub fn emit<'files>(
     writer: &mut dyn WriteColor,
     config: &Config,
-    files: &'files TextCache,
+    files: &'files TextStore,
     diagnostic: &Diagnostic,
 ) -> Result<(), super::errors::DiagnosticError> {
     use self::{

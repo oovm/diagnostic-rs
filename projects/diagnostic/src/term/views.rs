@@ -2,13 +2,13 @@ use std::ops::Range;
 
 use crate::{
     diagnostic::{Diagnostic, LabelStyle},
-    errors::{DiagnosticError, Files, Location},
+    errors::{DiagnosticError, Location},
     term::{
         renderer::{Locus, MultiLabel, Renderer, SingleLabel},
         Config,
     },
 };
-use crate::text_cache::TextCache;
+use crate::text_cache::TextStore;
 
 /// Calculate the number of decimal digits in `n`.
 // TODO: simplify after https://github.com/rust-lang/rust/issues/70887 resolves
@@ -35,7 +35,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
 
     pub fn render<'files>(
         &self,
-        files: &'files TextCache,
+        files: &'files TextStore,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
     {
@@ -289,7 +289,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
         let mut labeled_files = labeled_files.into_iter().peekable();
         while let Some(labeled_file) = labeled_files.next() {
             let source = files.source(&labeled_file.file_id)?;
-            let source = source.as_ref();
+            // let source = source.as_ref();
 
             // Top left border and locus.
             //
@@ -324,7 +324,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                         // One line between the current line and the next line
                         Some(2) => {
                             // Write a source line
-                            let file_id = labeled_file.file_id;
+                            let file_id = labeled_file.file_id.clone();
 
                             // This line was not intended to be rendered initially.
                             // To render the line right, we have to get back the original labels.
@@ -399,7 +399,7 @@ impl<'diagnostic> ShortDiagnostic<'diagnostic>
 
     pub fn render<'files>(
         &self,
-        files: &'files TextCache,
+        files: &'files TextStore,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
     {

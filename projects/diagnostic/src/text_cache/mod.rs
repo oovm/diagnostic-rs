@@ -20,10 +20,10 @@ use crate::errors::{column_index, DiagnosticError, line_starts, Location};
 
 #[test]
 fn main() -> anyhow::Result<()> {
-    let mut files = TextCache::default();
+    let mut files = TextStore::default();
 
-    files.add("0.greeting".to_string(), None).ok();
-    files.add("1.greeting".to_string(), None).ok();
+    files.anonymous("0.greeting", "None");
+    files.anonymous("1.greeting", "None");
 
     let messages = vec![
         Message::UnwantedGreetings { greetings: vec![(0..5), (0..3)] },
@@ -41,25 +41,45 @@ fn main() -> anyhow::Result<()> {
 }
 
 #[derive(Debug, Clone)]
-pub struct TextCache {
-    files: BTreeMap<String, FileCache>,
+pub struct TextStore {
+    files: BTreeMap<String, TextCache>,
 }
 
 /// A file that is backed by an `Arc<String>`.
 #[derive(Debug, Clone)]
-pub struct FileCache {
+pub struct TextCache {
     /// The name of the file.
-    name: String,
+    pub name: String,
     /// path
-    path: Option<PathBuf>,
+    pub path: Option<PathBuf>,
     /// The source code of the file.
-    source: String,
+    pub source: String,
     /// The starting byte indices in the source code.
-    line_starts: Vec<usize>,
+    pub line_starts: Vec<usize>,
 }
 
-impl FileCache {
-    fn update(&mut self) -> DiagnosticResult {
+impl TextCache {
+    pub fn anonymous(name: impl Into<String>, source: impl Into<String>) -> Self {
+        let mut out = Self {
+            name: name.into(),
+            path: None,
+            source: source.into(),
+            line_starts: vec![],
+        };
+        out.line_starts = line_starts(&out.source).collect();
+        out
+    }
+    pub fn file(name: impl Into<String>, file: PathBuf) -> DiagnosticResult<Self> {
+        let mut out = Self {
+            name: name.into(),
+            path: Some(file),
+            source: String::new(),
+            line_starts: vec![],
+        };
+        out.update()?;
+        Ok(out)
+    }
+    pub fn update(&mut self) -> DiagnosticResult {
         match &self.path {
             Some(s) => {
                 self.source = read_to_string(s)?;
@@ -70,16 +90,22 @@ impl FileCache {
         Ok(())
     }
 
-    fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
             Ordering::Equal => Ok(self.source.len()),
             Ordering::Greater => Err(DiagnosticError::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
         }
     }
+    /// The byte range of line in the source of the file.
+    pub fn line_range(&self, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+        let line_start = self.line_start(line_index)?;
+        let next_line_start = self.line_start(line_index + 1)?;
+        Ok(line_start..next_line_start)
+    }
 }
 
-impl Default for TextCache {
+impl Default for TextStore {
     fn default() -> Self {
         Self {
             files: Default::default()
@@ -87,15 +113,19 @@ impl Default for TextCache {
     }
 }
 
-impl TextCache {
+impl TextStore {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn add(&mut self, file_id: String, file_path: Option<PathBuf>) -> DiagnosticResult {
-        let mut file = FileCache { name: file_id, line_starts: vec![], source: String::new(), path: file_path };
-        file.update()?;
-        self.files.insert(file_id.clone(), file);
+    pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult {
+        let mut file = TextCache::file(file_id, file_path)?;
+        self.files.insert(file.name.clone(), file);
         Ok(())
     }
+    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>)  {
+        let mut file = TextCache::anonymous(file_id, file_text);
+        self.files.insert(file.name.clone(), file);
+    }
+
     pub fn update(&mut self, name: &str) -> DiagnosticResult {
         match self.files.get_mut(name) {
             Some(s) => {
@@ -107,7 +137,7 @@ impl TextCache {
     }
 
     /// Get the file corresponding to the given id.
-    pub fn get(&self, file: &str) -> Result<&FileCache, DiagnosticError> {
+    pub fn get(&self, file: &str) -> Result<&TextCache, DiagnosticError> {
         // match self.files.get(file) {
         //     None => {}
         //     Some(_) => {}
@@ -185,7 +215,6 @@ impl TextCache {
         let file = self.get(file_id)?;
         let line_start = file.line_start(line_index)?;
         let next_line_start = file.line_start(line_index + 1)?;
-
         Ok(line_start..next_line_start)
     }
 }
@@ -204,7 +233,7 @@ impl Message {
                 .with_labels(
                     greetings
                         .iter()
-                        .map(|(file_id, range)| Label::primary(*file_id, range.clone()).with_message("a greeting"))
+                        .map(|range| Label::primary("primary".to_string(), range.clone()).with_message("a greeting"))
                         .collect(),
                 )
                 .with_notes(vec!["found greetings!".to_owned(), "pleas no greetings :(".to_owned()]),
@@ -213,7 +242,7 @@ impl Message {
                 .with_labels(
                     exclamations
                         .iter()
-                        .map(|(file_id, range)| Label::primary(*file_id, range.clone()).with_message("an exclamation"))
+                        .map(|range| Label::primary("*file_id".to_string(), range.clone()).with_message("an exclamation"))
                         .collect(),
                 )
                 .with_notes(vec!["ridiculous!".to_owned()]),

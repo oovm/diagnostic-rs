@@ -247,97 +247,17 @@ pub fn line_starts(source: &str) -> impl '_ + Iterator<Item = usize> {
     std::iter::once(0).chain(source.match_indices('\n').map(|(i, _)| i + 1))
 }
 
-/// A file database that contains a single source file.
-///
-/// Because there is only single file in this database we use `()` as a [`FileId`].
-///
-/// This is useful for simple language tests, but it might be worth creating a
-/// custom implementation when a language scales beyond a certain size.
-///
-/// [`FileId`]: Files::FileId
-#[derive(Debug, Clone)]
-pub struct SimpleFile<Name, Source> {
-    /// The name of the file.
-    name: Name,
-    /// The source code of the file.
-    source: Source,
-    /// The starting byte indices in the source code.
-    line_starts: Vec<usize>,
-}
-
-impl<Name, Source> SimpleFile<Name, Source>
-where
-    Name: Display,
-    Source: AsRef<str>,
-{
-    /// Create a new source file.
-    pub fn new(name: Name, source: Source) -> SimpleFile<Name, Source> {
-        SimpleFile { name, line_starts: line_starts(source.as_ref()).collect(), source }
-    }
-
-    /// Return the name of the file.
-    pub fn name(&self) -> &Name {
-        &self.name
-    }
-
-    /// Return the source of the file.
-    pub fn source(&self) -> &Source {
-        &self.source
-    }
-
-    /// Return the starting byte index of the line with the specified line index.
-    /// Convenience method that already generates errors if necessary.
-    fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
-        use std::cmp::Ordering;
-
-        match line_index.cmp(&self.line_starts.len()) {
-            Ordering::Less => Ok(self.line_starts.get(line_index).cloned().expect("failed despite previous check")),
-            Ordering::Equal => Ok(self.source.as_ref().len()),
-            Ordering::Greater => Err(DiagnosticError::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
-        }
-    }
-}
-
-impl<'a, Name, Source> Files<'a> for SimpleFile<Name, Source>
-where
-    Name: 'a + Display + Clone,
-    Source: 'a + AsRef<str>,
-{
-    type FileId = ();
-    type Name = Name;
-    type Source = &'a str;
-
-    fn name(&self, (): ()) -> Result<Name, DiagnosticError> {
-        Ok(self.name.clone())
-    }
-
-    fn source(&self, (): ()) -> Result<&str, DiagnosticError> {
-        Ok(self.source.as_ref())
-    }
-
-    fn line_index(&self, (): (), byte_index: usize) -> Result<usize, DiagnosticError> {
-        Ok(self.line_starts.binary_search(&byte_index).unwrap_or_else(|next_line| next_line - 1))
-    }
-
-    fn line_range(&self, (): (), line_index: usize) -> Result<Range<usize>, DiagnosticError> {
-        let line_start = self.line_start(line_index)?;
-        let next_line_start = self.line_start(line_index + 1)?;
-
-        Ok(line_start..next_line_start)
-    }
-}
-
-
 
 #[cfg(test)]
 mod test {
+    use crate::text_cache::TextCache;
     use super::*;
 
     const TEST_SOURCE: &str = "foo\nbar\r\n\nbaz";
 
     #[test]
     fn line_starts() {
-        let file = SimpleFile::new("test", TEST_SOURCE);
+        let file = TextCache::anonymous("test", TEST_SOURCE);
 
         assert_eq!(
             file.line_starts,
@@ -352,11 +272,11 @@ mod test {
 
     #[test]
     fn line_span_sources() {
-        let file = SimpleFile::new("test", TEST_SOURCE);
+        let file = TextCache::anonymous("test", TEST_SOURCE);
 
         let line_sources = (0..4)
             .map(|line| {
-                let line_range = file.line_range((), line).unwrap();
+                let line_range = file.line_range(line).unwrap();
                 &file.source[line_range]
             })
             .collect::<Vec<_>>();
