@@ -1,6 +1,6 @@
 //! Diagnostic data structures.
 
-#[cfg(feature = "serialization")]
+
 use serde::{Deserialize, Serialize};
 use std::{ops::Range, string::ToString};
 
@@ -16,8 +16,7 @@ use std::{ops::Range, string::ToString};
 /// assert!(Severity::Warning > Severity::Note);
 /// assert!(Severity::Note > Severity::Help);
 /// ```
-#[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord)]
-#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
+#[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum Severity {
     /// A help message.
     Help,
@@ -31,8 +30,7 @@ pub enum Severity {
     Bug,
 }
 
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd)]
-#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
+#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
 pub enum LabelStyle {
     /// Labels that describe the primary cause of a diagnostic.
     Primary,
@@ -41,8 +39,7 @@ pub enum LabelStyle {
 }
 
 /// A label describing an underlined region of code associated with a diagnostic.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Label {
     /// The style of the label.
     pub style: LabelStyle,
@@ -86,8 +83,7 @@ impl Label {
 /// warnings to the user.
 ///
 /// The position of a Diagnostic is considered to be the position of the [`Label`] that has the earliest starting position and has the highest style which appears in all the labels of the diagnostic.
-#[derive(Clone, Debug, PartialEq, Eq)]
-#[cfg_attr(feature = "serialization", derive(Serialize, Deserialize))]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Diagnostic {
     /// The overall severity of the diagnostic
     pub severity: Severity,

@@ -174,7 +174,6 @@ mod test {
     #[test]
     fn line_starts() {
         let file = TextCache::anonymous("test", TEST_SOURCE);
-
         assert_eq!(
             file.line_starts,
             [
@@ -189,14 +188,12 @@ mod test {
     #[test]
     fn line_span_sources() {
         let file = TextCache::anonymous("test", TEST_SOURCE);
-
         let line_sources = (0..4)
             .map(|line| {
                 let line_range = file.line_range(line).unwrap();
                 &file.source[line_range]
             })
             .collect::<Vec<_>>();
-
         assert_eq!(line_sources, ["foo\n", "bar\r\n", "\n", "baz"]);
     }
 }
