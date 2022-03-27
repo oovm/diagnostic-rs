@@ -117,7 +117,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                     labeled_files.push(LabeledFile {
                         file_id: label.file_id.clone(),
                         start: label.range.start,
-                        name: files.name(&label.file_id)?.to_string(),
+                        name: label.file_id.to_string(),
                         location: files.location(&label.file_id, label.range.start)?,
                         num_multi_labels: 0,
                         lines: BTreeMap::new(),
@@ -415,7 +415,7 @@ impl<'diagnostic> ShortDiagnostic<'diagnostic>
 
             renderer.render_header(
                 Some(&Locus {
-                    name: files.name(&label.file_id)?.to_string(),
+                    name: label.file_id.to_string(),
                     location: files.location(&label.file_id, label.range.start)?,
                 }),
                 self.diagnostic.severity,

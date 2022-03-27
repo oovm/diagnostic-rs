@@ -26,8 +26,6 @@ pub struct TextStorage {
 /// A file that is backed by an `Arc<String>`.
 #[derive(Debug, Clone)]
 pub struct TextCache {
-    /// The name of the file.
-    pub name: String,
     /// path
     pub path: Option<PathBuf>,
     /// The source code of the file.
@@ -37,9 +35,8 @@ pub struct TextCache {
 }
 
 impl TextCache {
-    pub fn anonymous(name: impl Into<String>, source: impl Into<String>) -> Self {
+    pub fn anonymous(source: impl Into<String>) -> Self {
         let mut out = Self {
-            name: name.into(),
             path: None,
             source: source.into(),
             line_starts: vec![],
@@ -47,9 +44,8 @@ impl TextCache {
         out.line_starts = line_starts(&out.source).collect();
         out
     }
-    pub fn file(name: impl Into<String>, file: PathBuf) -> DiagnosticResult<Self> {
+    pub fn file(file: PathBuf) -> DiagnosticResult<Self> {
         let mut out = Self {
-            name: name.into(),
             path: Some(file),
             source: String::new(),
             line_starts: vec![],
@@ -96,13 +92,13 @@ impl TextStorage {
     /// refer to it again.
     pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult<String> {
         let name = file_id.into();
-        let file = TextCache::file(&name, file_path)?;
+        let file = TextCache::file(file_path)?;
         self.files.insert(name.clone(), file);
         Ok(name)
     }
     pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) -> String {
         let name = file_id.into();
-        let file = TextCache::anonymous(&name, file_text);
+        let file = TextCache::anonymous(file_text);
         self.files.insert(name.clone(), file);
         name
     }
@@ -124,10 +120,6 @@ impl TextStorage {
         //     Some(_) => {}
         // }
         self.files.get(file).ok_or(DiagnosticError::FileMissing)
-    }
-    /// The user-facing name of a file.
-    pub fn name(&self, file_id: &str) -> Result<&str, DiagnosticError> {
-        Ok(self.get(file_id)?.name.as_ref())
     }
     /// The source code of a file.
     pub fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {

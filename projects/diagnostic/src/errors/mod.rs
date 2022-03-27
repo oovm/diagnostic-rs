@@ -25,7 +25,7 @@
 
 use std::{error::Error, fmt::Display, ops::Range};
 
-pub type DiagnosticResult<T=()> = Result<T, DiagnosticError>;
+pub type DiagnosticResult<T = ()> = Result<T, DiagnosticError>;
 
 /// An enum representing an error that happened while looking up a file or a piece of content in that file.
 #[derive(Debug)]
@@ -159,7 +159,7 @@ pub fn column_index(source: &str, line_range: Range<usize>, byte_index: usize) -
 /// assert_eq!(line_index(&line_starts, 5), Some(1));
 /// ```
 // NOTE: this is copied in `codespan::file::line_starts` and should be kept in sync.
-pub fn line_starts(source: &str) -> impl '_ + Iterator<Item = usize> {
+pub fn line_starts(source: &str) -> impl '_ + Iterator<Item=usize> {
     std::iter::once(0).chain(source.match_indices('\n').map(|(i, _)| i + 1))
 }
 
@@ -168,12 +168,11 @@ pub fn line_starts(source: &str) -> impl '_ + Iterator<Item = usize> {
 mod test {
     use crate::text_cache::TextCache;
 
-
     const TEST_SOURCE: &str = "foo\nbar\r\n\nbaz";
 
     #[test]
     fn line_starts() {
-        let file = TextCache::anonymous("test", TEST_SOURCE);
+        let file = TextCache::anonymous(TEST_SOURCE);
         assert_eq!(
             file.line_starts,
             [
@@ -187,7 +186,7 @@ mod test {
 
     #[test]
     fn line_span_sources() {
-        let file = TextCache::anonymous("test", TEST_SOURCE);
+        let file = TextCache::anonymous(TEST_SOURCE);
         let line_sources = (0..4)
             .map(|line| {
                 let line_range = file.line_range(line).unwrap();
