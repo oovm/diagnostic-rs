@@ -7,17 +7,16 @@
 //! cargo run --example readme_preview svg > diagnostic/assets/readme_preview.svg
 //! ```
 
-use diagnostic::{
-    diagnostic::{Diagnostic, Label},
-    files::SimpleFile,
-    term::{
-        self,
-        termcolor::{Color, ColorSpec, StandardStream, WriteColor},
-        ColorArg,
-    },
-};
 use std::io::{self, Write};
+
 use structopt::StructOpt;
+
+use diagnostic::{diagnostic::{Diagnostic, Label}, term::{
+    self,
+    ColorArg,
+    termcolor::{Color, ColorSpec, StandardStream, WriteColor},
+}, TextStorage};
+use diagnostic::term::{Config, Styles};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "emit")]
@@ -28,18 +27,20 @@ pub enum Opts {
     Stderr {
         /// Configure coloring of output
         #[structopt(
-            long = "color",
-            parse(try_from_str),
-            default_value = "auto",
-            possible_values = ColorArg::VARIANTS,
-            case_insensitive = true
+        long = "color",
+        parse(try_from_str),
+        default_value = "auto",
+        possible_values = ColorArg::VARIANTS,
+        case_insensitive = true
         )]
         color: ColorArg,
     },
 }
 
 fn main() -> anyhow::Result<()> {
-    let file = SimpleFile::new(
+    let mut store = TextStorage::default();
+
+    store.anonymous(
         "FizzBuzz.fun",
         unindent::unindent(
             r#"
@@ -67,12 +68,12 @@ fn main() -> anyhow::Result<()> {
         .with_message("`case` clauses have incompatible types")
         .with_code("E0308")
         .with_labels(vec![
-            Label::primary((), 328..331).with_message("expected `String`, found `Nat`"),
-            Label::secondary((), 211..331).with_message("`case` clauses have incompatible types"),
-            Label::secondary((), 258..268).with_message("this is found to be of type `String`"),
-            Label::secondary((), 284..290).with_message("this is found to be of type `String`"),
-            Label::secondary((), 306..312).with_message("this is found to be of type `String`"),
-            Label::secondary((), 186..192).with_message("expected type `String` found here"),
+            Label::primary("GG".to_string(), 328..331).with_message("expected `String`, found `Nat`"),
+            Label::secondary("GG".to_string(), 211..331).with_message("`case` clauses have incompatible types"),
+            Label::secondary("GG".to_string(), 258..268).with_message("this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 284..290).with_message("this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 306..312).with_message("this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 186..192).with_message("expected type `String` found here"),
         ])
         .with_notes(vec![unindent::unindent(
             "
@@ -86,13 +87,13 @@ fn main() -> anyhow::Result<()> {
         Opts::Svg => {
             let mut buffer = Vec::new();
             let mut writer = HtmlEscapeWriter::new(SvgWriter::new(&mut buffer));
-            let config = codespan_reporting::term::Config {
-                styles: codespan_reporting::term::Styles::with_blue(Color::Blue),
-                ..codespan_reporting::term::Config::default()
+            let config = Config {
+                styles: Styles::with_blue(Color::Blue),
+                ..Config::default()
             };
 
             for diagnostic in &diagnostics {
-                term::emit(&mut writer, &config, &file, diagnostic)?;
+                term::emit(&mut writer, &config, &store, diagnostic)?;
             }
 
             let num_lines = buffer.iter().filter(|byte| **byte == b'\n').count() + 1;
@@ -181,9 +182,9 @@ fn main() -> anyhow::Result<()> {
         }
         Opts::Stderr { color } => {
             let writer = StandardStream::stderr(color.into());
-            let config = codespan_reporting::term::Config::default();
+            let config = Config::default();
             for diagnostic in &diagnostics {
-                term::emit(&mut writer.lock(), &config, &file, diagnostic)?;
+                term::emit(&mut writer.lock(), &config, &store, diagnostic)?;
             }
         }
     }
@@ -274,8 +275,7 @@ impl<W: Write> WriteColor for SvgWriter<W> {
 
         if self.color == *spec {
             return Ok(());
-        }
-        else {
+        } else {
             if !self.color.is_none() {
                 write!(self, "</span>")?;
             }
@@ -285,8 +285,7 @@ impl<W: Write> WriteColor for SvgWriter<W> {
         if spec.is_none() {
             write!(self, "</span>")?;
             return Ok(());
-        }
-        else {
+        } else {
             write!(self, "<span class=\"")?;
         }
 

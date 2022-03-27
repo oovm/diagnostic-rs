@@ -8,3 +8,5 @@ pub mod diagnostic;
 pub mod errors;
 pub mod term;
 mod text_cache;
+
+pub use self::text_cache::{TextStorage, TextCache};

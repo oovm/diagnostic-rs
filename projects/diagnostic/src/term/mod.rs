@@ -5,9 +5,13 @@ use std::str::FromStr;
 pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
 
-use crate::{diagnostic::Diagnostic};
-use crate::text_cache::TextStore;
+use crate::diagnostic::Diagnostic;
+use crate::text_cache::TextStorage;
 
+use self::{
+    renderer::Renderer,
+    views::{RichDiagnostic, ShortDiagnostic},
+};
 pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
 mod config;
@@ -86,14 +90,9 @@ impl From<ColorArg> for ColorChoice {
 pub fn emit<'files>(
     writer: &mut dyn WriteColor,
     config: &Config,
-    files: &'files TextStore,
+    files: &'files TextStorage,
     diagnostic: &Diagnostic,
 ) -> Result<(), super::errors::DiagnosticError> {
-    use self::{
-        renderer::Renderer,
-        views::{RichDiagnostic, ShortDiagnostic},
-    };
-
     let mut renderer = Renderer::new(writer, config);
     match config.display_style {
         DisplayStyle::Rich => RichDiagnostic::new(diagnostic, config).render(files, &mut renderer),
@@ -104,16 +103,17 @@ pub fn emit<'files>(
 
 #[cfg(test)]
 mod tests {
-
+    use crate::diagnostic::{Diagnostic, Label};
+    use crate::term::{Config, emit};
+    use crate::text_cache::TextStorage;
 
     #[test]
     fn unsized_emit() {
-        // let mut files = SimpleFiles::new();
-        //
-        // let id = files.add("test", "");
-        // let mut writer = termcolor::NoColor::new(Vec::<u8>::new());
-        // let diagnostic = Diagnostic::bug().with_labels(vec![Label::primary(id, 0..0)]);
-        //
-        // emit(&mut writer, &Config::default(), &files, &diagnostic).unwrap();
+        let mut files = TextStorage::default();
+        files.anonymous("test", "texttext");
+        let mut writer = termcolor::NoColor::new(Vec::<u8>::new());
+        let diagnostic = Diagnostic::bug().with_labels(vec![Label::primary("id".to_string(), 0..0)]);
+
+        emit(&mut writer, &Config::default(), &files, &diagnostic).unwrap();
     }
 }

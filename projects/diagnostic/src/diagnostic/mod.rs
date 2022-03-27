@@ -41,10 +41,10 @@ pub enum LabelStyle {
 /// A label describing an underlined region of code associated with a diagnostic.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Label {
-    /// The style of the label.
-    pub style: LabelStyle,
     /// The file that we are labelling.
     pub file_id: String,
+    /// The style of the label.
+    pub style: LabelStyle,
     /// The range in bytes we are going to include in the final snippet.
     pub range: Range<usize>,
     /// An optional message to provide some additional information for the
@@ -61,15 +61,15 @@ impl Label {
     /// Create a new label with a style of [`LabelStyle::Primary`].
     ///
     /// [`LabelStyle::Primary`]: LabelStyle::Primary
-    pub fn primary(file_id: String, range: impl Into<Range<usize>>) -> Label {
-        Label::new(LabelStyle::Primary, file_id, range)
+    pub fn primary(file_id: impl Into<String>, range: impl Into<Range<usize>>) -> Label {
+        Label::new(LabelStyle::Primary, file_id.into(), range)
     }
 
     /// Create a new label with a style of [`LabelStyle::Secondary`].
     ///
     /// [`LabelStyle::Secondary`]: LabelStyle::Secondary
-    pub fn secondary(file_id: String, range: impl Into<Range<usize>>) -> Label {
-        Label::new(LabelStyle::Secondary, file_id, range)
+    pub fn secondary(file_id: impl Into<String>, range: impl Into<Range<usize>>) -> Label {
+        Label::new(LabelStyle::Secondary, file_id.into(), range)
     }
 
     /// Add a message to the diagnostic.

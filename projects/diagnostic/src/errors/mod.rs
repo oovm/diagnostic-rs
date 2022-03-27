@@ -167,7 +167,7 @@ pub fn line_starts(source: &str) -> impl '_ + Iterator<Item = usize> {
 #[cfg(test)]
 mod test {
     use crate::text_cache::TextCache;
-    use super::*;
+
 
     const TEST_SOURCE: &str = "foo\nbar\r\n\nbaz";
 

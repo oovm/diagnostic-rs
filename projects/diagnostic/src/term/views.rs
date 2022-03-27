@@ -8,7 +8,7 @@ use crate::{
         Config,
     },
 };
-use crate::text_cache::TextStore;
+use crate::text_cache::TextStorage;
 
 /// Calculate the number of decimal digits in `n`.
 // TODO: simplify after https://github.com/rust-lang/rust/issues/70887 resolves
@@ -35,7 +35,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
 
     pub fn render<'files>(
         &self,
-        files: &'files TextStore,
+        files: &'files TextStorage,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
     {
@@ -399,7 +399,7 @@ impl<'diagnostic> ShortDiagnostic<'diagnostic>
 
     pub fn render<'files>(
         &self,
-        files: &'files TextStore,
+        files: &'files TextStorage,
         renderer: &mut Renderer<'_, '_>,
     ) -> Result<(), DiagnosticError>
     {

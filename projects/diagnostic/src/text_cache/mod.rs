@@ -19,7 +19,7 @@ use crate::DiagnosticResult;
 use crate::errors::{column_index, DiagnosticError, line_starts, Location};
 
 #[derive(Debug, Clone)]
-pub struct TextStore {
+pub struct TextStorage {
     files: BTreeMap<String, TextCache>,
 }
 
@@ -83,7 +83,7 @@ impl TextCache {
     }
 }
 
-impl Default for TextStore {
+impl Default for TextStorage {
     fn default() -> Self {
         Self {
             files: Default::default()
@@ -91,17 +91,20 @@ impl Default for TextStore {
     }
 }
 
-impl TextStore {
+impl TextStorage {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult {
-        let mut file = TextCache::file(file_id, file_path)?;
-        self.files.insert(file.name.clone(), file);
-        Ok(())
+    pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult<String> {
+        let mut name = file_id.into();
+        let file = TextCache::file(&name, file_path)?;
+        self.files.insert(name.clone(), file);
+        Ok(name)
     }
-    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) {
-        let mut file = TextCache::anonymous(file_id, file_text);
-        self.files.insert(file.name.clone(), file);
+    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) -> String {
+        let mut name = file_id.into();
+        let file = TextCache::anonymous(&name, file_text);
+        self.files.insert(name.clone(), file);
+        name
     }
 
     pub fn update(&mut self, name: &str) -> DiagnosticResult {
@@ -190,9 +193,6 @@ impl TextStore {
     }
     /// The byte range of line in the source of the file.
     pub fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
-        let file = self.get(file_id)?;
-        let line_start = file.line_start(line_index)?;
-        let next_line_start = file.line_start(line_index + 1)?;
-        Ok(line_start..next_line_start)
+        self.get(file_id)?.line_range(line_index)
     }
 }
