@@ -1,31 +1,10 @@
-//! To run this example, execute the following command from the top level of
-//! this repository:
-//!
-//! ```sh
-//! cargo run --example term
-//! ```
-
-use diagnostic::{diagnostic::{Diagnostic, Label}, term::{self, termcolor::StandardStream, ColorArg}, TextStorage};
-use structopt::StructOpt;
+use termcolor::ColorChoice;
+use diagnostic::{diagnostic::{Diagnostic, Label}, term::{self, termcolor::StandardStream}, TextStorage};
+use diagnostic::diagnostic::DiagnosticLevel;
 use diagnostic::term::Config;
 
-
-#[derive(Debug, StructOpt)]
-#[structopt(name = "emit")]
-pub struct Opts {
-    /// Configure coloring of output
-    #[structopt(
-        long = "color",
-        parse(try_from_str),
-        default_value = "auto",
-        possible_values = ColorArg::VARIANTS,
-        case_insensitive = true
-    )]
-    pub color: ColorArg,
-}
-
+#[test]
 fn main() -> anyhow::Result<()> {
-    let opts = Opts::from_args();
     let mut store = TextStorage::default();
 
     let file_id1 = store.anonymous(
@@ -92,17 +71,17 @@ fn main() -> anyhow::Result<()> {
 
     let diagnostics = [
         // Unknown builtin error
-        Diagnostic::error()
+        Diagnostic::new(DiagnosticLevel::Error)
             .with_message("unknown builtin: `NATRAL`")
             .with_labels(vec![Label::primary(&file_id1, 96..102).with_message("unknown builtin")])
             .with_notes(vec!["there is a builtin with a similar name: `NATURAL`".to_owned()]),
         // Unused parameter warning
-        Diagnostic::warning()
+        Diagnostic::new(DiagnosticLevel::Warning)
             .with_message("unused parameter pattern: `n₂`")
             .with_labels(vec![Label::primary(&file_id1, 285..289).with_message("unused parameter")])
             .with_notes(vec!["consider using a wildcard pattern: `_`".to_owned()]),
         // Unexpected type error
-        Diagnostic::error()
+        Diagnostic::new(DiagnosticLevel::Error)
             .with_message("unexpected type in application of `_+_`")
             .with_code("E0001")
             .with_labels(vec![
@@ -116,7 +95,7 @@ fn main() -> anyhow::Result<()> {
                 ",
             )]),
         // Incompatible match clause error
-        Diagnostic::error()
+        Diagnostic::new(DiagnosticLevel::Error)
             .with_message("`case` clauses have incompatible types")
             .with_code("E0308")
             .with_labels(vec![
@@ -131,7 +110,7 @@ fn main() -> anyhow::Result<()> {
                 ",
             )]),
         // Incompatible match clause error
-        Diagnostic::error()
+        Diagnostic::new(DiagnosticLevel::Error)
             .with_message("`case` clauses have incompatible types")
             .with_code("E0308")
             .with_labels(vec![
@@ -150,7 +129,7 @@ fn main() -> anyhow::Result<()> {
             )]),
     ];
 
-    let writer = StandardStream::stderr(opts.color.into());
+    let writer = StandardStream::stderr(ColorChoice::Always);
     let config = Config::default();
     for diagnostic in &diagnostics {
         term::emit(&mut writer.lock(), &config, &store, diagnostic)?;

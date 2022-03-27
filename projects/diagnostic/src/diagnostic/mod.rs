@@ -1,8 +1,9 @@
 //! Diagnostic data structures.
 
 
-use serde::{Deserialize, Serialize};
 use std::{ops::Range, string::ToString};
+
+use serde::{Deserialize, Serialize};
 
 /// A severity level for diagnostic messages.
 ///
@@ -17,7 +18,7 @@ use std::{ops::Range, string::ToString};
 /// assert!(Severity::Note > Severity::Help);
 /// ```
 #[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-pub enum Severity {
+pub enum DiagnosticLevel {
     /// A help message.
     Help,
     /// A note.
@@ -53,23 +54,27 @@ pub struct Label {
 }
 
 impl Label {
-    /// Create a new label.
-    pub fn new(style: LabelStyle, file_id: String, range: impl Into<Range<usize>>) -> Label {
-        Label { style, file_id, range: range.into(), message: String::new() }
-    }
-
     /// Create a new label with a style of [`LabelStyle::Primary`].
     ///
     /// [`LabelStyle::Primary`]: LabelStyle::Primary
-    pub fn primary(file_id: impl Into<String>, range: impl Into<Range<usize>>) -> Label {
-        Label::new(LabelStyle::Primary, file_id.into(), range)
+    pub fn primary(file_id: impl Into<String>, range: Range<usize>) -> Self {
+        Self {
+            file_id: file_id.into(),
+            style: LabelStyle::Primary,
+            range,
+            message: String::new(),
+        }
     }
-
     /// Create a new label with a style of [`LabelStyle::Secondary`].
     ///
     /// [`LabelStyle::Secondary`]: LabelStyle::Secondary
-    pub fn secondary(file_id: impl Into<String>, range: impl Into<Range<usize>>) -> Label {
-        Label::new(LabelStyle::Secondary, file_id.into(), range)
+    pub fn secondary(file_id: impl Into<String>, range: Range<usize>) -> Self {
+        Self {
+            file_id: file_id.into(),
+            style: LabelStyle::Secondary,
+            range,
+            message: String::new(),
+        }
     }
 
     /// Add a message to the diagnostic.
@@ -86,7 +91,7 @@ impl Label {
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Diagnostic {
     /// The overall severity of the diagnostic
-    pub severity: Severity,
+    pub severity: DiagnosticLevel,
     /// An optional code that identifies this diagnostic.
     pub code: Option<String>,
     /// The main message associated with this diagnostic.
@@ -106,43 +111,8 @@ pub struct Diagnostic {
 
 impl Diagnostic {
     /// Create a new diagnostic.
-    pub fn new(severity: Severity) -> Diagnostic {
+    pub fn new(severity: DiagnosticLevel) -> Diagnostic {
         Diagnostic { severity, code: None, message: String::new(), labels: Vec::new(), notes: Vec::new() }
-    }
-
-    /// Create a new diagnostic with a severity of [`Severity::Bug`].
-    ///
-    /// [`Severity::Bug`]: Severity::Bug
-    pub fn bug() -> Diagnostic {
-        Diagnostic::new(Severity::Bug)
-    }
-
-    /// Create a new diagnostic with a severity of [`Severity::Error`].
-    ///
-    /// [`Severity::Error`]: Severity::Error
-    pub fn error() -> Diagnostic {
-        Diagnostic::new(Severity::Error)
-    }
-
-    /// Create a new diagnostic with a severity of [`Severity::Warning`].
-    ///
-    /// [`Severity::Warning`]: Severity::Warning
-    pub fn warning() -> Diagnostic {
-        Diagnostic::new(Severity::Warning)
-    }
-
-    /// Create a new diagnostic with a severity of [`Severity::Note`].
-    ///
-    /// [`Severity::Note`]: Severity::Note
-    pub fn note() -> Diagnostic {
-        Diagnostic::new(Severity::Note)
-    }
-
-    /// Create a new diagnostic with a severity of [`Severity::Help`].
-    ///
-    /// [`Severity::Help`]: Severity::Help
-    pub fn help() -> Diagnostic {
-        Diagnostic::new(Severity::Help)
     }
 
     /// Set the error code of the diagnostic.

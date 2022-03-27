@@ -95,13 +95,13 @@ impl TextStorage {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
     pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult<String> {
-        let mut name = file_id.into();
+        let name = file_id.into();
         let file = TextCache::file(&name, file_path)?;
         self.files.insert(name.clone(), file);
         Ok(name)
     }
     pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) -> String {
-        let mut name = file_id.into();
+        let name = file_id.into();
         let file = TextCache::anonymous(&name, file_text);
         self.files.insert(name.clone(), file);
         name

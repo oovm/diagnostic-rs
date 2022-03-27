@@ -1,6 +1,6 @@
 use termcolor::{Color, ColorSpec};
 
-use crate::diagnostic::{LabelStyle, Severity};
+use crate::diagnostic::{LabelStyle, DiagnosticLevel};
 
 /// Configures how a diagnostic is rendered.
 #[derive(Clone, Debug)]
@@ -145,24 +145,24 @@ pub struct Styles {
 
 impl Styles {
     /// The style used to mark a header at a given severity.
-    pub fn header(&self, severity: Severity) -> &ColorSpec {
+    pub fn header(&self, severity: DiagnosticLevel) -> &ColorSpec {
         match severity {
-            Severity::Bug => &self.header_bug,
-            Severity::Error => &self.header_error,
-            Severity::Warning => &self.header_warning,
-            Severity::Note => &self.header_note,
-            Severity::Help => &self.header_help,
+            DiagnosticLevel::Bug => &self.header_bug,
+            DiagnosticLevel::Error => &self.header_error,
+            DiagnosticLevel::Warning => &self.header_warning,
+            DiagnosticLevel::Note => &self.header_note,
+            DiagnosticLevel::Help => &self.header_help,
         }
     }
 
     /// The style used to mark a primary or secondary label at a given severity.
-    pub fn label(&self, severity: Severity, label_style: LabelStyle) -> &ColorSpec {
+    pub fn label(&self, severity: DiagnosticLevel, label_style: LabelStyle) -> &ColorSpec {
         match (label_style, severity) {
-            (LabelStyle::Primary, Severity::Bug) => &self.primary_label_bug,
-            (LabelStyle::Primary, Severity::Error) => &self.primary_label_error,
-            (LabelStyle::Primary, Severity::Warning) => &self.primary_label_warning,
-            (LabelStyle::Primary, Severity::Note) => &self.primary_label_note,
-            (LabelStyle::Primary, Severity::Help) => &self.primary_label_help,
+            (LabelStyle::Primary, DiagnosticLevel::Bug) => &self.primary_label_bug,
+            (LabelStyle::Primary, DiagnosticLevel::Error) => &self.primary_label_error,
+            (LabelStyle::Primary, DiagnosticLevel::Warning) => &self.primary_label_warning,
+            (LabelStyle::Primary, DiagnosticLevel::Note) => &self.primary_label_note,
+            (LabelStyle::Primary, DiagnosticLevel::Help) => &self.primary_label_help,
             (LabelStyle::Secondary, _) => &self.secondary_label,
         }
     }

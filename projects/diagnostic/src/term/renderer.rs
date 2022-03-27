@@ -5,7 +5,7 @@ use std::{
 use termcolor::{ColorSpec, WriteColor};
 
 use crate::{
-    diagnostic::{LabelStyle, Severity},
+    diagnostic::{LabelStyle, DiagnosticLevel},
     errors::{DiagnosticError, Location},
     term::{Chars, Config, Styles},
 };
@@ -139,7 +139,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     pub fn render_header(
         &mut self,
         locus: Option<&Locus>,
-        severity: Severity,
+        severity: DiagnosticLevel,
         code: Option<&str>,
         message: &str,
     ) -> Result<(), DiagnosticError> {
@@ -160,11 +160,11 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         // ```
         self.set_color(self.styles().header(severity))?;
         match severity {
-            Severity::Bug => write!(self, "bug")?,
-            Severity::Error => write!(self, "error")?,
-            Severity::Warning => write!(self, "warning")?,
-            Severity::Help => write!(self, "help")?,
-            Severity::Note => write!(self, "note")?,
+            DiagnosticLevel::Bug => write!(self, "bug")?,
+            DiagnosticLevel::Error => write!(self, "error")?,
+            DiagnosticLevel::Warning => write!(self, "warning")?,
+            DiagnosticLevel::Help => write!(self, "help")?,
+            DiagnosticLevel::Note => write!(self, "note")?,
         }
 
         // Write error code
@@ -227,7 +227,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         outer_padding: usize,
         line_number: usize,
         source: &str,
-        severity: Severity,
+        severity: DiagnosticLevel,
         single_labels: &[SingleLabel<'_>],
         num_multi_labels: usize,
         multi_labels: &[(usize, LabelStyle, MultiLabel<'_>)],
@@ -582,7 +582,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     pub fn render_snippet_empty(
         &mut self,
         outer_padding: usize,
-        severity: Severity,
+        severity: DiagnosticLevel,
         num_multi_labels: usize,
         multi_labels: &[(usize, LabelStyle, MultiLabel<'_>)],
     ) -> Result<(), DiagnosticError> {
@@ -601,7 +601,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     pub fn render_snippet_break(
         &mut self,
         outer_padding: usize,
-        severity: Severity,
+        severity: DiagnosticLevel,
         num_multi_labels: usize,
         multi_labels: &[(usize, LabelStyle, MultiLabel<'_>)],
     ) -> Result<(), DiagnosticError> {
@@ -706,7 +706,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// Write vertical lines pointing to carets.
     fn caret_pointers(
         &mut self,
-        severity: Severity,
+        severity: DiagnosticLevel,
         max_label_start: usize,
         single_labels: &[SingleLabel<'_>],
         trailing_label: Option<(usize, &SingleLabel<'_>)>,
@@ -744,7 +744,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// ```
     fn label_multi_left(
         &mut self,
-        severity: Severity,
+        severity: DiagnosticLevel,
         label_style: LabelStyle,
         underline: Option<LabelStyle>,
     ) -> Result<(), DiagnosticError> {
@@ -768,7 +768,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// ```text
     ///  ╭
     /// ```
-    fn label_multi_top_left(&mut self, severity: Severity, label_style: LabelStyle) -> Result<(), DiagnosticError> {
+    fn label_multi_top_left(&mut self, severity: DiagnosticLevel, label_style: LabelStyle) -> Result<(), DiagnosticError> {
         write!(self, " ")?;
         self.set_color(self.styles().label(severity, label_style))?;
         write!(self, "{}", self.chars().multi_top_left)?;
@@ -781,7 +781,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// ```text
     ///  ╰
     /// ```
-    fn label_multi_bottom_left(&mut self, severity: Severity, label_style: LabelStyle) -> Result<(), DiagnosticError> {
+    fn label_multi_bottom_left(&mut self, severity: DiagnosticLevel, label_style: LabelStyle) -> Result<(), DiagnosticError> {
         write!(self, " ")?;
         self.set_color(self.styles().label(severity, label_style))?;
         write!(self, "{}", self.chars().multi_bottom_left)?;
@@ -796,7 +796,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// ```
     fn label_multi_top_caret(
         &mut self,
-        severity: Severity,
+        severity: DiagnosticLevel,
         label_style: LabelStyle,
         source: &str,
         start: usize,
@@ -825,7 +825,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// ```
     fn label_multi_bottom_caret(
         &mut self,
-        severity: Severity,
+        severity: DiagnosticLevel,
         label_style: LabelStyle,
         source: &str,
         start: usize,
@@ -852,7 +852,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     }
 
     /// Writes an empty gutter space, or continues an underline horizontally.
-    fn inner_gutter_column(&mut self, severity: Severity, underline: Option<Underline>) -> Result<(), DiagnosticError> {
+    fn inner_gutter_column(&mut self, severity: DiagnosticLevel, underline: Option<Underline>) -> Result<(), DiagnosticError> {
         match underline {
             None => self.inner_gutter_space(),
             Some((label_style, vertical_bound)) => {
@@ -877,7 +877,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
     /// Writes an inner gutter, with the left lines if necessary.
     fn inner_gutter(
         &mut self,
-        severity: Severity,
+        severity: DiagnosticLevel,
         num_multi_labels: usize,
         multi_labels: &[(usize, LabelStyle, MultiLabel<'_>)],
     ) -> Result<(), DiagnosticError> {

@@ -5,9 +5,9 @@ readme = "Readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
 description = "Beautiful diagnostic reporting for text-based programming languages"
-homepage = "https://github.com/brendanzab/codespan"
-repository = "https://github.com/brendanzab/codespan"
-documentation = "https://docs.rs/codespan-reporting"
+homepage = "https://github.com/oovm/diagnostic-rs"
+repository = "https://github.com/oovm/diagnostic-rs"
+documentation = "https://docs.rs/diagnostic-rs"
 exclude = ["assets/**"]
 edition = "2018"
 
@@ -20,10 +20,8 @@ unicode-width = "0.1.10"
 anyhow = "1.0.66"
 insta = "1.21.0"
 lazy_static = "1.4.0"
-peg = "0.8.1"
-rustyline = "10.0.0"
-structopt = "0.3.26"
 unindent = "0.1.10"
 
 [features]
+default = []
 ascii-only = []
