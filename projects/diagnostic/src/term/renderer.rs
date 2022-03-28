@@ -4,11 +4,8 @@ use std::{
 };
 use termcolor::{ColorSpec, WriteColor};
 
-use crate::{
-    diagnostic::{LabelStyle, DiagnosticLevel},
-    errors::{DiagnosticError, Location},
-    term::{Chars, Config, Styles},
-};
+use crate::{errors::{DiagnosticError, Location}, LabelStyle, term::{Chars, Config, Styles}};
+use crate::text_cache::labels::DiagnosticLevel;
 
 /// The 'location focus' of a source code snippet.
 pub struct Locus {
@@ -176,7 +173,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
             write!(self, "[{}]", code)?;
         }
 
-        // Write diagnostic message
+        // Write labels message
         //
         // ```text
         // : unexpected type in `+` application

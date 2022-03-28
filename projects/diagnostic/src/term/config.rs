@@ -1,8 +1,8 @@
 use termcolor::{Color, ColorSpec};
+use crate::{DiagnosticLevel, LabelStyle};
 
-use crate::diagnostic::{LabelStyle, DiagnosticLevel};
 
-/// Configures how a diagnostic is rendered.
+/// Configures how a labels is rendered.
 #[derive(Clone, Debug)]
 pub struct Config {
     /// The display style to use when rendering diagnostics.
@@ -13,21 +13,21 @@ pub struct Config {
     /// Column width of tabs.
     /// Defaults to: `4`.
     pub tab_width: usize,
-    /// Styles to use when rendering the diagnostic.
+    /// Styles to use when rendering the labels.
     pub styles: Styles,
-    /// Characters to use when rendering the diagnostic.
+    /// Characters to use when rendering the labels.
     pub chars: Chars,
     /// The minimum number of lines to be shown after the line on which a multiline [`Label`] begins.
     ///
     /// Defaults to: `3`.
     ///
-    /// [`Label`]: crate::diagnostic::Label
+    /// [`Label`]: crate::labels::Label
     pub start_context_lines: usize,
     /// The minimum number of lines to be shown before the line on which a multiline [`Label`] ends.
     ///
     /// Defaults to: `1`.
     ///
-    /// [`Label`]: crate::diagnostic::Label
+    /// [`Label`]: crate::labels::Label
     pub end_context_lines: usize,
     /// The minimum number of lines before a label that should be included for context.
     ///
@@ -57,7 +57,7 @@ impl Default for Config {
 /// The display style to use when rendering diagnostics.
 #[derive(Clone, Debug)]
 pub enum DisplayStyle {
-    /// Output a richly formatted diagnostic, with source code previews.
+    /// Output a richly formatted labels, with source code previews.
     ///
     /// ```text
     /// error[E0001]: unexpected type in `+` application
@@ -72,7 +72,7 @@ pub enum DisplayStyle {
     /// error[E0002]: Bad config found
     /// ```
     Rich,
-    /// Output a condensed diagnostic, with a line number, severity, message and notes (if any).
+    /// Output a condensed labels, with a line number, severity, message and notes (if any).
     ///
     /// ```text
     /// test:2:9: error[E0001]: unexpected type in `+` application
@@ -82,7 +82,7 @@ pub enum DisplayStyle {
     /// error[E0002]: Bad config found
     /// ```
     Medium,
-    /// Output a short diagnostic, with a line number, severity, and message.
+    /// Output a short labels, with a line number, severity, and message.
     ///
     /// ```text
     /// test:2:9: error[E0001]: unexpected type in `+` application
@@ -91,7 +91,7 @@ pub enum DisplayStyle {
     Short,
 }
 
-/// Styles to use when rendering the diagnostic.
+/// Styles to use when rendering the labels.
 #[derive(Clone, Debug)]
 pub struct Styles {
     /// The style to use when rendering bug headers.
@@ -109,7 +109,7 @@ pub struct Styles {
     /// The style to use when rendering help headers.
     /// Defaults to `fg:cyan bold intense`.
     pub header_help: ColorSpec,
-    /// The style to use when the main diagnostic message.
+    /// The style to use when the main labels message.
     /// Defaults to `bold intense`.
     pub header_message: ColorSpec,
 
@@ -205,7 +205,7 @@ impl Default for Styles {
     }
 }
 
-/// Characters to use when rendering the diagnostic.
+/// Characters to use when rendering the labels.
 ///
 /// By using [`Chars::ascii()`] you can switch to an ASCII-only format suitable
 /// for rendering on terminals that do not support box drawing characters.
@@ -302,7 +302,7 @@ impl Chars {
     ///
     /// This is useful if your terminal's font does not support box drawing
     /// characters well and results in output that looks similar to rustc's
-    /// diagnostic output.
+    /// labels output.
     pub fn ascii() -> Chars {
         Chars {
             snippet_start: "-->".into(),

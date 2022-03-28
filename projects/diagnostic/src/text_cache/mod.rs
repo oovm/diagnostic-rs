@@ -18,6 +18,9 @@ use std::path::PathBuf;
 use crate::DiagnosticResult;
 use crate::errors::{column_index, DiagnosticError, line_starts, Location};
 
+pub mod labels;
+pub mod builder;
+
 #[derive(Debug, Clone)]
 pub struct TextStorage {
     files: BTreeMap<String, TextCache>,
@@ -102,7 +105,6 @@ impl TextStorage {
         self.files.insert(name.clone(), file);
         name
     }
-
     pub fn update(&mut self, name: &str) -> DiagnosticResult {
         match self.files.get_mut(name) {
             Some(s) => {
@@ -112,7 +114,6 @@ impl TextStorage {
         }
         Ok(())
     }
-
     /// Get the file corresponding to the given id.
     pub fn get(&self, file: &str) -> Result<&TextCache, DiagnosticError> {
         // match self.files.get(file) {

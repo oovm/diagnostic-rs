@@ -4,8 +4,8 @@ use std::str::FromStr;
 
 pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
+use crate::Diagnostic;
 
-use crate::diagnostic::Diagnostic;
 use crate::text_cache::TextStorage;
 
 use self::{
@@ -81,7 +81,7 @@ impl From<ColorArg> for ColorChoice {
     }
 }
 
-/// Emit a diagnostic using the given writer, context, config, and errors.
+/// Emit a labels using the given writer, context, config, and errors.
 ///
 /// The return value covers all error cases. These error case can arise if:
 /// * a file was removed from the file database.

@@ -1,4 +1,4 @@
-//! Source file support for diagnostic reporting.
+//! Source file support for labels reporting.
 //!
 //! The main trait defined in this module is the [`Files`] trait, which provides
 //! provides the minimum amount of functionality required for printing [`Diagnostics`]
@@ -16,7 +16,7 @@
 //! using an incremental compilation library like [`salsa`].
 //!
 //! [`term::emit`]: crate::term::emit
-//! [`Diagnostics`]: crate::diagnostic::Diagnostic
+//! [`Diagnostics`]: crate::labels::Diagnostic
 //! [`Files`]: Files
 //! [`SimpleFile`]: SimpleFile
 //! [`SimpleFiles`]: SimpleFiles

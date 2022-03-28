@@ -4,7 +4,7 @@
 //! the repository:
 //!
 //! ```sh
-//! cargo run --example readme_preview svg > diagnostic/assets/readme_preview.svg
+//! cargo run --example readme_preview svg > labels/assets/readme_preview.svg
 //! ```
 
 use std::io::{self, Write};

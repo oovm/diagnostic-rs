@@ -1,6 +1,5 @@
 use termcolor::ColorChoice;
-use diagnostic::{diagnostic::{Diagnostic, Label}, term::{self, termcolor::StandardStream}, TextStorage};
-use diagnostic::diagnostic::DiagnosticLevel;
+use diagnostic::{Diagnostic, DiagnosticLevel, Label, term::{self, termcolor::StandardStream}, TextStorage};
 use diagnostic::term::Config;
 
 #[test]

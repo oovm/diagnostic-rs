@@ -1,13 +1,10 @@
 use std::ops::Range;
 
-use crate::{
-    diagnostic::{Diagnostic, LabelStyle},
-    errors::{DiagnosticError, Location},
-    term::{
-        renderer::{Locus, MultiLabel, Renderer, SingleLabel},
-        Config,
-    },
-};
+use crate::{errors::{DiagnosticError, Location}, LabelStyle, term::{
+    renderer::{Locus, MultiLabel, Renderer, SingleLabel},
+    Config,
+}};
+use crate::text_cache::labels::Diagnostic;
 use crate::text_cache::TextStorage;
 
 /// Calculate the number of decimal digits in `n`.
@@ -18,7 +15,7 @@ fn count_digits(n: usize) -> usize {
     (n.saturating_add(1) as f64).log10().ceil() as usize
 }
 
-/// Output a richly formatted diagnostic, with source code previews.
+/// Output a richly formatted labels, with source code previews.
 pub struct RichDiagnostic<'diagnostic, 'config> {
     diagnostic: &'diagnostic Diagnostic,
     config: &'config Config,
@@ -101,7 +98,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
             // preserve the order that unique errors appear in the list of labels.
             let labeled_file = match labeled_files.iter_mut().find(|labeled_file| label.file_id == labeled_file.file_id) {
                 Some(labeled_file) => {
-                    // another diagnostic also referenced this file
+                    // another labels also referenced this file
                     if labeled_file.max_label_style > label.style
                         || (labeled_file.max_label_style == label.style && labeled_file.start > label.range.start)
                     {
@@ -113,7 +110,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                     labeled_file
                 }
                 None => {
-                    // no other diagnostic referenced this file yet
+                    // no other labels referenced this file yet
                     labeled_files.push(LabeledFile {
                         file_id: label.file_id.clone(),
                         start: label.range.start,
@@ -186,7 +183,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
                     (range.start, range.end).cmp(&(label_start, label_end))
                 }) {
                     // If the ranges are the same, order the labels in reverse
-                    // to how they were originally specified in the diagnostic.
+                    // to how they were originally specified in the labels.
                     // This helps with printing in the renderer.
                     Ok(index) | Err(index) => index,
                 };
@@ -385,7 +382,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
     }
 }
 
-/// Output a short diagnostic, with a line number, severity, and message.
+/// Output a short labels, with a line number, severity, and message.
 pub struct ShortDiagnostic<'diagnostic> {
     diagnostic: &'diagnostic Diagnostic,
     show_notes: bool,
