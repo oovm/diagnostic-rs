@@ -4,8 +4,11 @@ use std::{
 };
 use termcolor::{ColorSpec, WriteColor};
 
-use crate::{errors::{DiagnosticError, Location}, LabelStyle, term::{Chars, Config, Styles}};
-use crate::text_cache::labels::DiagnosticLevel;
+use crate::{
+    errors::{DiagnosticError, Location},
+    term::{Chars, Config, Styles},
+    DiagnosticLevel, LabelStyle,
+};
 
 /// The 'location focus' of a source code snippet.
 pub struct Locus {

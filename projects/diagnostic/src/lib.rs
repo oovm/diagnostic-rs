@@ -2,10 +2,16 @@
 
 #![forbid(unsafe_code)]
 
-pub use self::errors::{DiagnosticError, DiagnosticResult};
+pub use self::{
+    errors::{DiagnosticError, DiagnosticResult},
+    text_cache::{
+        builder::{Diagnostic, DiagnosticLevel},
+        labels::{Label, LabelStyle},
+        TextCache, TextStorage,
+    },
+};
+
 pub mod term;
 
 mod errors;
 mod text_cache;
-
-pub use self::text_cache::{TextStorage, TextCache, labels::{Diagnostic, DiagnosticLevel, Label, LabelStyle}};

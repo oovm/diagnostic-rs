@@ -1,9 +1,11 @@
 //! Diagnostic data structures.
 
-
 use std::{ops::Range, string::ToString};
+use std::fmt::Display;
 
 use serde::{Deserialize, Serialize};
+
+use crate::Label;
 
 /// A severity level for labels messages.
 ///
@@ -29,59 +31,6 @@ pub enum DiagnosticLevel {
     Error,
     /// An unexpected bug.
     Bug,
-}
-
-#[derive(Copy, Clone, Debug, PartialEq, Eq, PartialOrd, Serialize, Deserialize)]
-pub enum LabelStyle {
-    /// Labels that describe the primary cause of a labels.
-    Primary,
-    /// Labels that provide additional context for a labels.
-    Secondary,
-}
-
-/// A label describing an underlined region of code associated with a labels.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct Label {
-    /// The file that we are labelling.
-    pub file_id: String,
-    /// The style of the label.
-    pub style: LabelStyle,
-    /// The range in bytes we are going to include in the final snippet.
-    pub range: Range<usize>,
-    /// An optional message to provide some additional information for the
-    /// underlined code. These should not include line breaks.
-    pub message: String,
-}
-
-impl Label {
-    /// Create a new label with a style of [`LabelStyle::Primary`].
-    ///
-    /// [`LabelStyle::Primary`]: LabelStyle::Primary
-    pub fn primary(file_id: impl Into<String>, range: Range<usize>) -> Self {
-        Self {
-            file_id: file_id.into(),
-            style: LabelStyle::Primary,
-            range,
-            message: String::new(),
-        }
-    }
-    /// Create a new label with a style of [`LabelStyle::Secondary`].
-    ///
-    /// [`LabelStyle::Secondary`]: LabelStyle::Secondary
-    pub fn secondary(file_id: impl Into<String>, range: Range<usize>) -> Self {
-        Self {
-            file_id: file_id.into(),
-            style: LabelStyle::Secondary,
-            range,
-            message: String::new(),
-        }
-    }
-
-    /// Add a message to the labels.
-    pub fn with_message(mut self, message: impl ToString) -> Label {
-        self.message = message.to_string();
-        self
-    }
 }
 
 /// Represents a labels message that can provide information like errors and
@@ -116,20 +65,40 @@ impl Diagnostic {
     }
 
     /// Set the error code of the labels.
-    pub fn with_code(mut self, code: impl ToString) -> Self {
+    pub fn with_code(mut self, code: impl Display) -> Self {
         self.code = Some(code.to_string());
         self
     }
 
     /// Set the message of the labels.
-    pub fn with_message(mut self, message: impl ToString) -> Self {
+    pub fn with_message(mut self, message: impl Display) -> Self {
         self.message = message.to_string();
+        self
+    }
+
+    /// Add some labels to the labels.
+    pub fn with_primary(mut self, file_id: impl Display, range: Range<usize>, message: impl Display) -> Self {
+        let label = Label::primary(file_id, range, message);
+        self.labels.push(label);
+        self
+    }
+
+    /// Add some labels to the labels.
+    pub fn with_secondary(mut self, file_id: impl Display, range: Range<usize>, message: impl Display) -> Self {
+        let label = Label::secondary(file_id, range, message);
+        self.labels.push(label);
         self
     }
 
     /// Add some labels to the labels.
     pub fn with_labels(mut self, mut labels: Vec<Label>) -> Self {
         self.labels.append(&mut labels);
+        self
+    }
+
+    /// Add some notes to the labels.
+    pub fn with_note(mut self, note: impl Display) -> Self {
+        self.notes.push(note.to_string());
         self
     }
 

@@ -2,17 +2,17 @@
 
 use std::str::FromStr;
 
+use crate::Diagnostic;
 pub use termcolor;
 use termcolor::{ColorChoice, WriteColor};
-use crate::Diagnostic;
 
 use crate::text_cache::TextStorage;
 
+pub use self::config::{Chars, Config, DisplayStyle, Styles};
 use self::{
     renderer::Renderer,
     views::{RichDiagnostic, ShortDiagnostic},
 };
-pub use self::config::{Chars, Config, DisplayStyle, Styles};
 
 mod config;
 mod renderer;
@@ -103,9 +103,11 @@ pub fn emit<'files>(
 
 #[cfg(test)]
 mod tests {
-    use crate::diagnostic::{Diagnostic, Label};
-    use crate::term::{Config, emit};
-    use crate::text_cache::TextStorage;
+    use crate::{
+        diagnostic::{Diagnostic, Label},
+        term::{emit, Config},
+        text_cache::TextStorage,
+    };
 
     #[test]
     fn unsized_emit() {

@@ -1,6 +1,5 @@
-use termcolor::{Color, ColorSpec};
 use crate::{DiagnosticLevel, LabelStyle};
-
+use termcolor::{Color, ColorSpec};
 
 /// Configures how a labels is rendered.
 #[derive(Clone, Debug)]

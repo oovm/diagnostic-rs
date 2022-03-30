@@ -9,17 +9,16 @@
 //! cargo run --example custom_files
 //! ```
 
-use std::cmp::Ordering;
-use std::collections::BTreeMap;
-use std::fs::read_to_string;
-use std::ops::Range;
-use std::path::PathBuf;
+use std::{cmp::Ordering, collections::BTreeMap, fs::read_to_string, ops::Range, path::PathBuf};
+use std::fmt::Display;
 
-use crate::DiagnosticResult;
-use crate::errors::{column_index, DiagnosticError, line_starts, Location};
+use crate::{
+    DiagnosticResult,
+    errors::{column_index, DiagnosticError, line_starts, Location},
+};
 
-pub mod labels;
 pub mod builder;
+pub mod labels;
 
 #[derive(Debug, Clone)]
 pub struct TextStorage {
@@ -38,21 +37,13 @@ pub struct TextCache {
 }
 
 impl TextCache {
-    pub fn anonymous(source: impl Into<String>) -> Self {
-        let mut out = Self {
-            path: None,
-            source: source.into(),
-            line_starts: vec![],
-        };
+    pub fn anonymous(source: impl Display) -> Self {
+        let mut out = Self { path: None, source: source.to_string(), line_starts: vec![] };
         out.line_starts = line_starts(&out.source).collect();
         out
     }
     pub fn file(file: PathBuf) -> DiagnosticResult<Self> {
-        let mut out = Self {
-            path: Some(file),
-            source: String::new(),
-            line_starts: vec![],
-        };
+        let mut out = Self { path: Some(file), source: String::new(), line_starts: vec![] };
         out.update()?;
         Ok(out)
     }
@@ -66,7 +57,6 @@ impl TextCache {
         }
         Ok(())
     }
-
     pub fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
@@ -84,46 +74,42 @@ impl TextCache {
 
 impl Default for TextStorage {
     fn default() -> Self {
-        Self {
-            files: Default::default()
-        }
+        Self { files: Default::default() }
     }
 }
 
 impl TextStorage {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn file(&mut self, file_id: impl Into<String>, file_path: PathBuf) -> DiagnosticResult<String> {
-        let name = file_id.into();
+    pub fn file(&mut self, file_id: impl Display, file_path: PathBuf) -> DiagnosticResult<String> {
+        let name = file_id.to_string();
         let file = TextCache::file(file_path)?;
         self.files.insert(name.clone(), file);
         Ok(name)
     }
-    pub fn anonymous(&mut self, file_id: impl Into<String>, file_text: impl Into<String>) -> String {
-        let name = file_id.into();
+    pub fn anonymous(&mut self, file_id: impl Display, file_text: impl Display) -> String {
+        let name = file_id.to_string();
         let file = TextCache::anonymous(file_text);
         self.files.insert(name.clone(), file);
         name
     }
     pub fn update(&mut self, name: &str) -> DiagnosticResult {
         match self.files.get_mut(name) {
-            Some(s) => {
-                s.update()?
-            }
+            Some(s) => s.update()?,
             None => {}
         }
         Ok(())
     }
     /// Get the file corresponding to the given id.
-    pub fn get(&self, file: &str) -> Result<&TextCache, DiagnosticError> {
+    pub fn get(&self, file_id: &str) -> DiagnosticResult<&TextCache> {
         // match self.files.get(file) {
         //     None => {}
         //     Some(_) => {}
         // }
-        self.files.get(file).ok_or(DiagnosticError::FileMissing)
+        self.files.get(file_id).ok_or(DiagnosticError::FileMissing)
     }
     /// The source code of a file.
-    pub fn source(&self, file_id: &str) -> Result<&str, DiagnosticError> {
+    pub fn source(&self, file_id: &str) -> DiagnosticResult<&str> {
         Ok(&self.get(file_id)?.source)
     }
     /// The index of the line at the given byte index.
@@ -139,7 +125,7 @@ impl TextStorage {
     ///
     /// [`line_starts`]: crate::errors::line_starts
     /// [`errors`]: crate::errors
-    pub fn line_index(&self, file_id: &str, byte_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn line_index(&self, file_id: &str, byte_index: usize) -> DiagnosticResult<usize> {
         self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
     /// The user-facing line number at the given line index.
@@ -154,7 +140,7 @@ impl TextStorage {
     ///
     /// [line-macro]: https://en.cppreference.com/w/c/preprocessor/line
     #[allow(unused_variables)]
-    pub fn line_number(&self, file_id: &str, line_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn line_number(&self, file_id: &str, line_index: usize) -> DiagnosticResult<usize> {
         Ok(line_index + 1)
     }
     /// The user-facing column number at the given line index and byte index.
@@ -167,7 +153,7 @@ impl TextStorage {
     ///
     /// [`errors`]: crate::errors
     /// [`column_index`]: crate::errors::column_index
-    pub fn column_number(&self, file_id: &str, line_index: usize, byte_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn column_number(&self, file_id: &str, line_index: usize, byte_index: usize) -> DiagnosticResult<usize> {
         let source = self.source(file_id)?;
         let line_range = self.line_range(file_id, line_index)?;
         let column_index = column_index(source.as_ref(), line_range, byte_index);
@@ -176,7 +162,7 @@ impl TextStorage {
     }
     /// Convenience method for returning line and column number at the given
     /// byte index in the file.
-    pub fn location(&self, file_id: &str, byte_index: usize) -> Result<Location, DiagnosticError> {
+    pub fn location(&self, file_id: &str, byte_index: usize) -> DiagnosticResult<Location> {
         let line_index = self.line_index(file_id, byte_index)?;
 
         Ok(Location {
@@ -185,7 +171,7 @@ impl TextStorage {
         })
     }
     /// The byte range of line in the source of the file.
-    pub fn line_range(&self, file_id: &str, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+    pub fn line_range(&self, file_id: &str, line_index: usize) -> DiagnosticResult<Range<usize>> {
         self.get(file_id)?.line_range(line_index)
     }
 }

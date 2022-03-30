@@ -1,11 +1,14 @@
 use std::ops::Range;
 
-use crate::{errors::{DiagnosticError, Location}, LabelStyle, term::{
-    renderer::{Locus, MultiLabel, Renderer, SingleLabel},
-    Config,
-}};
-use crate::text_cache::labels::Diagnostic;
-use crate::text_cache::TextStorage;
+use crate::{
+    errors::{DiagnosticError, Location},
+    term::{
+        renderer::{Locus, MultiLabel, Renderer, SingleLabel},
+        Config,
+    },
+    text_cache::TextStorage,
+    Diagnostic, LabelStyle,
+};
 
 /// Calculate the number of decimal digits in `n`.
 // TODO: simplify after https://github.com/rust-lang/rust/issues/70887 resolves
@@ -21,21 +24,12 @@ pub struct RichDiagnostic<'diagnostic, 'config> {
     config: &'config Config,
 }
 
-impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config>
-{
-    pub fn new(
-        diagnostic: &'diagnostic Diagnostic,
-        config: &'config Config,
-    ) -> RichDiagnostic<'diagnostic, 'config> {
+impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
+    pub fn new(diagnostic: &'diagnostic Diagnostic, config: &'config Config) -> RichDiagnostic<'diagnostic, 'config> {
         RichDiagnostic { diagnostic, config }
     }
 
-    pub fn render<'files>(
-        &self,
-        files: &'files TextStorage,
-        renderer: &mut Renderer<'_, '_>,
-    ) -> Result<(), DiagnosticError>
-    {
+    pub fn render<'files>(&self, files: &'files TextStorage, renderer: &mut Renderer<'_, '_>) -> Result<(), DiagnosticError> {
         use std::collections::BTreeMap;
 
         struct LabeledFile<'diagnostic, FileId> {
@@ -388,18 +382,12 @@ pub struct ShortDiagnostic<'diagnostic> {
     show_notes: bool,
 }
 
-impl<'diagnostic> ShortDiagnostic<'diagnostic>
-{
+impl<'diagnostic> ShortDiagnostic<'diagnostic> {
     pub fn new(diagnostic: &'diagnostic Diagnostic, show_notes: bool) -> ShortDiagnostic<'diagnostic> {
         ShortDiagnostic { diagnostic, show_notes }
     }
 
-    pub fn render<'files>(
-        &self,
-        files: &'files TextStorage,
-        renderer: &mut Renderer<'_, '_>,
-    ) -> Result<(), DiagnosticError>
-    {
+    pub fn render<'files>(&self, files: &'files TextStorage, renderer: &mut Renderer<'_, '_>) -> Result<(), DiagnosticError> {
         // Located headers
         //
         // ```text
@@ -411,10 +399,7 @@ impl<'diagnostic> ShortDiagnostic<'diagnostic>
             primary_labels_encountered += 1;
 
             renderer.render_header(
-                Some(&Locus {
-                    name: label.file_id.to_string(),
-                    location: files.location(&label.file_id, label.range.start)?,
-                }),
+                Some(&Locus { name: label.file_id.to_string(), location: files.location(&label.file_id, label.range.start)? }),
                 self.diagnostic.severity,
                 self.diagnostic.code.as_deref(),
                 self.diagnostic.message.as_str(),

@@ -68,12 +68,12 @@ fn main() -> anyhow::Result<()> {
         .with_message("`case` clauses have incompatible types")
         .with_code("E0308")
         .with_labels(vec![
-            Label::primary("GG".to_string(), 328..331).with_message("expected `String`, found `Nat`"),
-            Label::secondary("GG".to_string(), 211..331).with_message("`case` clauses have incompatible types"),
-            Label::secondary("GG".to_string(), 258..268).with_message("this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 284..290).with_message("this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 306..312).with_message("this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 186..192).with_message("expected type `String` found here"),
+            Label::primary("GG".to_string(), 328..331,"expected `String`, found `Nat`"),
+            Label::secondary("GG".to_string(), 211..331,"`case` clauses have incompatible types"),
+            Label::secondary("GG".to_string(), 258..268,"this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 284..290,"this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 306..312,"this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 186..192,"expected type `String` found here"),
         ])
         .with_notes(vec![unindent::unindent(
             "

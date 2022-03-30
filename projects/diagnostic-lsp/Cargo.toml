@@ -10,6 +10,6 @@ documentation = "https://docs.rs/codespan-lsp"
 edition = "2018"
 
 [dependencies]
-diagnostic = { version = "0.0.0", path = "../diagnostic" }
+diagnostic = { version = "0.1.0", path = "../diagnostic" }
 lsp-types = "0.93.2"
 url = "2.3.1"
