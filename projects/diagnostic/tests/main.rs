@@ -1,12 +1,9 @@
 use termcolor::ColorChoice;
 
-use diagnostic::{
-    Diagnostic,
-    DiagnosticLevel, Label, term::{self, Config, termcolor::StandardStream}, TextStorage,
-};
+use diagnostic::{Diagnostic, DiagnosticLevel, DiagnosticResult, Label, term::{self, Config, termcolor::StandardStream}, TextStorage};
 
 #[test]
-fn main() -> anyhow::Result<()> {
+fn main() -> DiagnosticResult {
     let mut store = TextStorage::default();
 
     let file_id1 = store.anonymous(
