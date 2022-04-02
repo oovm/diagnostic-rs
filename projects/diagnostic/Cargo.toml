@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic"
-version = "0.1.0"
+version = "0.1.2"
 readme = "Readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
@@ -8,8 +8,8 @@ description = "Beautiful diagnostic reporting for text-based programming languag
 homepage = "https://github.com/oovm/diagnostic-rs"
 repository = "https://github.com/oovm/diagnostic-rs"
 documentation = "https://docs.rs/diagnostic-rs"
-exclude = ["assets/**"]
-edition = "2018"
+exclude = ["tests/**"]
+edition = "2021"
 
 [dependencies]
 serde = { version = "1.0.147", features = ["derive"] }

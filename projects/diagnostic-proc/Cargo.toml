@@ -1,6 +1,6 @@
 [package]
-name = "diagnostic-svg"
-version = "0.0.0"
+name = "diagnostic-macro"
+version = "0.1.0"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>"]
 description = "Conversions between codespan types and Language Server Protocol types"
@@ -9,7 +9,12 @@ repository = "https://github.com/brendanzab/codespan"
 documentation = "https://docs.rs/codespan-lsp"
 edition = "2018"
 
+[lib]
+proc-macro = true
+
 [dependencies]
-diagnostic = { version = "0.1.0", path = "../diagnostic" }
-lsp-types = "0.93.2"
-url = "2.3.1"
+diagnostic = { version = "0.1.2", path = "../diagnostic" }
+syn = "1.0.103"
+proc-macro2 = "1.0.47"
+proc-macro2-diagnostics = "0.9.1"
+proc-macro-error = "1.0.4"

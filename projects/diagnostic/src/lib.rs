@@ -1,9 +1,7 @@
-//! Diagnostic reporting support for the codespan crate.
-
-#![forbid(unsafe_code)]
+#![doc = include_str ! ("../Readme.md")]
 
 pub use self::{
-    errors::{DiagnosticError, DiagnosticResult},
+    errors::{DiagnosticError, DiagnosticResult, Location},
     text_cache::{
         builder::{Diagnostic, DiagnosticLevel},
         labels::{Label, LabelStyle},

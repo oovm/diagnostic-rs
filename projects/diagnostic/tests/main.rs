@@ -1,6 +1,7 @@
-use termcolor::ColorChoice;
+use termcolor::{ColorChoice, StandardStream};
 
-use diagnostic::{Diagnostic, DiagnosticLevel, DiagnosticResult, Label, term::{self, Config, termcolor::StandardStream}, TextStorage};
+use diagnostic::{Diagnostic, DiagnosticLevel, DiagnosticResult, Label, TextStorage};
+use diagnostic::term::{Config, emit};
 
 #[test]
 fn main() -> DiagnosticResult {
@@ -133,7 +134,7 @@ fn main() -> DiagnosticResult {
     let writer = StandardStream::stderr(ColorChoice::Always);
     let config = Config::default();
     for diagnostic in &diagnostics {
-        term::emit(&mut writer.lock(), &config, &store, diagnostic)?;
+        emit(&mut writer.lock(), &config, &store, diagnostic)?;
     }
 
     Ok(())
