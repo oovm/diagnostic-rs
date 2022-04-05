@@ -11,12 +11,15 @@ use std::io::{self, Write};
 
 use structopt::StructOpt;
 
-use diagnostic::{diagnostic::{Diagnostic, Label}, term::{
-    self,
-    ColorArg,
-    termcolor::{Color, ColorSpec, StandardStream, WriteColor},
-}, TextStorage};
-use diagnostic::term::{Config, Styles};
+use diagnostic::{
+    diagnostic::{Diagnostic, Label},
+    term::{
+        self,
+        termcolor::{Color, ColorSpec, StandardStream, WriteColor},
+        ColorArg, Config, Styles,
+    },
+    Diagnostic, DiagnosticResult, Label, TextStorage,
+};
 
 #[derive(Debug, StructOpt)]
 #[structopt(name = "emit")]
@@ -37,7 +40,7 @@ pub enum Opts {
     },
 }
 
-fn main() -> anyhow::Result<()> {
+fn main() -> DiagnosticResult {
     let mut store = TextStorage::default();
 
     store.anonymous(
@@ -68,12 +71,12 @@ fn main() -> anyhow::Result<()> {
         .with_message("`case` clauses have incompatible types")
         .with_code("E0308")
         .with_labels(vec![
-            Label::primary("GG".to_string(), 328..331,"expected `String`, found `Nat`"),
-            Label::secondary("GG".to_string(), 211..331,"`case` clauses have incompatible types"),
-            Label::secondary("GG".to_string(), 258..268,"this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 284..290,"this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 306..312,"this is found to be of type `String`"),
-            Label::secondary("GG".to_string(), 186..192,"expected type `String` found here"),
+            Label::primary("GG".to_string(), 328..331, "expected `String`, found `Nat`"),
+            Label::secondary("GG".to_string(), 211..331, "`case` clauses have incompatible types"),
+            Label::secondary("GG".to_string(), 258..268, "this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 284..290, "this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 306..312, "this is found to be of type `String`"),
+            Label::secondary("GG".to_string(), 186..192, "expected type `String` found here"),
         ])
         .with_notes(vec![unindent::unindent(
             "
@@ -87,10 +90,7 @@ fn main() -> anyhow::Result<()> {
         Opts::Svg => {
             let mut buffer = Vec::new();
             let mut writer = HtmlEscapeWriter::new(SvgWriter::new(&mut buffer));
-            let config = Config {
-                styles: Styles::with_blue(Color::Blue),
-                ..Config::default()
-            };
+            let config = Config { styles: Styles::with_blue(Color::Blue), ..Config::default() };
 
             for diagnostic in &diagnostics {
                 term::emit(&mut writer, &config, &store, diagnostic)?;
@@ -275,7 +275,8 @@ impl<W: Write> WriteColor for SvgWriter<W> {
 
         if self.color == *spec {
             return Ok(());
-        } else {
+        }
+        else {
             if !self.color.is_none() {
                 write!(self, "</span>")?;
             }
@@ -285,7 +286,8 @@ impl<W: Write> WriteColor for SvgWriter<W> {
         if spec.is_none() {
             write!(self, "</span>")?;
             return Ok(());
-        } else {
+        }
+        else {
             write!(self, "<span class=\"")?;
         }
 

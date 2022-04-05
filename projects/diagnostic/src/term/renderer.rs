@@ -161,7 +161,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         self.set_color(self.styles().header(severity))?;
         match severity {
             DiagnosticLevel::Bug => write!(self, "bug")?,
-            DiagnosticLevel::Error => write!(self, "error")?,
+            DiagnosticLevel::Error => write!(self, "errors")?,
             DiagnosticLevel::Warning => write!(self, "warning")?,
             DiagnosticLevel::Help => write!(self, "help")?,
             DiagnosticLevel::Note => write!(self, "note")?,

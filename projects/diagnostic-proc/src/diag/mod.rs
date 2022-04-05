@@ -1,41 +1,29 @@
 use proc_macro2::TokenStream;
-use proc_macro2_diagnostics::{Diagnostic, Level};
 
-use diagnostic::DiagnosticLevel;
-use proc_macro_error::abort;
+use diagnostic::{
+    term::{
+        emit,
+        termcolor::{ColorChoice, StandardStream},
+        Config,
+    },
+    DiagnosticLevel, TextStorage,
+};
 
-fn level(raw: DiagnosticLevel) -> Level {
-    match raw {
-        DiagnosticLevel::Help => Level::Help,
-        DiagnosticLevel::Note => Level::Help,
-        DiagnosticLevel::Warning => Level::Warning,
-        DiagnosticLevel::Error => Level::Error,
-        DiagnosticLevel::Bug => Level::Error,
-    }
-}
-
-pub fn my_macro(input: TokenStream) -> Result<TokenStream, Diagnostic> {
+pub fn my_macro(input: TokenStream) {
+    let mut store = TextStorage::default();
+    store.anonymous("projects\\diagnostic-proc\\src\\diag\\mod.rs", include_str!("mod.rs"));
+    store.anonymous("projects/diagnostic-proc/src/diag2/mod.rs", include_str!("mod.rs"));
     let raw = diagnostic::Diagnostic::new(DiagnosticLevel::Error)
-        .with_message("unknown builtin: `NATRAL`")
-        .with_primary("GGG", 96..102, "unknown builtin")
+        .with_message("unknown builtin: 1")
+        .with_primary("projects\\diagnostic-proc\\src\\diag\\mod.rs", 96..102, "unknown builtin")
+        .with_secondary("projects/diagnostic-proc/src/diag2/mod.rs", 96..102, "unknown builtin")
         .with_note("there is a builtin with a similar name: `NATURAL`");
-    let diagnostic::Diagnostic { severity, code, message, labels, notes } = raw;
 
-    abort!(
-        span, message; // <--- attachments start with `;` (semicolon)
-
-        help = "format {} {}", "arg1", "arg2"; // <--- every attachment ends with `;`,
-                                               //      maybe except the last one
-
-        note = "to_string"; // <--- one arg uses `.to_string()` instead of `format!()`
-
-        yay = "I see what {} did here", "you"; // <--- "help =" and "hint =" are mapped
-                                               // to Diagnostic::help,
-                                               // anything else is Diagnostic::note
-
-    );
-
-    Err(diag)
+    let writer = StandardStream::stderr(ColorChoice::Always);
+    let config = Config::default();
+    for diagnostic in &vec![raw.clone()] {
+        emit(&mut writer.lock(), &config, &store, diagnostic).unwrap();
+    }
 
     //  Err(input.span().error("there's a problem here..."))
 }
