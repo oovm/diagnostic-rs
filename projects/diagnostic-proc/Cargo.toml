@@ -16,5 +16,5 @@ proc-macro = true
 diagnostic = { version = "0.1.2", path = "../diagnostic" }
 syn = "1.0.103"
 quote = "1.0.21"
-proc-macro2 = "1.0.47"
+proc-macro2 = {version = "1.0.47", features = ["span-locations"]}
 proc-macro-error = "1.0.4"

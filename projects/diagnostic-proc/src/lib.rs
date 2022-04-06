@@ -1,3 +1,4 @@
+#![feature(proc_macro_span)]
 extern crate proc_macro;
 use crate::diag::my_macro;
 use quote::quote;

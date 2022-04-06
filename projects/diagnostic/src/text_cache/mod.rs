@@ -9,12 +9,18 @@
 //! cargo run --example custom_files
 //! ```
 
-use std::{cmp::Ordering, collections::BTreeMap, fs::read_to_string, ops::Range, path::PathBuf};
-use std::fmt::Display;
+use std::{
+    cmp::Ordering,
+    collections::BTreeMap,
+    fmt::Display,
+    fs::read_to_string,
+    ops::Range,
+    path::{Path, PathBuf},
+};
 
 use crate::{
+    errors::{column_index, line_starts, DiagnosticError, Location},
     DiagnosticResult,
-    errors::{column_index, DiagnosticError, line_starts, Location},
 };
 
 pub mod builder;
@@ -79,10 +85,25 @@ impl Default for TextStorage {
 }
 
 impl TextStorage {
+    pub fn canonicalize<P>(path: P) -> DiagnosticResult<String>
+    where
+        P: AsRef<Path>,
+    {
+        let path = path.as_ref().canonicalize()?;
+        let path = path.to_string_lossy();
+        if cfg!(target_os = "windows") {
+            let path = &path[4..path.len()];
+            Ok(path.to_string())
+        }
+        else {
+            Ok(path.to_string())
+        }
+    }
+
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn file(&mut self, file_id: impl Display, file_path: PathBuf) -> DiagnosticResult<String> {
-        let name = file_id.to_string();
+    pub fn file(&mut self, file_path: PathBuf) -> DiagnosticResult<String> {
+        let name = Self::canonicalize(&file_path)?;
         let file = TextCache::file(file_path)?;
         self.files.insert(name.clone(), file);
         Ok(name)
