@@ -1,4 +1,5 @@
 #![feature(proc_macro_span)]
+#![feature(proc_macro_def_site)]
 extern crate proc_macro;
 use crate::diag::my_macro;
 use quote::quote;

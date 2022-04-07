@@ -102,9 +102,13 @@ impl TextStorage {
 
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn file(&mut self, file_path: PathBuf) -> DiagnosticResult<String> {
-        let name = Self::canonicalize(&file_path)?;
-        let file = TextCache::file(file_path)?;
+    pub fn file<P>(&mut self, file_path: P) -> DiagnosticResult<String>
+    where
+        P: AsRef<Path>,
+    {
+        let path = file_path.as_ref().to_path_buf();
+        let name = Self::canonicalize(&path)?;
+        let file = TextCache::file(path)?;
         self.files.insert(name.clone(), file);
         Ok(name)
     }
