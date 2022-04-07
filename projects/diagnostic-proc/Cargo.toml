@@ -13,8 +13,7 @@ edition = "2018"
 proc-macro = true
 
 [dependencies]
-diagnostic = { version = "0.1.2", path = "../diagnostic" }
+diagnostic = { version = "0.2.0", path = "../diagnostic" }
 syn = "1.0.103"
 quote = "1.0.21"
-proc-macro2 = {version = "1.0.47", features = ["span-locations"]}
-proc-macro-error = "1.0.4"
+proc-macro2 = { version = "1.0.47", features = ["span-locations"] }

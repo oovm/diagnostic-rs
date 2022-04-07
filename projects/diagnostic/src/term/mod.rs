@@ -100,22 +100,3 @@ pub fn emit<'files>(
         DisplayStyle::Short => ShortDiagnostic::new(diagnostic, false).render(files, &mut renderer),
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use crate::{
-        diagnostic::{Diagnostic, Label},
-        term::{emit, Config},
-        text_cache::TextStorage,
-    };
-
-    #[test]
-    fn unsized_emit() {
-        let mut files = TextStorage::default();
-        files.anonymous("test", "texttext");
-        let mut writer = termcolor::NoColor::new(Vec::<u8>::new());
-        let diagnostic = Diagnostic::bug().with_labels(vec![Label::primary("id".to_string(), 0..0)]);
-
-        emit(&mut writer, &Config::default(), &files, &diagnostic).unwrap();
-    }
-}

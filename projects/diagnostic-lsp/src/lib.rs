@@ -1,6 +1,5 @@
 //! Utilities for translating from codespan types into Language Server Protocol (LSP) types
 
-
 // WARNING: Be extremely careful when adding new imports here, as it could break
 // the compatible version range that we claim in our `Cargo.toml`. This could
 // potentially break down-stream builds on a `cargo update`. This is an
@@ -15,11 +14,13 @@ fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: 
         let given = column;
 
         Err(DiagnosticError::ColumnTooLarge { given, max })
-    } else if !line_str.is_char_boundary(column) {
+    }
+    else if !line_str.is_char_boundary(column) {
         let given = byte_index;
 
         Err(DiagnosticError::InvalidCharBoundary { given })
-    } else {
+    }
+    else {
         let line_utf16 = line_str[..column].encode_utf16();
         let character = line_utf16.count() as u32;
         let line = line as u32;
@@ -28,8 +29,7 @@ fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: 
     }
 }
 
-pub fn byte_index_to_position(files: &TextStorage, file_id: &str, byte_index: usize) -> DiagnosticResult<Position>
-{
+pub fn byte_index_to_position(files: &TextStorage, file_id: &str, byte_index: usize) -> DiagnosticResult<Position> {
     let source = files.source(file_id)?;
 
     let line_index = files.line_index(file_id, byte_index)?;
@@ -44,8 +44,7 @@ pub fn byte_index_to_position(files: &TextStorage, file_id: &str, byte_index: us
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range(files: &TextStorage, file_id: &str, span: std::ops::Range<usize>) -> DiagnosticResult<Range>
-{
+pub fn byte_span_to_range(files: &TextStorage, file_id: &str, span: std::ops::Range<usize>) -> DiagnosticResult<Range> {
     Ok(Range {
         start: byte_index_to_position(files, file_id, span.start)?,
         end: byte_index_to_position(files, file_id, span.end)?,
@@ -71,13 +70,13 @@ fn character_to_line_offset(line: &str, character: u32) -> DiagnosticResult<usiz
     // Handle positions after the last character on the line
     if character_offset == character {
         Ok(line_len)
-    } else {
+    }
+    else {
         Err(DiagnosticError::ColumnTooLarge { given: character_offset as usize, max: line.len() })
     }
 }
 
-pub fn position_to_byte_index(files: &TextStorage, file_id: &str, position: &Position) -> DiagnosticResult<usize>
-{
+pub fn position_to_byte_index(files: &TextStorage, file_id: &str, position: &Position) -> DiagnosticResult<usize> {
     let source = files.source(file_id)?;
 
     let line_span = files.line_range(file_id, position.line as usize).unwrap();
@@ -88,7 +87,6 @@ pub fn position_to_byte_index(files: &TextStorage, file_id: &str, position: &Pos
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &str, range: &Range) -> DiagnosticResult<std::ops::Range<usize>>
-{
+pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &str, range: &Range) -> DiagnosticResult<std::ops::Range<usize>> {
     Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }

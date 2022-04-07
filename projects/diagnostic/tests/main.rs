@@ -1,7 +1,12 @@
 use termcolor::{ColorChoice, StandardStream};
 
-use diagnostic::{Diagnostic, DiagnosticLevel, DiagnosticResult, Label, TextStorage};
-use diagnostic::term::{Config, emit};
+use diagnostic::{
+    term::{emit, Config},
+    Diagnostic, DiagnosticLevel, DiagnosticResult, Label, TextCache, TextStorage,
+};
+
+mod term;
+mod text_cache;
 
 #[test]
 fn main() -> DiagnosticResult {
@@ -88,14 +93,12 @@ fn main() -> DiagnosticResult {
                 Label::primary(&file_id2, 37..44, "expected `Nat`, found `String`"),
                 Label::secondary(&file_id1, 130..155, "based on the definition of `_+_`"),
             ])
-            .with_notes(vec![
-                unindent::unindent(
-                    "
+            .with_notes(vec![unindent::unindent(
+                "
                     expected type `Nat`
                        found type `String`
                 ",
-                ),
-            ]),
+            )]),
         // Incompatible match clause error
         Diagnostic::new(DiagnosticLevel::Error)
             .with_message("`case` clauses have incompatible types")

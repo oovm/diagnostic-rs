@@ -1,7 +1,6 @@
 //! Diagnostic data structures.
 
-use std::{ops::Range};
-use std::fmt::Display;
+use std::{fmt::Display, ops::Range};
 
 use serde::{Deserialize, Serialize};
 
