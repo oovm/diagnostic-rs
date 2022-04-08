@@ -19,12 +19,14 @@ use std::{
 };
 
 use crate::{
-    errors::{column_index, line_starts, DiagnosticError, Location},
-    DiagnosticResult,
+    errors::DiagnosticError,
+    text_cache::location::{column_index, line_starts},
+    DiagnosticResult, Location,
 };
 
 pub mod builder;
 pub mod labels;
+pub mod location;
 
 #[derive(Debug, Clone)]
 pub struct TextStorage {

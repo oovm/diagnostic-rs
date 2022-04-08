@@ -1,10 +1,11 @@
 #![doc = include_str ! ("../Readme.md")]
 
 pub use self::{
-    errors::{DiagnosticError, DiagnosticResult, Location},
+    errors::{validation::Validation, DiagnosticError, DiagnosticResult},
     text_cache::{
         builder::{Diagnostic, DiagnosticLevel},
         labels::{Label, LabelStyle},
+        location::{Location, Span},
         TextCache, TextStorage,
     },
 };

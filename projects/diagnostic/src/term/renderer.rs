@@ -5,9 +5,9 @@ use std::{
 use termcolor::{ColorSpec, WriteColor};
 
 use crate::{
-    errors::{DiagnosticError, Location},
+    errors::DiagnosticError,
     term::{Chars, Config, Styles},
-    DiagnosticLevel, LabelStyle,
+    DiagnosticLevel, LabelStyle, Location,
 };
 
 /// The 'location focus' of a source code snippet.

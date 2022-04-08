@@ -1,13 +1,13 @@
-use std::ops::Range;
+use std::{collections::BTreeMap, ops::Range};
 
 use crate::{
-    errors::{DiagnosticError, Location},
+    errors::DiagnosticError,
     term::{
         renderer::{Locus, MultiLabel, Renderer, SingleLabel},
         Config,
     },
     text_cache::TextStorage,
-    Diagnostic, LabelStyle,
+    Diagnostic, LabelStyle, Location,
 };
 
 /// Calculate the number of decimal digits in `n`.
@@ -23,25 +23,30 @@ pub struct RichDiagnostic<'diagnostic, 'config> {
     diagnostic: &'diagnostic Diagnostic,
     config: &'config Config,
 }
+struct LabeledFile<'diagnostic, FileId> {
+    file_id: FileId,
+    start: usize,
+    name: String,
+    location: Location,
+    num_multi_labels: usize,
+    lines: BTreeMap<usize, Line<'diagnostic>>,
+    max_label_style: LabelStyle,
+}
 
+struct Line<'diagnostic> {
+    number: usize,
+    range: std::ops::Range<usize>,
+    // TODO: How do we reuse these allocations?
+    single_labels: Vec<SingleLabel<'diagnostic>>,
+    multi_labels: Vec<(usize, LabelStyle, MultiLabel<'diagnostic>)>,
+    must_render: bool,
+}
 impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
     pub fn new(diagnostic: &'diagnostic Diagnostic, config: &'config Config) -> RichDiagnostic<'diagnostic, 'config> {
         RichDiagnostic { diagnostic, config }
     }
 
     pub fn render<'files>(&self, files: &'files TextStorage, renderer: &mut Renderer<'_, '_>) -> Result<(), DiagnosticError> {
-        use std::collections::BTreeMap;
-
-        struct LabeledFile<'diagnostic, FileId> {
-            file_id: FileId,
-            start: usize,
-            name: String,
-            location: Location,
-            num_multi_labels: usize,
-            lines: BTreeMap<usize, Line<'diagnostic>>,
-            max_label_style: LabelStyle,
-        }
-
         impl<'diagnostic, FileId> LabeledFile<'diagnostic, FileId> {
             fn get_or_insert_line(
                 &mut self,
@@ -58,15 +63,6 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
                     must_render: false,
                 })
             }
-        }
-
-        struct Line<'diagnostic> {
-            number: usize,
-            range: std::ops::Range<usize>,
-            // TODO: How do we reuse these allocations?
-            single_labels: Vec<SingleLabel<'diagnostic>>,
-            multi_labels: Vec<(usize, LabelStyle, MultiLabel<'diagnostic>)>,
-            must_render: bool,
         }
 
         // TODO: Make this data structure external, to allow for allocation reuse
