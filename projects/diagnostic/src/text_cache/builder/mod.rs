@@ -4,7 +4,7 @@ use std::{fmt::Display, ops::Range, string::ToString};
 
 use serde::{Deserialize, Serialize};
 
-use crate::Label;
+use crate::{FileID, Label};
 
 /// A severity level for labels messages.
 ///
@@ -76,15 +76,15 @@ impl Diagnostic {
     }
 
     /// Add some labels to the labels.
-    pub fn with_primary(mut self, file_id: impl Display, range: Range<usize>, message: impl Display) -> Self {
-        let label = Label::primary(file_id, range, message);
+    pub fn with_primary(mut self, file_id: impl Into<FileID>, range: Range<usize>, message: impl Display) -> Self {
+        let label = Label::primary(file_id.into(), range, message);
         self.labels.push(label);
         self
     }
 
     /// Add some labels to the labels.
-    pub fn with_secondary(mut self, file_id: impl Display, range: Range<usize>, message: impl Display) -> Self {
-        let label = Label::secondary(file_id, range, message);
+    pub fn with_secondary(mut self, file_id: impl Into<FileID>, range: Range<usize>, message: impl Display) -> Self {
+        let label = Label::secondary(file_id.into(), range, message);
         self.labels.push(label);
         self
     }

@@ -12,10 +12,8 @@ mod text_cache;
 fn main() -> DiagnosticResult {
     let mut store = TextStorage::default();
 
-    let file_id1 = store.anonymous(
-        "Data/Nat.fun",
-        unindent::unindent(
-            "
+    let file_id1 = store.anonymous(unindent::unindent(
+        "
                 module Data.Nat where
 
                 data Nat : Type where
@@ -35,25 +33,19 @@ fn main() -> DiagnosticResult {
                 zero    - succ n₂ = zero
                 succ n₁ - succ n₂ = n₁ - n₂
             ",
-        ),
-    );
+    ));
 
-    let file_id2 = store.anonymous(
-        "Test.fun",
-        unindent::unindent(
-            r#"
+    let file_id2 = store.anonymous(unindent::unindent(
+        r#"
                 module Test where
 
                 _ : Nat
                 _ = 123 + "hello"
             "#,
-        ),
-    );
+    ));
 
-    let file_id3 = store.anonymous(
-        "FizzBuzz.fun",
-        unindent::unindent(
-            r#"
+    let file_id3 = store.anonymous(unindent::unindent(
+        r#"
                 module FizzBuzz where
 
                 fizz₁ : Nat → String
@@ -71,8 +63,7 @@ fn main() -> DiagnosticResult {
                         _ 0 => "Buzz"
                         _ _ => num
             "#,
-        ),
-    );
+    ));
 
     let diagnostics = [
         // Unknown builtin error

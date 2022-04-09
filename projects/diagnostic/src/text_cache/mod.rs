@@ -8,12 +8,12 @@
 //! ```sh
 //! cargo run --example custom_files
 //! ```
-
 use std::{
     cmp::Ordering,
-    collections::BTreeMap,
-    fmt::Display,
+    collections::{hash_map::DefaultHasher, BTreeMap},
+    fmt::{Debug, Display, Formatter},
     fs::read_to_string,
+    hash::{Hash, Hasher},
     ops::Range,
     path::{Path, PathBuf},
 };
@@ -21,7 +21,7 @@ use std::{
 use crate::{
     errors::DiagnosticError,
     text_cache::location::{column_index, line_starts},
-    DiagnosticResult, Location,
+    DiagnosticResult, FileID, Location,
 };
 
 pub mod builder;
@@ -31,7 +31,7 @@ pub mod location;
 
 #[derive(Debug, Clone)]
 pub struct TextStorage {
-    files: BTreeMap<String, TextCache>,
+    files: BTreeMap<FileID, TextCache>,
 }
 
 /// A file that is backed by an `Arc<String>`.
@@ -105,23 +105,24 @@ impl TextStorage {
 
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
-    pub fn file<P>(&mut self, file_path: P) -> DiagnosticResult<String>
+    pub fn file<P>(&mut self, file_path: P) -> DiagnosticResult<FileID>
     where
         P: AsRef<Path>,
     {
         let path = file_path.as_ref().to_path_buf();
-        let name = Self::canonicalize(&path)?;
+        let id = FileID::try_from(&path)?;
         let file = TextCache::file(path)?;
-        self.files.insert(name.clone(), file);
-        Ok(name)
+        self.files.insert(id.clone(), file);
+        Ok(id)
     }
-    pub fn anonymous(&mut self, file_id: impl Display, file_text: impl Display) -> String {
-        let name = file_id.to_string();
-        let file = TextCache::anonymous(file_text);
-        self.files.insert(name.clone(), file);
-        name
+    pub fn anonymous(&mut self, file_text: impl Display) -> FileID {
+        let text = file_text.to_string();
+        let id = FileID::from(&text);
+        let file = TextCache::anonymous(text);
+        self.files.insert(id.clone(), file);
+        id
     }
-    pub fn update(&mut self, name: &str) -> DiagnosticResult {
+    pub fn update(&mut self, name: &FileID) -> DiagnosticResult {
         match self.files.get_mut(name) {
             Some(s) => s.update()?,
             None => {}
@@ -129,7 +130,7 @@ impl TextStorage {
         Ok(())
     }
     /// Get the file corresponding to the given id.
-    pub fn get(&self, file_id: &str) -> DiagnosticResult<&TextCache> {
+    pub fn get(&self, file_id: &FileID) -> DiagnosticResult<&TextCache> {
         // match self.files.get(file) {
         //     None => {}
         //     Some(_) => {}
@@ -137,7 +138,7 @@ impl TextStorage {
         self.files.get(file_id).ok_or(DiagnosticError::FileMissing)
     }
     /// The source code of a file.
-    pub fn source(&self, file_id: &str) -> DiagnosticResult<&str> {
+    pub fn source(&self, file_id: &FileID) -> DiagnosticResult<&str> {
         Ok(&self.get(file_id)?.source)
     }
     /// The index of the line at the given byte index.
@@ -153,7 +154,7 @@ impl TextStorage {
     ///
     /// [`line_starts`]: crate::errors::line_starts
     /// [`errors`]: crate::errors
-    pub fn line_index(&self, file_id: &str, byte_index: usize) -> DiagnosticResult<usize> {
+    pub fn line_index(&self, file_id: &FileID, byte_index: usize) -> DiagnosticResult<usize> {
         self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
     /// The user-facing line number at the given line index.
@@ -168,7 +169,7 @@ impl TextStorage {
     ///
     /// [line-macro]: https://en.cppreference.com/w/c/preprocessor/line
     #[allow(unused_variables)]
-    pub fn line_number(&self, file_id: &str, line_index: usize) -> DiagnosticResult<usize> {
+    pub fn line_number(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<usize> {
         Ok(line_index + 1)
     }
     /// The user-facing column number at the given line index and byte index.
@@ -181,7 +182,7 @@ impl TextStorage {
     ///
     /// [`errors`]: crate::errors
     /// [`column_index`]: crate::errors::column_index
-    pub fn column_number(&self, file_id: &str, line_index: usize, byte_index: usize) -> DiagnosticResult<usize> {
+    pub fn column_number(&self, file_id: &FileID, line_index: usize, byte_index: usize) -> DiagnosticResult<usize> {
         let source = self.source(file_id)?;
         let line_range = self.line_range(file_id, line_index)?;
         let column_index = column_index(source.as_ref(), line_range, byte_index);
@@ -190,7 +191,7 @@ impl TextStorage {
     }
     /// Convenience method for returning line and column number at the given
     /// byte index in the file.
-    pub fn location(&self, file_id: &str, byte_index: usize) -> DiagnosticResult<Location> {
+    pub fn location(&self, file_id: &FileID, byte_index: usize) -> DiagnosticResult<Location> {
         let line_index = self.line_index(file_id, byte_index)?;
 
         Ok(Location {
@@ -199,7 +200,7 @@ impl TextStorage {
         })
     }
     /// The byte range of line in the source of the file.
-    pub fn line_range(&self, file_id: &str, line_index: usize) -> DiagnosticResult<Range<usize>> {
+    pub fn line_range(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<Range<usize>> {
         self.get(file_id)?.line_range(line_index)
     }
 }

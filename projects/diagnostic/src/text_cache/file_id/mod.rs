@@ -1,10 +1,8 @@
-use std::{
-    collections::hash_map::DefaultHasher,
-    fmt::{Debug, Display, Formatter},
-    hash::{Hash, Hasher},
-    path::PathBuf,
-};
+mod serder;
+mod try_from;
+use super::*;
 
+#[derive(Clone, Eq)]
 pub struct FileID {
     pub(crate) inner: String,
 }
@@ -15,36 +13,6 @@ impl FileID {
         E: TryInto<Self>,
     {
         source.try_into()
-    }
-}
-
-impl TryFrom<PathBuf> for FileID {
-    type Error = std::io::Error;
-
-    fn try_from(value: PathBuf) -> Result<Self, Self::Error> {
-        let path = value.to_string_lossy();
-        if cfg!(windows) {
-            let path = &path[4..path.len()];
-            Ok(Self { inner: path.to_string() })
-        }
-        else {
-            Ok(Self { inner: path.to_string() })
-        }
-    }
-}
-
-impl From<String> for FileID {
-    fn from(value: String) -> Self {
-        Self::from(value.as_str())
-    }
-}
-
-impl From<&str> for FileID {
-    fn from(value: &str) -> Self {
-        let mut hasher = DefaultHasher::new();
-        hasher.write_str(value);
-        let id = hasher.finish();
-        Self { inner: format!("<anonymous:{:0x}>", id) }
     }
 }
 
@@ -63,5 +31,23 @@ impl Display for FileID {
 impl Hash for FileID {
     fn hash<H: Hasher>(&self, state: &mut H) {
         state.write(self.inner.as_bytes())
+    }
+}
+
+impl PartialEq for FileID {
+    fn eq(&self, other: &Self) -> bool {
+        self.inner.eq(&other.inner)
+    }
+}
+
+impl PartialOrd for FileID {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        self.inner.partial_cmp(&other.inner)
+    }
+}
+
+impl Ord for FileID {
+    fn cmp(&self, other: &Self) -> Ordering {
+        self.inner.cmp(&other.inner)
     }
 }
