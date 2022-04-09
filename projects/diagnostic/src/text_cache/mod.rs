@@ -25,6 +25,7 @@ use crate::{
 };
 
 pub mod builder;
+pub mod file_id;
 pub mod labels;
 pub mod location;
 
