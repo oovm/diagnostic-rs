@@ -1,16 +1,17 @@
-use diagnostic::Location;
+use lsp_types::Position;
 
-use super::*;
+use diagnostic::{Location, TextStorage};
+use diagnostic_lsp::{byte_index_to_position, position_to_byte_index};
 
-#[test]
-fn position() {
-    let text = r#"
+const TEST_TEXT: &str = r#"
 let test = 2
 let test1 = ""
 test
 "#;
+#[test]
+fn position() {
     let mut files = TextStorage::default();
-    let file_id = files.anonymous("test", text);
+    let file_id = files.anonymous(TEST_TEXT);
     let pos = position_to_byte_index(&files, &file_id, &Position { line: 3, character: 2 }).unwrap();
     assert_eq!(
         Location {
@@ -29,7 +30,7 @@ const UNICODE: &str = "åä t𐐀b";
 #[test]
 fn unicode_get_byte_index() {
     let mut files = TextStorage::default();
-    let file_id = files.anonymous("unicode", UNICODE);
+    let file_id = files.anonymous(UNICODE);
 
     let result = position_to_byte_index(&files, &file_id, &Position { line: 0, character: 3 });
     assert_eq!(result.unwrap(), 5);
@@ -41,8 +42,8 @@ fn unicode_get_byte_index() {
 #[test]
 fn unicode_get_position() {
     let mut files = TextStorage::default();
-    let file_id = files.anonymous("unicode", UNICODE.to_string());
-    let file_id2 = files.anonymous("unicode newline", "\n".to_string() + UNICODE);
+    let file_id = files.anonymous(UNICODE.to_string());
+    let file_id2 = files.anonymous("\n".to_string() + UNICODE);
 
     let result = byte_index_to_position(&files, &file_id, 5);
     assert_eq!(result.unwrap(), Position { line: 0, character: 3 });

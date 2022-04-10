@@ -16,17 +16,20 @@ use std::{
     hash::{Hash, Hasher},
     ops::Range,
     path::{Path, PathBuf},
+    string::ToString,
 };
+
+use serde::{Deserialize, Serialize};
 
 use crate::{
     errors::DiagnosticError,
     text_cache::location::{column_index, line_starts},
-    DiagnosticResult, FileID, Location,
+    DiagnosticResult, FileID, Label, Location,
 };
 
-pub mod builder;
 pub mod file_id;
 pub mod labels;
+pub mod level;
 pub mod location;
 
 #[derive(Debug, Clone)]
@@ -37,7 +40,7 @@ pub struct TextStorage {
 /// A file that is backed by an `Arc<String>`.
 #[derive(Debug, Clone)]
 pub struct TextCache {
-    /// path
+    /// Path to original file
     pub path: Option<PathBuf>,
     /// The source code of the file.
     pub source: String,

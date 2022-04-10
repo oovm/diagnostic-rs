@@ -1,35 +1,29 @@
-//! Diagnostic data structures.
-
-use std::{fmt::Display, ops::Range, string::ToString};
-
-use serde::{Deserialize, Serialize};
-
-use crate::{FileID, Label};
+use super::*;
 
 /// A severity level for labels messages.
 ///
 /// These are ordered in the following way:
 ///
 /// ```rust
-/// use codespan_reporting::labels::Severity;
+/// use diagnostic::DiagnosticLevel;
 ///
-/// assert!(Severity::Bug > Severity::Error);
-/// assert!(Severity::Error > Severity::Warning);
-/// assert!(Severity::Warning > Severity::Note);
-/// assert!(Severity::Note > Severity::Help);
+/// assert!(DiagnosticLevel::Fatal > DiagnosticLevel::Error);
+/// assert!(DiagnosticLevel::Error > DiagnosticLevel::Warning);
+/// assert!(DiagnosticLevel::Warning > DiagnosticLevel::Info);
+/// assert!(DiagnosticLevel::Info > DiagnosticLevel::Custom);
 /// ```
 #[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DiagnosticLevel {
-    /// A note.
+    /// A custom diagnostic level
+    Custom(&'static str),
+    /// A useful information.
     Info,
-    /// A warning.
+    /// A warning that problems may arise
     Warning,
     /// An error.
     Error,
     /// An unexpected bug.
     Fatal,
-    /// An custom diagnostic level
-    Custom(&'static str),
 }
 
 /// Represents a labels message that can provide information like errors and

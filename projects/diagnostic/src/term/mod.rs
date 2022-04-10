@@ -24,29 +24,6 @@ mod views;
 ///
 /// [`clap`]: https://crates.io/crates/clap
 /// [`structopt`]: https://crates.io/crates/structopt
-///
-/// # Example
-///
-/// ```rust
-/// use codespan_reporting::term::{termcolor::StandardStream, ColorArg};
-/// use structopt::StructOpt;
-///
-/// #[derive(Debug, StructOpt)]
-/// #[structopt(name = "groovey-app")]
-/// pub struct Opts {
-///     /// Configure coloring of output
-///     #[structopt(
-///         long = "color",
-///         default_value = "auto",
-///         possible_values = ColorArg::VARIANTS,
-///         case_insensitive = true,
-///     )]
-///     pub color: ColorArg,
-/// }
-///
-/// let opts = Opts::from_args();
-/// let writer = StandardStream::stderr(opts.color.into());
-/// ```
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct ColorArg(pub ColorChoice);
 

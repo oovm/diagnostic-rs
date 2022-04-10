@@ -11,6 +11,9 @@ documentation = "https://docs.rs/diagnostic-rs"
 exclude = ["tests/**"]
 edition = "2021"
 
+[lib]
+doctest = false #FIXME:
+
 [dependencies]
 serde = { version = "1.0.147", features = ["derive"] }
 termcolor = "1.1.3"
