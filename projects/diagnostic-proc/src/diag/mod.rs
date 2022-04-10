@@ -2,7 +2,7 @@ use diagnostic::{
     term::{
         emit,
         termcolor::{ColorChoice, StandardStream},
-        Config,
+        TerminalConfig,
     },
     DiagnosticLevel, TextStorage,
 };
@@ -35,7 +35,7 @@ pub fn my_macro(input: TokenStream) {
         .with_note("there is a builtin with a similar name: `NATURAL`");
 
     let writer = StandardStream::stderr(ColorChoice::Always);
-    let config = Config::default();
+    let config = TerminalConfig::default();
     for diagnostic in &vec![raw.clone()] {
         emit(&mut writer.lock(), &config, &store, diagnostic).unwrap();
     }

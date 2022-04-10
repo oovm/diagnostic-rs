@@ -3,7 +3,7 @@ use termcolor::{Color, ColorSpec};
 
 /// Configures how a labels is rendered.
 #[derive(Clone, Debug)]
-pub struct Config {
+pub struct TerminalConfig {
     /// The display style to use when rendering diagnostics.
     /// Defaults to: [`DisplayStyle::Rich`].
     ///
@@ -38,9 +38,9 @@ pub struct Config {
     pub after_label_lines: usize,
 }
 
-impl Default for Config {
-    fn default() -> Config {
-        Config {
+impl Default for TerminalConfig {
+    fn default() -> TerminalConfig {
+        TerminalConfig {
             display_style: DisplayStyle::Rich,
             tab_width: 4,
             styles: Styles::default(),
@@ -95,7 +95,7 @@ pub enum DisplayStyle {
 pub struct Styles {
     /// The style to use when rendering bug headers.
     /// Defaults to `fg:red bold intense`.
-    pub header_bug: ColorSpec,
+    pub header_fatal: ColorSpec,
     /// The style to use when rendering error headers.
     /// Defaults to `fg:red bold intense`.
     pub header_error: ColorSpec,
@@ -104,7 +104,7 @@ pub struct Styles {
     pub header_warning: ColorSpec,
     /// The style to use when rendering note headers.
     /// Defaults to `fg:green bold intense`.
-    pub header_note: ColorSpec,
+    pub header_info: ColorSpec,
     /// The style to use when rendering help headers.
     /// Defaults to `fg:cyan bold intense`.
     pub header_help: ColorSpec,
@@ -146,22 +146,22 @@ impl Styles {
     /// The style used to mark a header at a given severity.
     pub fn header(&self, severity: DiagnosticLevel) -> &ColorSpec {
         match severity {
-            DiagnosticLevel::Bug => &self.header_bug,
+            DiagnosticLevel::Fatal => &self.header_fatal,
             DiagnosticLevel::Error => &self.header_error,
             DiagnosticLevel::Warning => &self.header_warning,
-            DiagnosticLevel::Note => &self.header_note,
-            DiagnosticLevel::Help => &self.header_help,
+            DiagnosticLevel::Info => &self.header_info,
+            DiagnosticLevel::Custom(_) => &self.header_help,
         }
     }
 
     /// The style used to mark a primary or secondary label at a given severity.
     pub fn label(&self, severity: DiagnosticLevel, label_style: LabelStyle) -> &ColorSpec {
         match (label_style, severity) {
-            (LabelStyle::Primary, DiagnosticLevel::Bug) => &self.primary_label_bug,
+            (LabelStyle::Primary, DiagnosticLevel::Fatal) => &self.primary_label_bug,
             (LabelStyle::Primary, DiagnosticLevel::Error) => &self.primary_label_error,
             (LabelStyle::Primary, DiagnosticLevel::Warning) => &self.primary_label_warning,
-            (LabelStyle::Primary, DiagnosticLevel::Note) => &self.primary_label_note,
-            (LabelStyle::Primary, DiagnosticLevel::Help) => &self.primary_label_help,
+            (LabelStyle::Primary, DiagnosticLevel::Info) => &self.primary_label_note,
+            (LabelStyle::Primary, DiagnosticLevel::Custom(_)) => &self.primary_label_help,
             (LabelStyle::Secondary, _) => &self.secondary_label,
         }
     }
@@ -171,10 +171,10 @@ impl Styles {
         let header = ColorSpec::new().set_bold(true).set_intense(true).clone();
 
         Styles {
-            header_bug: header.clone().set_fg(Some(Color::Red)).clone(),
+            header_fatal: header.clone().set_fg(Some(Color::Red)).clone(),
             header_error: header.clone().set_fg(Some(Color::Red)).clone(),
             header_warning: header.clone().set_fg(Some(Color::Yellow)).clone(),
-            header_note: header.clone().set_fg(Some(Color::Green)).clone(),
+            header_info: header.clone().set_fg(Some(Color::Green)).clone(),
             header_help: header.clone().set_fg(Some(Color::Cyan)).clone(),
             header_message: header,
 

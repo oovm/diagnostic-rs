@@ -2,11 +2,12 @@ use std::{
     io::{self, Write},
     ops::Range,
 };
+
 use termcolor::{ColorSpec, WriteColor};
 
 use crate::{
     errors::DiagnosticError,
-    term::{Chars, Config, Styles},
+    term::{Chars, Styles, TerminalConfig},
     DiagnosticLevel, LabelStyle, Location,
 };
 
@@ -114,12 +115,12 @@ type Underline = (LabelStyle, VerticalBound);
 /// Filler text from http://www.cupcakeipsum.com
 pub struct Renderer<'writer, 'config> {
     writer: &'writer mut dyn WriteColor,
-    config: &'config Config,
+    config: &'config TerminalConfig,
 }
 
 impl<'writer, 'config> Renderer<'writer, 'config> {
     /// Construct a renderer from the given writer and config.
-    pub fn new(writer: &'writer mut dyn WriteColor, config: &'config Config) -> Renderer<'writer, 'config> {
+    pub fn new(writer: &'writer mut dyn WriteColor, config: &'config TerminalConfig) -> Renderer<'writer, 'config> {
         Renderer { writer, config }
     }
 
@@ -160,11 +161,11 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         // ```
         self.set_color(self.styles().header(severity))?;
         match severity {
-            DiagnosticLevel::Bug => write!(self, "bug")?,
+            DiagnosticLevel::Fatal => write!(self, "fatal")?,
             DiagnosticLevel::Error => write!(self, "errors")?,
             DiagnosticLevel::Warning => write!(self, "warning")?,
-            DiagnosticLevel::Help => write!(self, "help")?,
-            DiagnosticLevel::Note => write!(self, "note")?,
+            DiagnosticLevel::Info => write!(self, "info")?,
+            DiagnosticLevel::Custom(s) => write!(self, "{}", s)?,
         }
 
         // Write error code

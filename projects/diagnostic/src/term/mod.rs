@@ -8,7 +8,7 @@ use termcolor::{ColorChoice, WriteColor};
 
 use crate::text_cache::TextStorage;
 
-pub use self::config::{Chars, Config, DisplayStyle, Styles};
+pub use self::config::{Chars, DisplayStyle, Styles, TerminalConfig};
 use self::{
     renderer::Renderer,
     views::{RichDiagnostic, ShortDiagnostic},
@@ -89,7 +89,7 @@ impl From<ColorArg> for ColorChoice {
 /// * IO fails
 pub fn emit<'files>(
     writer: &mut dyn WriteColor,
-    config: &Config,
+    config: &TerminalConfig,
     files: &'files TextStorage,
     diagnostic: &Diagnostic,
 ) -> Result<(), super::errors::DiagnosticError> {

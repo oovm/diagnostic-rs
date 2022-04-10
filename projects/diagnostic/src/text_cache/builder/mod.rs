@@ -20,23 +20,23 @@ use crate::{FileID, Label};
 /// ```
 #[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DiagnosticLevel {
-    /// A help message.
-    Help,
     /// A note.
-    Note,
+    Info,
     /// A warning.
     Warning,
     /// An error.
     Error,
     /// An unexpected bug.
-    Bug,
+    Fatal,
+    /// An custom diagnostic level
+    Custom(&'static str),
 }
 
 /// Represents a labels message that can provide information like errors and
 /// warnings to the user.
 ///
 /// The position of a Diagnostic is considered to be the position of the [`Label`] that has the earliest starting position and has the highest style which appears in all the labels of the labels.
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
 pub struct Diagnostic {
     /// The overall severity of the labels
     pub severity: DiagnosticLevel,
@@ -58,9 +58,25 @@ pub struct Diagnostic {
 }
 
 impl Diagnostic {
-    /// Create a new labels.
+    /// Create a new label.
     pub fn new(severity: DiagnosticLevel) -> Self {
         Diagnostic { severity, code: None, message: String::new(), labels: Vec::new(), notes: Vec::new() }
+    }
+    /// Create a new info label.
+    pub fn info() -> Self {
+        Diagnostic::new(DiagnosticLevel::Info)
+    }
+    /// Create a new warning label.
+    pub fn warning() -> Self {
+        Diagnostic::new(DiagnosticLevel::Warning)
+    }
+    /// Create a new error label.
+    pub fn error() -> Self {
+        Diagnostic::new(DiagnosticLevel::Error)
+    }
+    /// Create a new fatal label.
+    pub fn fatal() -> Self {
+        Diagnostic::new(DiagnosticLevel::Fatal)
     }
 
     /// Set the error code of the labels.

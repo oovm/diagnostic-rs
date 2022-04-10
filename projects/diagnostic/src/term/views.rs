@@ -4,7 +4,7 @@ use crate::{
     errors::DiagnosticError,
     term::{
         renderer::{Locus, MultiLabel, Renderer, SingleLabel},
-        Config,
+        TerminalConfig,
     },
     text_cache::TextStorage,
     Diagnostic, LabelStyle, Location,
@@ -21,7 +21,7 @@ fn count_digits(n: usize) -> usize {
 /// Output a richly formatted labels, with source code previews.
 pub struct RichDiagnostic<'diagnostic, 'config> {
     diagnostic: &'diagnostic Diagnostic,
-    config: &'config Config,
+    config: &'config TerminalConfig,
 }
 struct LabeledFile<'diagnostic, FileId> {
     file_id: FileId,
@@ -42,7 +42,7 @@ struct Line<'diagnostic> {
     must_render: bool,
 }
 impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
-    pub fn new(diagnostic: &'diagnostic Diagnostic, config: &'config Config) -> RichDiagnostic<'diagnostic, 'config> {
+    pub fn new(diagnostic: &'diagnostic Diagnostic, config: &'config TerminalConfig) -> RichDiagnostic<'diagnostic, 'config> {
         RichDiagnostic { diagnostic, config }
     }
 

@@ -1,7 +1,7 @@
 use termcolor::{ColorChoice, StandardStream};
 
 use diagnostic::{
-    term::{emit, Config},
+    term::{emit, TerminalConfig},
     Diagnostic, DiagnosticLevel, DiagnosticResult, Label, TextCache, TextStorage,
 };
 
@@ -11,7 +11,6 @@ mod text_cache;
 #[test]
 fn main() -> DiagnosticResult {
     let mut store = TextStorage::default();
-
     let file_id1 = store.anonymous(unindent::unindent(
         "
                 module Data.Nat where
@@ -126,7 +125,7 @@ fn main() -> DiagnosticResult {
     ];
 
     let writer = StandardStream::stderr(ColorChoice::Always);
-    let config = Config::default();
+    let config = TerminalConfig::default();
     for diagnostic in &diagnostics {
         emit(&mut writer.lock(), &config, &store, diagnostic)?;
     }

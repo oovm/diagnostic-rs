@@ -16,7 +16,7 @@ use diagnostic::{
     term::{
         self,
         termcolor::{Color, ColorSpec, StandardStream, WriteColor},
-        ColorArg, Config, Styles,
+        ColorArg, Styles, TerminalConfig,
     },
     Diagnostic, DiagnosticResult, Label, TextStorage,
 };
@@ -90,7 +90,7 @@ fn main() -> DiagnosticResult {
         Opts::Svg => {
             let mut buffer = Vec::new();
             let mut writer = HtmlEscapeWriter::new(SvgWriter::new(&mut buffer));
-            let config = Config { styles: Styles::with_blue(Color::Blue), ..Config::default() };
+            let config = TerminalConfig { styles: Styles::with_blue(Color::Blue), ..TerminalConfig::default() };
 
             for diagnostic in &diagnostics {
                 term::emit(&mut writer, &config, &store, diagnostic)?;
@@ -182,7 +182,7 @@ fn main() -> DiagnosticResult {
         }
         Opts::Stderr { color } => {
             let writer = StandardStream::stderr(color.into());
-            let config = Config::default();
+            let config = TerminalConfig::default();
             for diagnostic in &diagnostics {
                 term::emit(&mut writer.lock(), &config, &store, diagnostic)?;
             }
