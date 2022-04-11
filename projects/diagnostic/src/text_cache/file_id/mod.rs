@@ -2,7 +2,7 @@ mod serder;
 mod try_from;
 use super::*;
 
-#[derive(Clone, Eq)]
+#[derive(Clone, Default, Eq)]
 pub struct FileID {
     pub(crate) inner: String,
 }
