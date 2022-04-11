@@ -4,7 +4,7 @@ const TEST_SOURCE: &str = "foo\nbar\r\n\nbaz";
 
 #[test]
 fn line_starts() {
-    let file = TextCache::anonymous(TEST_SOURCE);
+    let file = TextCache::anonymous(TEST_SOURCE.to_string());
     assert_eq!(
         file.line_starts,
         [
@@ -18,7 +18,7 @@ fn line_starts() {
 
 #[test]
 fn line_span_sources() {
-    let file = TextCache::anonymous(TEST_SOURCE);
+    let file = TextCache::anonymous(TEST_SOURCE.to_string());
     let line_sources = (0..4)
         .map(|line| {
             let line_range = file.line_range(line).unwrap();

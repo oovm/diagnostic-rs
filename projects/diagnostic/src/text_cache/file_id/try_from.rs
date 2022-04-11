@@ -10,7 +10,8 @@ impl TryFrom<&Path> for FileID {
     type Error = std::io::Error;
 
     fn try_from(value: &Path) -> Result<Self, Self::Error> {
-        let path = value.to_string_lossy();
+        let path = value.canonicalize()?;
+        let path = path.to_string_lossy();
         if cfg!(windows) {
             let path = &path[4..path.len()];
             Ok(Self { inner: path.to_string() })

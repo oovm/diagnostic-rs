@@ -49,8 +49,8 @@ pub struct TextCache {
 }
 
 impl TextCache {
-    pub fn anonymous(source: impl Display) -> Self {
-        let mut out = Self { path: None, source: source.to_string(), line_starts: vec![] };
+    pub fn anonymous(source: String) -> Self {
+        let mut out = Self { path: None, source, line_starts: vec![] };
         out.line_starts = line_starts(&out.source).collect();
         out
     }

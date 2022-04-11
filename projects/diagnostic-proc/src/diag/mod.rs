@@ -4,15 +4,16 @@ use diagnostic::{
         termcolor::{ColorChoice, StandardStream},
         TerminalConfig,
     },
-    DiagnosticLevel, TextStorage,
+    DiagnosticLevel, FileID, TextStorage,
 };
 use proc_macro::Span;
 use proc_macro2::{TokenStream, TokenTree};
+use std::convert::TryFrom;
 
 pub fn my_macro(input: TokenStream) {
-    let call_file = TextStorage::canonicalize(Span::call_site().source_file().path()).unwrap();
-    let mix_file = TextStorage::canonicalize(Span::mixed_site().source_file().path()).unwrap();
-    let def_file = TextStorage::canonicalize(Span::def_site().source_file().path()).unwrap();
+    let call_file = FileID::try_from(Span::call_site().source_file().path()).unwrap();
+    let mix_file = FileID::try_from(Span::mixed_site().source_file().path()).unwrap();
+    let def_file = FileID::try_from(Span::def_site().source_file().path()).unwrap();
 
     match input.into_iter().next() {
         None => {}
