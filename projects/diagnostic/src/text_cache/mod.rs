@@ -32,38 +32,66 @@ pub mod labels;
 pub mod level;
 pub mod location;
 
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TextStorage {
     files: BTreeMap<FileID, TextCache>,
 }
 
+impl Default for TextStorage {
+    fn default() -> Self {
+        Self { files: Default::default() }
+    }
+}
+
+impl Debug for TextStorage {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut w = &mut f.debug_struct("TextStorage");
+        for (id, cache) in &self.files {
+            w = w.field(&id.inner, &cache)
+        }
+        w.finish()
+    }
+}
+
 /// A file that is backed by an `Arc<String>`.
-#[derive(Debug, Clone)]
+#[derive(Clone)]
 pub struct TextCache {
     /// Path to original file
     pub path: Option<PathBuf>,
     /// The source code of the file.
-    pub source: String,
+    pub text: String,
     /// The starting byte indices in the source code.
     pub line_starts: Vec<usize>,
 }
 
+impl Debug for TextCache {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        let mut w = &mut f.debug_struct("TextCache");
+        match &self.path {
+            Some(s) => w = w.field("path", s),
+            None => w = w.field("text", &self.text),
+        }
+        w = w.field("lines", &self.line_starts.len());
+        w.finish()
+    }
+}
+
 impl TextCache {
     pub fn anonymous(source: String) -> Self {
-        let mut out = Self { path: None, source, line_starts: vec![] };
-        out.line_starts = line_starts(&out.source).collect();
+        let mut out = Self { path: None, text: source, line_starts: vec![] };
+        out.line_starts = line_starts(&out.text).collect();
         out
     }
     pub fn file(file: PathBuf) -> DiagnosticResult<Self> {
-        let mut out = Self { path: Some(file), source: String::new(), line_starts: vec![] };
+        let mut out = Self { path: Some(file), text: String::new(), line_starts: vec![] };
         out.update()?;
         Ok(out)
     }
     pub fn update(&mut self) -> DiagnosticResult {
         match &self.path {
             Some(s) => {
-                self.source = read_to_string(s)?;
-                self.line_starts = line_starts(&self.source).collect();
+                self.text = read_to_string(s)?;
+                self.line_starts = line_starts(&self.text).collect();
             }
             None => {}
         }
@@ -72,7 +100,7 @@ impl TextCache {
     pub fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
-            Ordering::Equal => Ok(self.source.len()),
+            Ordering::Equal => Ok(self.text.len()),
             Ordering::Greater => Err(DiagnosticError::LineTooLarge { given: line_index, max: self.line_starts.len() - 1 }),
         }
     }
@@ -81,12 +109,6 @@ impl TextCache {
         let line_start = self.line_start(line_index)?;
         let next_line_start = self.line_start(line_index + 1)?;
         Ok(line_start..next_line_start)
-    }
-}
-
-impl Default for TextStorage {
-    fn default() -> Self {
-        Self { files: Default::default() }
     }
 }
 
@@ -127,7 +149,7 @@ impl TextStorage {
     }
     /// The source code of a file.
     pub fn source(&self, file_id: &FileID) -> DiagnosticResult<&str> {
-        Ok(&self.get(file_id)?.source)
+        Ok(&self.get(file_id)?.text)
     }
     /// The index of the line at the given byte index.
     /// If the byte index is past the end of the file, returns the maximum line index in the file.

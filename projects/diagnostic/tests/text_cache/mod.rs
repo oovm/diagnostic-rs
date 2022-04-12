@@ -22,7 +22,7 @@ fn line_span_sources() {
     let line_sources = (0..4)
         .map(|line| {
             let line_range = file.line_range(line).unwrap();
-            &file.source[line_range]
+            &file.text[line_range]
         })
         .collect::<Vec<_>>();
     assert_eq!(line_sources, ["foo\n", "bar\r\n", "\n", "baz"]);
