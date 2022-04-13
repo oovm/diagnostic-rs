@@ -139,17 +139,19 @@ impl TextStorage {
         }
         Ok(())
     }
+    pub fn get_text(&self, file_id: &FileID) -> &str {
+        match self.files.get(file_id) {
+            Some(s) => s.text.as_str(),
+            None => "",
+        }
+    }
     /// Get the file corresponding to the given id.
-    pub fn get(&self, file_id: &FileID) -> DiagnosticResult<&TextCache> {
-        // match self.files.get(file) {
-        //     None => {}
-        //     Some(_) => {}
-        // }
+    pub fn get_cache(&self, file_id: &FileID) -> DiagnosticResult<&TextCache> {
         self.files.get(file_id).ok_or(DiagnosticError::FileMissing)
     }
     /// The source code of a file.
     pub fn source(&self, file_id: &FileID) -> DiagnosticResult<&str> {
-        Ok(&self.get(file_id)?.text)
+        Ok(&self.get_cache(file_id)?.text)
     }
     /// The index of the line at the given byte index.
     /// If the byte index is past the end of the file, returns the maximum line index in the file.
@@ -165,7 +167,7 @@ impl TextStorage {
     /// [`line_starts`]: crate::errors::line_starts
     /// [`errors`]: crate::errors
     pub fn line_index(&self, file_id: &FileID, byte_index: usize) -> DiagnosticResult<usize> {
-        self.get(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
+        self.get_cache(file_id)?.line_starts.binary_search(&byte_index).or_else(|next_line| Ok(next_line - 1))
     }
     /// The user-facing line number at the given line index.
     /// It is not necessarily checked that the specified line index
@@ -211,6 +213,6 @@ impl TextStorage {
     }
     /// The byte range of line in the source of the file.
     pub fn line_range(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<Range<usize>> {
-        self.get(file_id)?.line_range(line_index)
+        self.get_cache(file_id)?.line_range(line_index)
     }
 }
