@@ -180,11 +180,11 @@ impl Default for Styles {
         fn blue(header: bool) -> ColorSpec {
             color(header, Color::Ansi256(14), Color::Ansi256(14))
         }
-        fn yellow(header: bool) -> ColorSpec {
-            color(header, Color::Ansi256(11), Color::Yellow)
-        }
         fn red(header: bool) -> ColorSpec {
             color(header, Color::Ansi256(9), Color::Red)
+        }
+        fn yellow(header: bool) -> ColorSpec {
+            color(header, Color::Ansi256(11), Color::Yellow)
         }
         fn magenta(header: bool) -> ColorSpec {
             color(header, Color::Magenta, Color::Magenta)
@@ -206,7 +206,7 @@ impl Default for Styles {
 
             primary_label_bug: red(false),
             primary_label_error: red(false),
-            primary_label_warning: yellow(false),
+            primary_label_warning: cyan(false),
             primary_label_note: green(false),
             primary_label_help: cyan(false),
             secondary_label: yellow(false),

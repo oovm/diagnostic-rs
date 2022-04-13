@@ -47,7 +47,7 @@ impl Debug for TextStorage {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         let mut w = &mut f.debug_struct("TextStorage");
         for (id, cache) in &self.files {
-            w = w.field(&id.inner, &cache)
+            w = w.field(id.as_ref(), &cache)
         }
         w.finish()
     }
