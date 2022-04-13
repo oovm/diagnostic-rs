@@ -1,12 +1,19 @@
+use std::path::PathBuf;
 use termcolor::{ColorChoice, StandardStream};
 
 use diagnostic::{
     term::{emit, TerminalConfig},
-    Diagnostic, DiagnosticLevel, DiagnosticResult, Label, TextCache, TextStorage,
+    Diagnostic, DiagnosticLevel, DiagnosticResult, FileID, Label, TextCache, TextStorage,
 };
 
 mod term;
 mod text_cache;
+
+#[test]
+fn test_id() {
+    let a = FileID::try_from(PathBuf::from("./")).unwrap();
+    assert_eq!(a, a)
+}
 
 #[test]
 fn main() -> DiagnosticResult {

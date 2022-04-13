@@ -56,7 +56,7 @@ impl From<std::io::Error> for DiagnosticError {
 impl Display for DiagnosticError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            DiagnosticError::FileMissing => write!(f, "file missing"),
+            DiagnosticError::FileMissing => write!(f, "File ID not found"),
             DiagnosticError::IndexTooLarge { given, max } => {
                 write!(f, "invalid index {}, maximum index is {}", given, max)
             }

@@ -1,5 +1,6 @@
-use crate::{DiagnosticLevel, LabelStyle};
 use termcolor::{Color, ColorSpec};
+
+use crate::{DiagnosticLevel, LabelStyle};
 
 /// Configures how a labels is rendered.
 #[derive(Clone, Debug)]
@@ -15,7 +16,7 @@ pub struct TerminalConfig {
     /// Styles to use when rendering the labels.
     pub styles: Styles,
     /// Characters to use when rendering the labels.
-    pub chars: Chars,
+    pub chars: TerminalCharacters,
     /// The minimum number of lines to be shown after the line on which a multiline [`Label`] begins.
     ///
     /// Defaults to: `3`.
@@ -44,7 +45,7 @@ impl Default for TerminalConfig {
             display_style: DisplayStyle::Rich,
             tab_width: 4,
             styles: Styles::default(),
-            chars: Chars::default(),
+            chars: TerminalCharacters::default(),
             start_context_lines: 3,
             end_context_lines: 1,
             before_label_lines: 0,
@@ -165,42 +166,55 @@ impl Styles {
             (LabelStyle::Secondary, _) => &self.secondary_label,
         }
     }
+}
 
-    #[doc(hidden)]
-    pub fn with_blue(blue: Color) -> Styles {
-        let header = ColorSpec::new().set_bold(true).set_intense(true).clone();
-
-        Styles {
-            header_fatal: header.clone().set_fg(Some(Color::Red)).clone(),
-            header_error: header.clone().set_fg(Some(Color::Red)).clone(),
-            header_warning: header.clone().set_fg(Some(Color::Yellow)).clone(),
-            header_info: header.clone().set_fg(Some(Color::Green)).clone(),
-            header_help: header.clone().set_fg(Some(Color::Cyan)).clone(),
-            header_message: header,
-
-            primary_label_bug: ColorSpec::new().set_fg(Some(Color::Red)).clone(),
-            primary_label_error: ColorSpec::new().set_fg(Some(Color::Red)).clone(),
-            primary_label_warning: ColorSpec::new().set_fg(Some(Color::Yellow)).clone(),
-            primary_label_note: ColorSpec::new().set_fg(Some(Color::Green)).clone(),
-            primary_label_help: ColorSpec::new().set_fg(Some(Color::Cyan)).clone(),
-            secondary_label: ColorSpec::new().set_fg(Some(blue)).clone(),
-
-            line_number: ColorSpec::new().set_fg(Some(blue)).clone(),
-            source_border: ColorSpec::new().set_fg(Some(blue)).clone(),
-            note_bullet: ColorSpec::new().set_fg(Some(blue)).clone(),
-        }
+fn color(header: bool, t: Color, f: Color) -> ColorSpec {
+    match header {
+        true => ColorSpec::new().set_bold(true).set_intense(true).set_fg(Some(t)).clone(),
+        false => ColorSpec::new().set_fg(Some(f)).clone(),
     }
 }
 
 impl Default for Styles {
     fn default() -> Styles {
-        // Blue is really difficult to see on the standard windows command line
-        #[cfg(windows)]
-        const BLUE: Color = Color::Cyan;
-        #[cfg(not(windows))]
-        const BLUE: Color = Color::Blue;
+        fn blue(header: bool) -> ColorSpec {
+            color(header, Color::Ansi256(14), Color::Ansi256(14))
+        }
+        fn yellow(header: bool) -> ColorSpec {
+            color(header, Color::Ansi256(11), Color::Yellow)
+        }
+        fn red(header: bool) -> ColorSpec {
+            color(header, Color::Ansi256(9), Color::Red)
+        }
+        fn magenta(header: bool) -> ColorSpec {
+            color(header, Color::Magenta, Color::Magenta)
+        }
+        fn green(header: bool) -> ColorSpec {
+            color(header, Color::Green, Color::Green)
+        }
+        fn cyan(header: bool) -> ColorSpec {
+            color(header, Color::Cyan, Color::Cyan)
+        }
+        let header = ColorSpec::new().set_bold(true).set_intense(true).clone();
+        Styles {
+            header_fatal: magenta(true),
+            header_error: red(true),
+            header_warning: yellow(true),
+            header_info: green(true),
+            header_help: cyan(true),
+            header_message: header,
 
-        Self::with_blue(BLUE)
+            primary_label_bug: red(false),
+            primary_label_error: red(false),
+            primary_label_warning: yellow(false),
+            primary_label_note: green(false),
+            primary_label_help: cyan(false),
+            secondary_label: yellow(false),
+
+            line_number: blue(false),
+            source_border: blue(false),
+            note_bullet: blue(false),
+        }
     }
 }
 
@@ -209,15 +223,15 @@ impl Default for Styles {
 /// By using [`Chars::ascii()`] you can switch to an ASCII-only format suitable
 /// for rendering on terminals that do not support box drawing characters.
 #[derive(Clone, Debug)]
-pub struct Chars {
+pub struct TerminalCharacters {
     /// The characters to use for the top-left border of the snippet.
-    /// Defaults to: `"┌─"` or `"-->"` with [`Chars::ascii()`].
+    /// Defaults to: `"┌─"` or `"-->"` with [`TerminalCharacters::ascii()`].
     pub snippet_start: String,
     /// The character to use for the left border of the source.
-    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`TerminalCharacters::ascii()`].
     pub source_border_left: char,
     /// The character to use for the left border break of the source.
-    /// Defaults to: `'·'` or `'.'` with [`Chars::ascii()`].
+    /// Defaults to: `'·'` or `'.'` with [`TerminalCharacters::ascii()`].
     pub source_border_left_break: char,
 
     /// The character to use for the note bullet.
@@ -244,37 +258,39 @@ pub struct Chars {
     /// Defaults to: `'\''`.
     pub multi_secondary_caret_end: char,
     /// The character to use for the top-left corner of a multi-line label.
-    /// Defaults to: `'╭'` or `'/'` with [`Chars::ascii()`].
+    /// Defaults to: `'╭'` or `'/'` with [`TerminalCharacters::ascii()`].
     pub multi_top_left: char,
     /// The character to use for the top of a multi-line label.
-    /// Defaults to: `'─'` or `'-'` with [`Chars::ascii()`].
+    /// Defaults to: `'─'` or `'-'` with [`TerminalCharacters::ascii()`].
     pub multi_top: char,
     /// The character to use for the bottom-left corner of a multi-line label.
-    /// Defaults to: `'╰'` or `'\'` with [`Chars::ascii()`].
+    /// Defaults to: `'╰'` or `'\'` with [`TerminalCharacters::ascii()`].
     pub multi_bottom_left: char,
     /// The character to use when marking the bottom of a multi-line label.
-    /// Defaults to: `'─'` or `'-'` with [`Chars::ascii()`].
+    /// Defaults to: `'─'` or `'-'` with [`TerminalCharacters::ascii()`].
     pub multi_bottom: char,
     /// The character to use for the left of a multi-line label.
-    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`TerminalCharacters::ascii()`].
     pub multi_left: char,
 
     /// The character to use for the left of a pointer underneath a caret.
-    /// Defaults to: `'│'` or `'|'` with [`Chars::ascii()`].
+    /// Defaults to: `'│'` or `'|'` with [`TerminalCharacters::ascii()`].
     pub pointer_left: char,
 }
 
-impl Default for Chars {
-    fn default() -> Chars {
-        Chars::box_drawing()
+impl Default for TerminalCharacters {
+    fn default() -> TerminalCharacters {
+        TerminalCharacters::box_drawing()
     }
 }
 
-impl Chars {
+impl TerminalCharacters {
     /// A character set that uses Unicode box drawing characters.
-    pub fn box_drawing() -> Chars {
-        Chars {
-            snippet_start: "┌─".into(),
+    pub fn box_drawing() -> TerminalCharacters {
+        TerminalCharacters {
+            // only this pattern can jump
+            snippet_start: "-->".into(),
+            // snippet_start: "┌─".into(),
             source_border_left: '│',
             source_border_left_break: '·',
 
@@ -302,8 +318,8 @@ impl Chars {
     /// This is useful if your terminal's font does not support box drawing
     /// characters well and results in output that looks similar to rustc's
     /// labels output.
-    pub fn ascii() -> Chars {
-        Chars {
+    pub fn ascii() -> TerminalCharacters {
+        TerminalCharacters {
             snippet_start: "-->".into(),
             source_border_left: '|',
             source_border_left_break: '.',

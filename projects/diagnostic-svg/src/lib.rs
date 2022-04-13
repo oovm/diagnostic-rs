@@ -90,7 +90,7 @@ fn main() -> DiagnosticResult {
         Opts::Svg => {
             let mut buffer = Vec::new();
             let mut writer = HtmlEscapeWriter::new(SvgWriter::new(&mut buffer));
-            let config = TerminalConfig { styles: Styles::with_blue(Color::Blue), ..TerminalConfig::default() };
+            let config = TerminalConfig { styles: Styles::with_color(Color::Blue), ..TerminalConfig::default() };
 
             for diagnostic in &diagnostics {
                 term::emit(&mut writer, &config, &store, diagnostic)?;

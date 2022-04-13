@@ -8,7 +8,7 @@ use termcolor::{ColorChoice, WriteColor};
 
 use crate::text_cache::TextStorage;
 
-pub use self::config::{Chars, DisplayStyle, Styles, TerminalConfig};
+pub use self::config::{DisplayStyle, Styles, TerminalCharacters, TerminalConfig};
 use self::{
     renderer::Renderer,
     views::{RichDiagnostic, ShortDiagnostic},

@@ -7,7 +7,7 @@ use termcolor::{ColorSpec, WriteColor};
 
 use crate::{
     errors::DiagnosticError,
-    term::{Chars, Styles, TerminalConfig},
+    term::{Styles, TerminalCharacters, TerminalConfig},
     DiagnosticLevel, LabelStyle, Location,
 };
 
@@ -124,7 +124,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         Renderer { writer, config }
     }
 
-    fn chars(&self) -> &'config Chars {
+    fn chars(&self) -> &'config TerminalCharacters {
         &self.config.chars
     }
 
@@ -206,8 +206,7 @@ impl<'writer, 'config> Renderer<'writer, 'config> {
         self.outer_gutter(outer_padding)?;
 
         self.set_color(&self.styles().source_border)?;
-        write!(self, " -->")?;
-        // write!(self, "{}", self.chars().snippet_start)?;
+        write!(self, "{}", self.chars().snippet_start)?;
         self.reset()?;
 
         write!(self, " ")?;
