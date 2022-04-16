@@ -1,5 +1,6 @@
-use super::*;
 use crate::Span;
+
+use super::*;
 
 /// A severity level for labels messages.
 ///
@@ -11,7 +12,7 @@ use crate::Span;
 /// assert!(DiagnosticLevel::Fatal > DiagnosticLevel::Error);
 /// assert!(DiagnosticLevel::Error > DiagnosticLevel::Warning);
 /// assert!(DiagnosticLevel::Warning > DiagnosticLevel::Info);
-/// assert!(DiagnosticLevel::Info > DiagnosticLevel::Custom);
+/// assert!(DiagnosticLevel::Info > DiagnosticLevel::Custom("panic"));
 /// ```
 #[derive(Copy, Clone, Hash, Debug, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 pub enum DiagnosticLevel {

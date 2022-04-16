@@ -6,7 +6,7 @@
 // absolute no-no, breaking much of what we enjoy about Cargo!
 use lsp_types::{Position, Range};
 
-use diagnostic::{DiagnosticError, DiagnosticResult, FileID, TextStorage};
+use diagnostic::{DiagnosticError, DiagnosticResult, FileID, Span, TextStorage};
 
 fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: usize) -> DiagnosticResult<Position> {
     if column > line_str.len() {
@@ -30,7 +30,7 @@ fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: 
 }
 
 pub fn byte_index_to_position(files: &TextStorage, file_id: &FileID, byte_index: usize) -> DiagnosticResult<Position> {
-    let source = files.source(file_id)?;
+    let source = files.get_text(file_id)?;
 
     let line_index = files.line_index(file_id, byte_index)?;
     let line_span = files.line_range(file_id, line_index).unwrap();
@@ -44,7 +44,7 @@ pub fn byte_index_to_position(files: &TextStorage, file_id: &FileID, byte_index:
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range(files: &TextStorage, file_id: &FileID, span: std::ops::Span) -> DiagnosticResult<Range> {
+pub fn byte_span_to_range(files: &TextStorage, file_id: &FileID, span: Span) -> DiagnosticResult<Range> {
     Ok(Range {
         start: byte_index_to_position(files, file_id, span.start)?,
         end: byte_index_to_position(files, file_id, span.end)?,
@@ -77,7 +77,7 @@ fn character_to_line_offset(line: &str, character: u32) -> DiagnosticResult<usiz
 }
 
 pub fn position_to_byte_index(files: &TextStorage, file_id: &FileID, position: &Position) -> DiagnosticResult<usize> {
-    let source = files.source(file_id)?;
+    let source = files.get_text(file_id)?;
 
     let line_span = files.line_range(file_id, position.line as usize).unwrap();
     let line_str = source.get(line_span.clone()).unwrap();
@@ -87,6 +87,6 @@ pub fn position_to_byte_index(files: &TextStorage, file_id: &FileID, position: &
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &FileID, range: &Range) -> DiagnosticResult<std::ops::Span> {
+pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &FileID, range: &Range) -> DiagnosticResult<Span> {
     Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }

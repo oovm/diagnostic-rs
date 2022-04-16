@@ -25,19 +25,19 @@ pub struct Location {
 /// # Example
 ///
 /// ```rust
-/// use diagnostic::files;
+/// use diagnostic::column_index;
 ///
 /// let source = "\n\n🗻∈🌏\n\n";
 ///
-/// assert_eq!(files::column_index(source, 0..1, 0), 0);
-/// assert_eq!(files::column_index(source, 2..13, 0), 0);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 0), 0);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 1), 0);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 4), 1);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 8), 2);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 10), 2);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 11), 3);
-/// assert_eq!(files::column_index(source, 2..13, 2 + 12), 3);
+/// assert_eq!(column_index(source, 0..1, 0), 0);
+/// assert_eq!(column_index(source, 2..13, 0), 0);
+/// assert_eq!(column_index(source, 2..13, 2 + 0), 0);
+/// assert_eq!(column_index(source, 2..13, 2 + 1), 0);
+/// assert_eq!(column_index(source, 2..13, 2 + 4), 1);
+/// assert_eq!(column_index(source, 2..13, 2 + 8), 2);
+/// assert_eq!(column_index(source, 2..13, 2 + 10), 2);
+/// assert_eq!(column_index(source, 2..13, 2 + 11), 3);
+/// assert_eq!(column_index(source, 2..13, 2 + 12), 3);
 /// ```
 pub fn column_index(source: &str, line_range: Span, byte_index: usize) -> usize {
     let end_index = std::cmp::min(byte_index, std::cmp::min(line_range.end, source.len()));
@@ -57,10 +57,10 @@ pub fn column_index(source: &str, line_range: Span, byte_index: usize) -> usize 
 /// # Example
 ///
 /// ```rust
-/// use diagnostic::files;
+/// use diagnostic::line_starts;
 ///
 /// let source = "foo\nbar\r\n\nbaz";
-/// let line_starts: Vec<_> = files::line_starts(source).collect();
+/// let line_starts: Vec<_> = line_starts(source).collect();
 ///
 /// assert_eq!(
 ///     line_starts,

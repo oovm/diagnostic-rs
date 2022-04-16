@@ -138,18 +138,12 @@ impl TextStorage {
         }
         Ok(())
     }
-    pub fn get_text(&self, file_id: &FileID) -> &str {
-        match self.files.get(file_id) {
-            Some(s) => s.text.as_str(),
-            None => "",
-        }
-    }
     /// Get the file corresponding to the given id.
     pub fn get_cache(&self, file_id: &FileID) -> DiagnosticResult<&TextCache> {
         self.files.get(file_id).ok_or(DiagnosticError::FileMissing)
     }
     /// The source code of a file.
-    pub fn source(&self, file_id: &FileID) -> DiagnosticResult<&str> {
+    pub fn get_text(&self, file_id: &FileID) -> DiagnosticResult<&str> {
         Ok(&self.get_cache(file_id)?.text)
     }
     /// The index of the line at the given byte index.
@@ -194,7 +188,7 @@ impl TextStorage {
     /// [`errors`]: crate::errors
     /// [`column_index`]: crate::errors::column_index
     pub fn column_number(&self, file_id: &FileID, line_index: usize, byte_index: usize) -> DiagnosticResult<usize> {
-        let source = self.source(file_id)?;
+        let source = self.get_text(file_id)?;
         let line_range = self.line_range(file_id, line_index)?;
         let column_index = column_index(source.as_ref(), line_range, byte_index);
 

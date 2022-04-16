@@ -6,7 +6,7 @@ pub use self::{
         file_id::FileID,
         labels::{Label, LabelStyle},
         level::{Diagnostic, DiagnosticLevel},
-        location::{Location, Span},
+        location::{column_index, line_starts, Location, Span},
         TextCache, TextStorage,
     },
 };

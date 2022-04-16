@@ -7,7 +7,7 @@ use crate::{
         TerminalConfig,
     },
     text_cache::TextStorage,
-    Diagnostic, LabelStyle, Location, Span,
+    Diagnostic, FileID, LabelStyle, Location, Span,
 };
 
 /// Calculate the number of decimal digits in `n`.
@@ -23,8 +23,8 @@ pub struct RichDiagnostic<'diagnostic, 'config> {
     diagnostic: &'diagnostic Diagnostic,
     config: &'config TerminalConfig,
 }
-struct LabeledFile<'diagnostic, FileId> {
-    file_id: FileId,
+struct LabeledFile<'diagnostic> {
+    file_id: FileID,
     start: usize,
     name: String,
     location: Location,
@@ -32,7 +32,18 @@ struct LabeledFile<'diagnostic, FileId> {
     lines: BTreeMap<usize, Line<'diagnostic>>,
     max_label_style: LabelStyle,
 }
-
+impl<'diagnostic> LabeledFile<'diagnostic> {
+    fn get_or_insert_line(&mut self, line_index: usize, line_range: Span, line_number: usize) -> &mut Line<'diagnostic> {
+        self.lines.entry(line_index).or_insert_with(|| Line {
+            range: line_range,
+            number: line_number,
+            single_labels: vec![],
+            multi_labels: vec![],
+            // This has to be false by default so we know if it must be rendered by another condition already.
+            must_render: false,
+        })
+    }
+}
 struct Line<'diagnostic> {
     number: usize,
     range: Span,
@@ -48,26 +59,8 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
     }
 
     pub fn render<'files>(&self, files: &'files TextStorage, renderer: &mut Renderer<'_, '_>) -> Result<(), DiagnosticError> {
-        impl<'diagnostic, FileId> LabeledFile<'diagnostic, FileId> {
-            fn get_or_insert_line(
-                &mut self,
-                line_index: usize,
-                line_range: Span,
-                line_number: usize,
-            ) -> &mut Line<'diagnostic> {
-                self.lines.entry(line_index).or_insert_with(|| Line {
-                    range: line_range,
-                    number: line_number,
-                    single_labels: vec![],
-                    multi_labels: vec![],
-                    // This has to be false by default so we know if it must be rendered by another condition already.
-                    must_render: false,
-                })
-            }
-        }
-
         // TODO: Make this data structure external, to allow for allocation reuse
-        let mut labeled_files = Vec::<LabeledFile<'_, _>>::new();
+        let mut labeled_files = Vec::<LabeledFile<'_>>::new();
         // Keep track of the outer padding to use when rendering the
         // snippets of source code.
         let mut outer_padding = 0;
@@ -276,7 +269,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
         // ```
         let mut labeled_files = labeled_files.into_iter().peekable();
         while let Some(labeled_file) = labeled_files.next() {
-            let source = files.source(&labeled_file.file_id)?;
+            let source = files.get_text(&labeled_file.file_id)?;
             // let source = source.as_ref();
 
             // Top left border and locus.
