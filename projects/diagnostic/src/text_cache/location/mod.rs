@@ -39,7 +39,7 @@ pub struct Location {
 /// assert_eq!(files::column_index(source, 2..13, 2 + 11), 3);
 /// assert_eq!(files::column_index(source, 2..13, 2 + 12), 3);
 /// ```
-pub fn column_index(source: &str, line_range: Range<usize>, byte_index: usize) -> usize {
+pub fn column_index(source: &str, line_range: Span, byte_index: usize) -> usize {
     let end_index = std::cmp::min(byte_index, std::cmp::min(line_range.end, source.len()));
 
     (line_range.start..end_index).filter(|byte_index| source.is_char_boundary(byte_index + 1)).count()

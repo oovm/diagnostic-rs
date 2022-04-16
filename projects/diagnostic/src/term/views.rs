@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, ops::Range};
+use std::collections::BTreeMap;
 
 use crate::{
     errors::DiagnosticError,
@@ -7,7 +7,7 @@ use crate::{
         TerminalConfig,
     },
     text_cache::TextStorage,
-    Diagnostic, LabelStyle, Location,
+    Diagnostic, LabelStyle, Location, Span,
 };
 
 /// Calculate the number of decimal digits in `n`.
@@ -35,12 +35,13 @@ struct LabeledFile<'diagnostic, FileId> {
 
 struct Line<'diagnostic> {
     number: usize,
-    range: std::ops::Range<usize>,
+    range: Span,
     // TODO: How do we reuse these allocations?
     single_labels: Vec<SingleLabel<'diagnostic>>,
     multi_labels: Vec<(usize, LabelStyle, MultiLabel<'diagnostic>)>,
     must_render: bool,
 }
+
 impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
     pub fn new(diagnostic: &'diagnostic Diagnostic, config: &'config TerminalConfig) -> RichDiagnostic<'diagnostic, 'config> {
         RichDiagnostic { diagnostic, config }
@@ -51,7 +52,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
             fn get_or_insert_line(
                 &mut self,
                 line_index: usize,
-                line_range: Range<usize>,
+                line_range: Span,
                 line_number: usize,
             ) -> &mut Line<'diagnostic> {
                 self.lines.entry(line_index).or_insert_with(|| Line {
@@ -168,7 +169,7 @@ impl<'diagnostic, 'config> RichDiagnostic<'diagnostic, 'config> {
                 // Ensure that the single line labels are lexicographically
                 // sorted by the range of source code that they cover.
                 let index = match line.single_labels.binary_search_by(|(_, range, _)| {
-                    // `Range<usize>` doesn't implement `Ord`, so convert to `(usize, usize)`
+                    // `Span` doesn't implement `Ord`, so convert to `(usize, usize)`
                     // to piggyback off its lexicographic comparison implementation.
                     (range.start, range.end).cmp(&(label_start, label_end))
                 }) {

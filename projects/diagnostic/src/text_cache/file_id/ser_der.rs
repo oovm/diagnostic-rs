@@ -17,6 +17,6 @@ impl<'de> Deserialize<'de> for FileID {
         D: Deserializer<'de>,
     {
         let inner = String::deserialize(deserializer)?;
-        Ok(Self(Box::from(inner)))
+        Ok(Self(Rc::from(inner)))
     }
 }

@@ -1,10 +1,23 @@
 use super::*;
+use std::rc::Rc;
 
 mod ser_der;
 mod try_from;
 
-#[derive(Clone, Default, Eq)]
-pub struct FileID(Box<str>);
+#[derive(Eq)]
+pub struct FileID(Rc<str>);
+
+impl Clone for FileID {
+    fn clone(&self) -> Self {
+        FileID(self.0.clone())
+    }
+}
+
+impl Default for FileID {
+    fn default() -> Self {
+        Self(Rc::from(String::new()))
+    }
+}
 
 impl AsRef<str> for FileID {
     fn as_ref(&self) -> &str {

@@ -44,7 +44,7 @@ pub fn byte_index_to_position(files: &TextStorage, file_id: &FileID, byte_index:
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range(files: &TextStorage, file_id: &FileID, span: std::ops::Range<usize>) -> DiagnosticResult<Range> {
+pub fn byte_span_to_range(files: &TextStorage, file_id: &FileID, span: std::ops::Span) -> DiagnosticResult<Range> {
     Ok(Range {
         start: byte_index_to_position(files, file_id, span.start)?,
         end: byte_index_to_position(files, file_id, span.end)?,
@@ -87,6 +87,6 @@ pub fn position_to_byte_index(files: &TextStorage, file_id: &FileID, position: &
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &FileID, range: &Range) -> DiagnosticResult<std::ops::Range<usize>> {
+pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &FileID, range: &Range) -> DiagnosticResult<std::ops::Span> {
     Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }

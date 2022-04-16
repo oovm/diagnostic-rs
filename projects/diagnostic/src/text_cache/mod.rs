@@ -14,7 +14,6 @@ use std::{
     fmt::{Debug, Display, Formatter},
     fs::read_to_string,
     hash::{Hash, Hasher},
-    ops::Range,
     path::{Path, PathBuf},
     string::ToString,
 };
@@ -24,7 +23,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     errors::DiagnosticError,
     text_cache::location::{column_index, line_starts},
-    DiagnosticResult, FileID, Label, Location,
+    DiagnosticResult, FileID, Label, Location, Span,
 };
 
 pub mod file_id;
@@ -97,7 +96,7 @@ impl TextCache {
         }
         Ok(())
     }
-    pub fn line_start(&self, line_index: usize) -> Result<usize, DiagnosticError> {
+    pub fn line_start(&self, line_index: usize) -> DiagnosticResult<usize> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
             Ordering::Equal => Ok(self.text.len()),
@@ -105,7 +104,7 @@ impl TextCache {
         }
     }
     /// The byte range of line in the source of the file.
-    pub fn line_range(&self, line_index: usize) -> Result<Range<usize>, DiagnosticError> {
+    pub fn line_range(&self, line_index: usize) -> DiagnosticResult<Span> {
         let line_start = self.line_start(line_index)?;
         let next_line_start = self.line_start(line_index + 1)?;
         Ok(line_start..next_line_start)
@@ -212,7 +211,7 @@ impl TextStorage {
         })
     }
     /// The byte range of line in the source of the file.
-    pub fn line_range(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<Range<usize>> {
+    pub fn line_range(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<Span> {
         self.get_cache(file_id)?.line_range(line_index)
     }
 }

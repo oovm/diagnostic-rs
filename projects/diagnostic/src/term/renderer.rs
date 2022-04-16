@@ -1,14 +1,11 @@
-use std::{
-    io::{self, Write},
-    ops::Range,
-};
+use std::io::{self, Write};
 
 use termcolor::{ColorSpec, WriteColor};
 
 use crate::{
     errors::DiagnosticError,
     term::{Styles, TerminalCharacters, TerminalConfig},
-    DiagnosticLevel, LabelStyle, Location,
+    DiagnosticLevel, LabelStyle, Location, Span,
 };
 
 /// The 'location focus' of a source code snippet.
@@ -24,7 +21,7 @@ pub struct Locus {
 /// ```text
 /// ^^^^^^^^^ blah blah
 /// ```
-pub type SingleLabel<'diagnostic> = (LabelStyle, Range<usize>, &'diagnostic str);
+pub type SingleLabel<'diagnostic> = (LabelStyle, Span, &'diagnostic str);
 
 /// A multi-line label to render.
 ///
@@ -937,7 +934,7 @@ struct Metrics {
 }
 
 /// Check if two ranges overlap
-fn is_overlapping(range0: &Range<usize>, range1: &Range<usize>) -> bool {
+fn is_overlapping(range0: &Span, range1: &Span) -> bool {
     let start = std::cmp::max(range0.start, range1.start);
     let end = std::cmp::min(range0.end, range1.end);
     start < end
