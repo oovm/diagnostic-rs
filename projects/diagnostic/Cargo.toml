@@ -1,13 +1,13 @@
 [package]
 name = "diagnostic"
-version = "0.3.3"
+version = "0.3.7"
 readme = "Readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
 description = "Beautiful diagnostic reporting for text-based programming languages"
 homepage = "https://github.com/oovm/diagnostic-rs"
 repository = "https://github.com/oovm/diagnostic-rs"
-documentation = "https://docs.rs/diagnostic-rs"
+documentation = "https://docs.rs/diagnostic"
 exclude = ["tests/**"]
 edition = "2021"
 

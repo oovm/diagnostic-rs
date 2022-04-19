@@ -40,6 +40,5 @@ pub fn my_macro(input: TokenStream) {
     for diagnostic in &vec![raw.clone()] {
         emit(&mut writer.lock(), &config, &store, diagnostic).unwrap();
     }
-
     //  Err(input.span().error("there's a problem here..."))
 }

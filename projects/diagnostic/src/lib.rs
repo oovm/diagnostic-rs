@@ -1,7 +1,11 @@
 #![doc = include_str!("../Readme.md")]
 
 pub use self::{
-    errors::{validation::Validation, DiagnosticError, DiagnosticResult},
+    errors::{
+        simple::{ErrorWithFile, ErrorWithFileSpan},
+        validation::Validation,
+        DiagnosticError, DiagnosticResult,
+    },
     text_cache::{
         file_id::FileID,
         labels::{Label, LabelStyle},

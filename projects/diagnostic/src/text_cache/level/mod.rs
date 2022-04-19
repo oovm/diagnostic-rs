@@ -28,6 +28,12 @@ pub enum DiagnosticLevel {
     Fatal,
 }
 
+impl Default for DiagnosticLevel {
+    fn default() -> Self {
+        DiagnosticLevel::Error
+    }
+}
+
 /// Represents a labels message that can provide information like errors and
 /// warnings to the user.
 ///

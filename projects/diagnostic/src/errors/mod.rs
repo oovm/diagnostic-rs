@@ -23,6 +23,7 @@
 //!
 //! [`salsa`]: https://crates.io/crates/salsa
 
+pub mod simple;
 pub mod validation;
 
 use std::{error::Error, fmt::Display};
