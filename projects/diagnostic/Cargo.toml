@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic"
-version = "0.3.7"
+version = "0.3.8"
 readme = "Readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
@@ -21,4 +21,5 @@ unindent = "0.1.10"
 
 [features]
 default = []
+nightly = []
 ascii-only = []

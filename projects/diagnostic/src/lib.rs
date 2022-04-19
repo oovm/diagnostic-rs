@@ -1,4 +1,6 @@
 #![doc = include_str!("../Readme.md")]
+#![cfg_attr(feature = "nightly", feature(never_type))]
+#![cfg_attr(feature = "nightly", feature(try_trait_v2))]
 
 pub use self::{
     errors::{
