@@ -1,9 +1,9 @@
 use diagnostic::{DiagnosticLevel, Span};
 use peginator::ParseError;
 
-use crate::{errors::SyntaxError, YggdrasilError};
+use crate::{errors::SyntaxError, QError};
 
-impl From<ParseError> for YggdrasilError {
+impl From<ParseError> for QError {
     fn from(error: ParseError) -> Self {
         let e = SyntaxError {
             message: error.specifics.to_string(),

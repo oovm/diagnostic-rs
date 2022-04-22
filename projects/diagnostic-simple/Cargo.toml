@@ -1,8 +1,8 @@
 [package]
-name = "yggdrasil-simple"
-version = "0.1.2"
+name = "diagnostic-quick"
+version = "0.0.0"
 authors = ["Aster <192607617@qq.com>"]
-description = "Yggdrasil Shared Structure"
+description = "Quick error type for diagnostic"
 repository = "https://github.com/ygg-lang/yggdrasil-rs"
 readme = "Readme.md"
 license = "MPL-2.0"

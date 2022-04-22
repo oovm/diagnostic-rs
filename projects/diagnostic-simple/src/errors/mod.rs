@@ -9,14 +9,15 @@ pub mod error_io;
 pub mod error_runtime;
 pub mod error_syntax;
 
-pub type YggdrasilResult<T = ()> = Result<T, YggdrasilError>;
+pub type QResult<T = ()> = Result<T, QError>;
 
-pub type Validation<T> = diagnostic::Validation<T, YggdrasilError>;
+pub type Validation<T> = diagnostic::Validation<T, QError>;
 
 #[derive(Debug)]
-pub struct YggdrasilError {
+pub struct QError {
     pub error: Box<YggdrasilErrorKind>,
     pub level: DiagnosticLevel,
+    pub source: Option<Box<dyn Error>>,
 }
 
 #[derive(Debug)]
@@ -45,7 +46,7 @@ pub struct IOError {
     pub file: FileID,
 }
 
-impl YggdrasilError {
+impl QError {
     pub fn unreachable() -> Self {
         Self { error: Box::new(YggdrasilErrorKind::Unreachable), level: Default::default() }
     }
@@ -57,9 +58,9 @@ impl YggdrasilError {
     }
 }
 
-impl Error for YggdrasilError {}
+impl Error for QError {}
 
-impl Display for YggdrasilError {
+impl Display for QError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         Debug::fmt(self, f)
     }
