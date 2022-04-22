@@ -8,6 +8,9 @@ use lsp_types::{Position, Range};
 
 use diagnostic::{DiagnosticError, DiagnosticResult, FileID, Span, TextStorage};
 
+pub use diagnostic;
+pub use lsp_types;
+
 fn location_to_position(line_str: &str, line: usize, column: usize, byte_index: usize) -> DiagnosticResult<Position> {
     if column > line_str.len() {
         let max = line_str.len();

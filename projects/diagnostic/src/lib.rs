@@ -5,7 +5,7 @@
 pub use self::{
     errors::{
         simple::{ErrorWithFile, ErrorWithFileSpan},
-        validation::Validation,
+        validation::Validation::{self, Failure, Success},
         DiagnosticError, DiagnosticResult,
     },
     text_cache::{
