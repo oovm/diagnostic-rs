@@ -3,7 +3,7 @@
 
 pub use diagnostic::{DiagnosticLevel, FileID, Span, TextStorage};
 
-pub use self::errors::{IOError, QError, QResult, RuntimeError, SyntaxError, Validation, YggdrasilErrorKind};
+pub use self::errors::{IOError, QError, QErrorKind, QResult, RuntimeError, SyntaxError, Validation};
 
 pub mod error_3rd;
 mod errors;

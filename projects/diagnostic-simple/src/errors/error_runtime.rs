@@ -2,16 +2,6 @@ use diagnostic::Diagnostic;
 
 use super::*;
 
-// noinspection RsSelfConvention
-impl RuntimeError {
-    pub fn as_error(self, level: DiagnosticLevel) -> QError {
-        QError { error: Box::new(YggdrasilErrorKind::ErrorRuntime(self)), level }
-    }
-    pub fn as_report(&self, level: DiagnosticLevel) -> Diagnostic {
-        Diagnostic::new(level)
-    }
-}
-
 impl<E> From<E> for RuntimeError
 where
     E: Error,
