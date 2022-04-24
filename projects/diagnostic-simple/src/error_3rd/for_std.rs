@@ -12,27 +12,6 @@ use crate::{
     QError,
 };
 
-impl From<Utf8Error> for QError {
-    fn from(error: Utf8Error) -> Self {
-        todo!()
-        // SyntaxError::from(error).as_error(DiagnosticLevel::Error)
-    }
-}
-
-impl From<ParseIntError> for QError {
-    fn from(error: ParseIntError) -> Self {
-        // SyntaxError::from(error).as_error(DiagnosticLevel::Error)
-        todo!()
-    }
-}
-
-impl From<ParseFloatError> for QError {
-    fn from(error: ParseFloatError) -> Self {
-        // SyntaxError::from(error).as_error(DiagnosticLevel::Error)
-        todo!()
-    }
-}
-
 impl From<std::fmt::Error> for QError {
     fn from(error: std::fmt::Error) -> Self {
         // RuntimeError::from(error).as_error(DiagnosticLevel::Error)

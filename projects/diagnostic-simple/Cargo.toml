@@ -23,4 +23,4 @@ version = "0.4.1"
 path = "../diagnostic"
 
 [features]
-default = []
+default = ["peginator"]

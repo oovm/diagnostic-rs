@@ -1,7 +1,10 @@
 #![allow(clippy::needless_return)]
 #![doc = include_str!("../Readme.md")]
 
-pub use diagnostic::{DiagnosticLevel, FileID, Span, TextStorage};
+pub use diagnostic::{
+    DiagnosticLevel, FileID, Span, TextStorage,
+    Validation::{Failure, Success},
+};
 
 pub use self::errors::{IOError, QError, QErrorKind, QResult, RuntimeError, SyntaxError, Validation};
 
