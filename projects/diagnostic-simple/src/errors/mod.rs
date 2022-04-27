@@ -52,9 +52,10 @@ impl QError {
         Self { error: Box::new(QErrorKind::Syntax(error)), level: Default::default(), source: None }
     }
     pub fn runtime_error(msg: impl Into<String>) -> Self {
-        let mut error = RuntimeError { message: msg.into() };
+        let error = RuntimeError { message: msg.into() };
         Self { error: Box::new(QErrorKind::Runtime(error)), level: Default::default(), source: None }
     }
+    pub fn with_file(mut self, file: &FileID)
 }
 
 impl Display for QError {

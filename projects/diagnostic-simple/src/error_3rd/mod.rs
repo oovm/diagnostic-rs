@@ -9,7 +9,6 @@ mod for_ropey;
 #[cfg(feature = "ucd-trie")]
 mod for_ucd_trie;
 
-mod for_std;
 #[cfg(feature = "url")]
 mod for_url;
 

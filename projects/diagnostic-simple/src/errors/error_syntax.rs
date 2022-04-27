@@ -1,9 +1,12 @@
 use std::{
+    error::Error,
     num::{ParseFloatError, ParseIntError},
     str::Utf8Error,
 };
 
-use super::*;
+use diagnostic::DiagnosticLevel;
+
+use crate::{QError, QErrorKind, SyntaxError};
 
 impl<E> From<&E> for SyntaxError
 where
@@ -15,7 +18,7 @@ where
 }
 
 impl QError {
-    fn wrap_syntax<E: Error + 'static>(error: E) -> Self {
+    pub(crate) fn wrap_syntax_error<E: Error + 'static>(error: E) -> Self {
         QError {
             error: Box::new(QErrorKind::Syntax(SyntaxError::from(&error))),
             level: DiagnosticLevel::Error,
@@ -26,18 +29,18 @@ impl QError {
 
 impl From<Utf8Error> for QError {
     fn from(error: Utf8Error) -> Self {
-        QError::wrap_syntax(error)
+        QError::wrap_syntax_error(error)
     }
 }
 
 impl From<ParseIntError> for QError {
     fn from(error: ParseIntError) -> Self {
-        QError::wrap_syntax(error)
+        QError::wrap_syntax_error(error)
     }
 }
 
 impl From<ParseFloatError> for QError {
     fn from(error: ParseFloatError) -> Self {
-        QError::wrap_syntax(error)
+        QError::wrap_syntax_error(error)
     }
 }
