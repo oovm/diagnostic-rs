@@ -15,6 +15,11 @@ mod for_url;
 #[cfg(feature = "sled")]
 mod for_sled;
 
+#[cfg(feature = "rust_decimal")]
+mod for_rust_decimal;
+#[cfg(feature = "rust_decimal")]
+pub use self::for_rust_decimal::*;
+
 #[cfg(feature = "serde-binary")]
 mod for_serde_binary;
 
