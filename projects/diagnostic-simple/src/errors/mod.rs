@@ -1,6 +1,7 @@
 use std::{
     error::Error,
     fmt::{Debug, Display, Formatter},
+    ops::Range,
 };
 
 use diagnostic::{DiagnosticLevel, FileID, Span};
@@ -55,7 +56,31 @@ impl QError {
         let error = RuntimeError { message: msg.into() };
         Self { error: Box::new(QErrorKind::Runtime(error)), level: Default::default(), source: None }
     }
-    pub fn with_file(mut self, file: &FileID)
+    pub fn kind(&self) -> &QErrorKind {
+        &*self.error
+    }
+    pub fn with_file(mut self, file: &FileID) -> Self {
+        match &mut *self.error {
+            QErrorKind::IO(v) => {
+                v.file = file.clone();
+            }
+            QErrorKind::Syntax(v) => {
+                v.file = file.clone();
+            }
+            QErrorKind::Runtime(_) => {}
+            QErrorKind::Custom(_) => {}
+        }
+        self
+    }
+    pub fn with_range(mut self, range: &Range<usize>) -> Self {
+        match &mut *self.error {
+            QErrorKind::IO(_) => {}
+            QErrorKind::Syntax(v) => v.span = range.clone(),
+            QErrorKind::Runtime(_) => {}
+            QErrorKind::Custom(_) => {}
+        }
+        self
+    }
 }
 
 impl Display for QError {
