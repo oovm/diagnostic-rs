@@ -6,7 +6,7 @@ pub use diagnostic::{
     Validation::{Failure, Success},
 };
 
-pub use self::errors::{IOError, QError, QErrorKind, QResult, RuntimeError, SyntaxError, Validation};
+pub use self::errors::{display::print_errors, IOError, QError, QErrorKind, QResult, RuntimeError, SyntaxError, Validation};
 
 pub mod error_3rd;
 mod errors;

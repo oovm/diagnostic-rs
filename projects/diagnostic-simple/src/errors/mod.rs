@@ -4,11 +4,19 @@ use std::{
     ops::Range,
 };
 
-use diagnostic::{DiagnosticLevel, FileID, Span};
+use diagnostic::{
+    term::{
+        emit,
+        termcolor::{ColorChoice, StandardStream},
+        TerminalConfig,
+    },
+    DiagnosticLevel, FileID, Span, TextStorage,
+};
 
-pub mod error_io;
-pub mod error_runtime;
-pub mod error_syntax;
+pub mod display;
+mod error_io;
+mod error_runtime;
+mod error_syntax;
 
 pub type QResult<T = ()> = Result<T, QError>;
 
