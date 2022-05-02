@@ -33,12 +33,13 @@ pub mod location;
 
 #[derive(Clone)]
 pub struct TextStorage {
+    line_feed_mode: bool,
     files: BTreeMap<FileID, TextCache>,
 }
 
 impl Default for TextStorage {
     fn default() -> Self {
-        Self { files: Default::default() }
+        Self { line_feed_mode: false, files: Default::default() }
     }
 }
 
@@ -120,16 +121,25 @@ impl TextStorage {
     {
         let path = file_path.as_ref().to_path_buf();
         let id = FileID::try_from(&path)?;
-        let file = TextCache::file(path)?;
+        let mut file = TextCache::file(path)?;
+        if self.line_feed_mode {
+            file.text = force_lf(&file.text)
+        }
         self.files.insert(id.clone(), file);
         Ok(id)
     }
-    pub fn anonymous(&mut self, file_text: impl Display) -> FileID {
-        let text = file_text.to_string();
+    pub fn anonymous(&mut self, file_text: impl Into<String>) -> FileID {
+        let text = file_text.into();
         let id = FileID::from(&text);
-        let file = TextCache::anonymous(text);
+        let mut file = TextCache::anonymous(text);
+        if self.line_feed_mode {
+            file.text = force_lf(&file.text)
+        }
         self.files.insert(id.clone(), file);
         id
+    }
+    pub fn force_lf(&mut self) {
+        self.line_feed_mode = true;
     }
     pub fn update(&mut self, name: &FileID) -> DiagnosticResult {
         match self.files.get_mut(name) {
@@ -208,4 +218,23 @@ impl TextStorage {
     pub fn line_range(&self, file_id: &FileID, line_index: usize) -> DiagnosticResult<Span> {
         self.get_cache(file_id)?.line_range(line_index)
     }
+}
+
+pub fn force_lf(input: &str) -> String {
+    let mut out = String::with_capacity(input.len());
+    let mut chars = input.chars().peekable();
+    while let Some(this) = chars.next() {
+        match this {
+            '\r' => {
+                out.push('\n');
+                match chars.next() {
+                    Some('\n') => {}
+                    Some(next) => out.push(next),
+                    None => {}
+                }
+            }
+            _ => out.push(this),
+        }
+    }
+    out
 }

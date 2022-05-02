@@ -2,10 +2,10 @@ use diagnostic::{Diagnostic, DiagnosticError};
 
 use super::*;
 
-pub fn print_errors(store: &TextStorage, errors: Vec<QError>) -> QResult {
+pub fn print_errors(store: &TextStorage, errors: &[QError]) -> QResult {
     let writer = StandardStream::stderr(ColorChoice::Always);
     let config = TerminalConfig::default();
-    for error in &errors {
+    for error in errors {
         let diagnostic = error.as_diagnostic();
         emit(&mut writer.lock(), &config, &store, &diagnostic)?;
     }
