@@ -1,19 +1,26 @@
-use diagnostic::DiagnosticLevel;
 use sled::{CompareAndSwapError, Error};
 
-use crate::{IOError, QError, RuntimeError};
+use crate::{QError, QErrorKind, RuntimeError};
 
 impl From<Error> for QError {
     fn from(error: Error) -> Self {
         match error {
-            Error::Io(o) => IOError::from(o).as_error(DiagnosticLevel::Error),
-            _ => RuntimeError { message: error.to_string() }.as_error(DiagnosticLevel::Error),
+            Error::Io(o) => QError::from(o),
+            _ => QError {
+                error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
+                level: Default::default(),
+                source: Some(Box::new(error)),
+            },
         }
     }
 }
 
 impl From<CompareAndSwapError> for QError {
     fn from(error: CompareAndSwapError) -> Self {
-        RuntimeError { message: error.to_string() }.as_error(DiagnosticLevel::Error)
+        QError {
+            error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
+            level: Default::default(),
+            source: Some(Box::new(error)),
+        }
     }
 }

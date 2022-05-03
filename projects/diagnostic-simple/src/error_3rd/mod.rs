@@ -23,5 +23,8 @@ pub use self::for_rust_decimal::*;
 #[cfg(feature = "serde-binary")]
 mod for_serde_binary;
 
+#[cfg(feature = "tl")]
+mod for_tl;
+
 #[cfg(feature = "url")]
 pub use url::Url;

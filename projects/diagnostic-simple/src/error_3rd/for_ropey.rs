@@ -1,10 +1,13 @@
-use diagnostic::DiagnosticLevel;
 use ropey::Error;
 
-use crate::{errors::RuntimeError, QError};
+use crate::{errors::RuntimeError, QError, QErrorKind};
 
 impl From<Error> for QError {
-    fn from(e: Error) -> Self {
-        RuntimeError { message: e.to_string() }.as_error(DiagnosticLevel::Error)
+    fn from(error: Error) -> Self {
+        QError {
+            error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
+            level: Default::default(),
+            source: Some(Box::new(error)),
+        }
     }
 }
