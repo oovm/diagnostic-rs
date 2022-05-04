@@ -1,5 +1,6 @@
-use super::*;
 use std::rc::Rc;
+
+use super::*;
 
 mod ser_der;
 mod try_from;
@@ -22,6 +23,12 @@ impl Default for FileID {
 impl AsRef<str> for FileID {
     fn as_ref(&self) -> &str {
         &self.0
+    }
+}
+
+impl AsRef<Path> for FileID {
+    fn as_ref(&self) -> &Path {
+        Path::new(AsRef::<str>::as_ref(self))
     }
 }
 

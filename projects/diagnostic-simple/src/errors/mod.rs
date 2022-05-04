@@ -89,6 +89,10 @@ impl QError {
         }
         self
     }
+    pub fn with_level(mut self, level: impl Into<DiagnosticLevel>) -> Self {
+        self.level = level.into();
+        self
+    }
 }
 
 impl Display for QError {
