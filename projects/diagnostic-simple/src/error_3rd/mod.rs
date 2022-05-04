@@ -28,3 +28,12 @@ mod for_tl;
 
 #[cfg(feature = "url")]
 pub use url::Url;
+
+#[cfg(feature = "globset")]
+mod for_globset;
+
+#[cfg(feature = "walkdir")]
+mod for_walkdir;
+
+#[cfg(feature = "async-walkdir")]
+mod for_walkdir_async;
