@@ -32,8 +32,20 @@ pub use url::Url;
 #[cfg(feature = "globset")]
 mod for_globset;
 
+#[cfg(feature = "globset")]
+pub use globset::GlobBuilder;
+
+#[cfg(feature = "serde")]
+mod for_serde;
+
 #[cfg(feature = "walkdir")]
 mod for_walkdir;
 
+#[cfg(feature = "walkdir")]
+pub use walkdir::WalkDir;
+
 #[cfg(feature = "async-walkdir")]
 mod for_walkdir_async;
+
+#[cfg(feature = "async-walkdir")]
+pub use async_walkdir::WalkDir as AsyncWalkDir;

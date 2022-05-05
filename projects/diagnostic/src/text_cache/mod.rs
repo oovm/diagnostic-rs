@@ -97,6 +97,7 @@ impl TextCache {
         }
         Ok(())
     }
+
     pub fn line_start(&self, line_index: usize) -> DiagnosticResult<usize> {
         match line_index.cmp(&self.line_starts.len()) {
             Ordering::Less => Ok(*self.line_starts.get(line_index).expect("failed despite previous check")),
@@ -110,11 +111,38 @@ impl TextCache {
         let next_line_start = self.line_start(line_index + 1)?;
         Ok(line_start..next_line_start)
     }
+    /// Clear all cached files
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use diagnostic::TextStorage;
+    ///
+    /// let mut storage = TextStorage::default();
+    /// storage.clear();
+    /// ```
+    pub fn clear(&mut self) {
+        self.text.clear();
+    }
 }
 
 impl TextStorage {
     /// Add a file to the database, returning the handle that can be used to
     /// refer to it again.
+    ///
+    /// # Arguments
+    ///
+    /// * `file_path`:
+    ///
+    /// returns: Result<FileID, DiagnosticError>
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use diagnostic::TextStorage;
+    /// let mut storage = TextStorage::default();
+    /// let id = storage.file("src/main.rs").ok();
+    /// ```
     pub fn file<P>(&mut self, file_path: P) -> DiagnosticResult<FileID>
     where
         P: AsRef<Path>,

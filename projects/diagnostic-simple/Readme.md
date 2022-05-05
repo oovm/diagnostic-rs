@@ -1,10 +1,6 @@
-Yggdrasil Shared Structures
-===========================
+Diagnostic Quick
+=========================================
+
+Quickly handle errors in common libraries
 
 
-
-
-
-## License
-
-TextIndex used codes from `lsp-document`
