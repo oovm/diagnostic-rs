@@ -12,8 +12,8 @@ pub use walkdir::WalkDir;
 #[cfg(feature = "rust_decimal")]
 pub use self::for_rust_decimal::*;
 
-#[cfg(feature = "lsp-types")]
-mod for_lsp;
+// #[cfg(feature = "lsp-types")]
+// mod for_lsp;
 #[cfg(feature = "num")]
 mod for_num;
 #[cfg(feature = "peginator")]
@@ -55,5 +55,9 @@ mod for_toml;
 #[cfg(feature = "serde_json")]
 mod for_serde_json;
 
+#[cfg(feature = "chrono")]
+mod for_chrono;
 #[cfg(feature = "mime")]
 mod for_mime;
+
+mod for_font_kit;

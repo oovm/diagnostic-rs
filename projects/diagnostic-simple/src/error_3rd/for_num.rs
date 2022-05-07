@@ -5,7 +5,7 @@ use num::{
 };
 
 impl<T> From<TryFromBigIntError<T>> for QError {
-    fn from(error: TryFromBigIntError<BigInt>) -> Self {
+    fn from(error: TryFromBigIntError<T>) -> Self {
         todo!()
     }
 }
