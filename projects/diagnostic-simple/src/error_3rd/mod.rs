@@ -11,7 +11,7 @@ pub use url::Url;
 #[cfg(feature = "walkdir")]
 pub use walkdir::WalkDir;
 
-use crate::{QError, QErrorKind, RuntimeError};
+use crate::{IOError, QError, QErrorKind, RuntimeError, SyntaxError};
 
 #[cfg(feature = "rust_decimal")]
 pub use self::for_rust_decimal::*;
@@ -64,13 +64,37 @@ mod for_chrono;
 #[cfg(feature = "mime")]
 mod for_mime;
 
+#[cfg(feature = "font-kit")]
 mod for_font_kit;
 
+#[cfg(feature = "image")]
+mod for_image;
+
+#[cfg(feature = "imageproc")]
+mod for_imageproc;
+
+#[allow(unused)]
 impl QError {
     #[inline]
     pub(crate) fn fast_runtime_error(error: impl Error + 'static) -> QError {
         QError {
             error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
+            level: Default::default(),
+            source: Some(Box::new(error)),
+        }
+    }
+    #[inline]
+    pub(crate) fn fast_syntax_error(error: impl Error + 'static) -> QError {
+        QError {
+            error: Box::new(QErrorKind::Syntax(SyntaxError::from(&error))),
+            level: Default::default(),
+            source: Some(Box::new(error)),
+        }
+    }
+    #[inline]
+    pub(crate) fn fast_io_error(error: impl Error + 'static) -> QError {
+        QError {
+            error: Box::new(QErrorKind::IO(IOError { message: error.to_string(), file: Default::default() })),
             level: Default::default(),
             source: Some(Box::new(error)),
         }
