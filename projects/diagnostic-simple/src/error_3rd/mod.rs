@@ -49,3 +49,6 @@ mod for_walkdir_async;
 
 #[cfg(feature = "async-walkdir")]
 pub use async_walkdir::WalkDir as AsyncWalkDir;
+
+#[cfg(feature = "toml")]
+mod for_toml;
