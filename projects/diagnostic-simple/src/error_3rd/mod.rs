@@ -1,3 +1,5 @@
+use std::error::Error;
+
 #[cfg(feature = "async-walkdir")]
 pub use async_walkdir::WalkDir as AsyncWalkDir;
 #[cfg(feature = "globset")]
@@ -8,6 +10,8 @@ pub use toml::Value as Toml;
 pub use url::Url;
 #[cfg(feature = "walkdir")]
 pub use walkdir::WalkDir;
+
+use crate::{QError, QErrorKind, RuntimeError};
 
 #[cfg(feature = "rust_decimal")]
 pub use self::for_rust_decimal::*;
@@ -61,3 +65,14 @@ mod for_chrono;
 mod for_mime;
 
 mod for_font_kit;
+
+impl QError {
+    #[inline]
+    pub(crate) fn fast_runtime_error(error: impl Error + 'static) -> QError {
+        QError {
+            error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
+            level: Default::default(),
+            source: Some(Box::new(error)),
+        }
+    }
+}

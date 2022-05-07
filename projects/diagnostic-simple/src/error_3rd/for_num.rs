@@ -1,8 +1,5 @@
 use crate::QError;
-use num::{
-    bigint::{ParseBigIntError, TryFromBigIntError},
-    BigInt,
-};
+use num::bigint::{ParseBigIntError, TryFromBigIntError};
 
 impl<T> From<TryFromBigIntError<T>> for QError {
     fn from(error: TryFromBigIntError<T>) -> Self {
