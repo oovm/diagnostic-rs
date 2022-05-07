@@ -15,14 +15,6 @@ impl Error for QError {
         QError { error: Box::new(QErrorKind::Custom(msg.to_string())), level: Default::default(), source: None }
     }
 }
-#[allow(unused_variables)]
-impl serde::de::Error for QError {
-    fn custom<T>(msg: T) -> Self
-    where
-        T: Display,
-    {
-        Error::custom(msg)
-    }
 
     fn invalid_type(unexp: Unexpected, exp: &dyn Expected) -> Self {
         todo!()
