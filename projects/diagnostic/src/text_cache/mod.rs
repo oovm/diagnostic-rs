@@ -119,7 +119,6 @@ impl TextCache {
     /// use diagnostic::TextStorage;
     ///
     /// let mut storage = TextStorage::default();
-    /// storage.clear();
     /// ```
     pub fn clear(&mut self) {
         self.text.clear();
