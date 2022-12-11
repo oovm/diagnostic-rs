@@ -1,13 +1,9 @@
 use serde_binary::Error;
 
-use crate::{QError, QErrorKind, RuntimeError};
+use crate::QError;
 
 impl From<Error> for QError {
     fn from(error: Error) -> Self {
-        QError {
-            error: Box::new(QErrorKind::Runtime(RuntimeError::from(&error))),
-            level: Default::default(),
-            source: Some(Box::new(error)),
-        }
+        Self::runtime_error(error.to_string())
     }
 }
