@@ -13,6 +13,7 @@ pub use walkdir::WalkDir;
 
 use crate::{IOError, QError, QErrorKind, RuntimeError, SyntaxError};
 
+pub use self::for_ast::NodeLocation;
 #[cfg(feature = "rust_decimal")]
 pub use self::for_rust_decimal::*;
 
@@ -72,6 +73,8 @@ mod for_image;
 
 #[cfg(feature = "imageproc")]
 mod for_imageproc;
+
+mod for_ast;
 
 #[allow(unused)]
 impl QError {
