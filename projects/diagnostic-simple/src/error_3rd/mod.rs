@@ -2,8 +2,14 @@ use std::error::Error;
 
 #[cfg(feature = "async-walkdir")]
 pub use async_walkdir::WalkDir as AsyncWalkDir;
+#[cfg(feature = "email_address")]
+pub use email_address::EmailAddress;
 #[cfg(feature = "globset")]
 pub use globset::{Glob, GlobSet, GlobSetBuilder};
+#[cfg(feature = "mime")]
+pub use mime::Mime;
+#[cfg(feature = "semver")]
+pub use semver::Version;
 #[cfg(feature = "toml")]
 pub use toml::Value as Toml;
 #[cfg(feature = "url")]
@@ -62,14 +68,12 @@ mod for_serde_json;
 
 #[cfg(feature = "chrono")]
 mod for_chrono;
+#[cfg(feature = "email_address")]
+mod for_email_address;
 #[cfg(feature = "mime")]
 mod for_mime;
-#[cfg(feature = "mime")]
-pub use mime::Mime;
-
+#[cfg(feature = "semver")]
 mod for_semver;
-
-mod for_email_parse;
 
 #[cfg(feature = "font-kit")]
 mod for_font_kit;

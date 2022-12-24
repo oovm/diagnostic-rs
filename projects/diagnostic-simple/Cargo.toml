@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic-quick"
-version = "0.2.6"
+version = "0.2.7"
 authors = ["Aster <192607617@qq.com>"]
 description = "Quick error type for diagnostic"
 repository = "https://github.com/ygg-lang/yggdrasil-rs"
@@ -32,7 +32,8 @@ url = { version = "2.3.1", optional = true }
 peginator = { version = "0.6.0", optional = true }
 tl = { version = "0.7.7", optional = true }
 chrono = { version = "0.4.23", optional = true }
-email-parser = { version = "0.5.0", optional = true }
+#email-parser = { version = "0.5.0", optional = true }
+email_address = { version = "0.2.4", optional = true }
 semver = { version = "1.0.14", optional = true }
 mime = { version = "0.3.16", optional = true }
 
