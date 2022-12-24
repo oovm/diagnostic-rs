@@ -14,10 +14,10 @@ impl TryFrom<&Path> for FileID {
         let path = path.to_string_lossy();
         if cfg!(windows) {
             let path = &path[4..path.len()];
-            Ok(Self { repr: Rc::from(path) })
+            Ok(Self { hash: Rc::from(path) })
         }
         else {
-            Ok(Self { repr: Rc::from(path) })
+            Ok(Self { hash: Rc::from(path) })
         }
     }
 }
@@ -53,6 +53,6 @@ impl From<&str> for FileID {
         let mut hasher = DefaultHasher::new();
         hasher.write(value.as_bytes());
         let id = hasher.finish();
-        Self { repr: Rc::from(format!("<anonymous:{:0x}>", id)) }
+        Self { hash: Rc::from(format!("<anonymous:{:0x}>", id)) }
     }
 }
