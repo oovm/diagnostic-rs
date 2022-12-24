@@ -64,6 +64,12 @@ mod for_serde_json;
 mod for_chrono;
 #[cfg(feature = "mime")]
 mod for_mime;
+#[cfg(feature = "mime")]
+pub use mime::Mime;
+
+mod for_semver;
+
+mod for_email_parse;
 
 #[cfg(feature = "font-kit")]
 mod for_font_kit;

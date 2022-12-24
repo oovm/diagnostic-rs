@@ -22,17 +22,19 @@ ucd-trie = { version = "0.1.5", optional = true }
 sled = { version = "0.34.7", optional = true }
 
 # serde
-serde = { version = "1.0.149", features = ["derive"]}
+serde = { version = "1.0.149", features = ["derive"] }
 toml = { version = "0.5.9", optional = true }
 serde_json = { version = "1.0.89", optional = true }
 serde-binary = { version = "0.4.0", optional = true }
-mime = { version = "0.3.16", optional = true }
 
 # parser
 url = { version = "2.3.1", optional = true }
 peginator = { version = "0.6.0", optional = true }
 tl = { version = "0.7.7", optional = true }
 chrono = { version = "0.4.23", optional = true }
+email-parser = { version = "0.5.0", optional = true }
+semver = { version = "1.0.14", optional = true }
+mime = { version = "0.3.16", optional = true }
 
 # system
 globset = { version = "0.4.9", optional = true }
