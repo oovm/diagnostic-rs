@@ -8,8 +8,12 @@ pub use email_address::EmailAddress;
 pub use globset::{Glob, GlobSet, GlobSetBuilder};
 #[cfg(feature = "mime")]
 pub use mime::Mime;
+#[cfg(feature = "num")]
+pub use num::{traits as num_traits, BigInt, BigRational, BigUint};
 #[cfg(feature = "semver")]
 pub use semver::Version;
+#[cfg(feature = "serde_json")]
+pub use serde_json::Value as Json;
 #[cfg(feature = "toml")]
 pub use toml::Value as Toml;
 #[cfg(feature = "url")]
@@ -63,9 +67,6 @@ mod for_walkdir_async;
 #[cfg(feature = "toml")]
 mod for_toml;
 
-#[cfg(feature = "serde_json")]
-mod for_serde_json;
-
 #[cfg(feature = "chrono")]
 mod for_chrono;
 #[cfg(feature = "email_address")]
@@ -74,6 +75,8 @@ mod for_email_address;
 mod for_mime;
 #[cfg(feature = "semver")]
 mod for_semver;
+#[cfg(feature = "serde_json")]
+mod for_serde_json;
 
 #[cfg(feature = "font-kit")]
 mod for_font_kit;

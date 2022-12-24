@@ -7,7 +7,7 @@ impl Serialize for FileID {
     where
         S: Serializer,
     {
-        serializer.serialize_str(&self.0)
+        serializer.serialize_str(&self.repr)
     }
 }
 
@@ -17,6 +17,6 @@ impl<'de> Deserialize<'de> for FileID {
         D: Deserializer<'de>,
     {
         let inner = String::deserialize(deserializer)?;
-        Ok(Self(Rc::from(inner)))
+        Ok(Self { repr: Rc::from(inner) })
     }
 }

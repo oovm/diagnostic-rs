@@ -44,6 +44,20 @@ pub struct SyntaxError {
     pub span: Span,
 }
 
+/// An error that occurs during runtime.
+///
+/// # Arguments
+///
+/// * `msg`:
+///
+/// returns: QError
+///
+/// # Examples
+///
+/// ```
+/// use diagnostic_quick::RuntimeError;
+/// RuntimeError::from("runtime error");
+/// ```
 #[derive(Debug)]
 pub struct RuntimeError {
     pub message: String,
