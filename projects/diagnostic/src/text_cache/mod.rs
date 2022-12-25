@@ -56,6 +56,7 @@ impl Debug for TextStorage {
 /// A file that is backed by an `Arc<String>`.
 #[derive(Clone)]
 pub struct TextCache {
+    pub name: String,
     /// Path to original file
     pub path: Option<PathBuf>,
     /// The source code of the file.
@@ -78,15 +79,19 @@ impl Debug for TextCache {
 
 impl TextCache {
     pub fn anonymous(source: String) -> Self {
-        let mut out = Self { path: None, text: source, line_starts: vec![] };
+        let mut out = Self { name: "".to_string(), path: None, text: source, line_starts: vec![] };
         out.line_starts = line_starts(&out.text).collect();
         out
     }
     pub fn file(file: PathBuf) -> DiagnosticResult<Self> {
-        let mut out = Self { path: Some(file), text: String::new(), line_starts: vec![] };
+        let mut out = Self { name: "".to_string(), path: Some(file), text: String::new(), line_starts: vec![] };
         out.update()?;
         Ok(out)
     }
+    pub fn with_name(self, name: impl ToString) -> Self {
+        Self { name: name.to_string(), ..self }
+    }
+
     pub fn update(&mut self) -> DiagnosticResult {
         match &self.path {
             Some(s) => {

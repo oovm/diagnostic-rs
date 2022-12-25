@@ -1,83 +1,52 @@
-//! Source file support for labels reporting.
-//!
-//! The main trait defined in this module is the [`Files`] trait, which provides
-//! provides the minimum amount of functionality required for printing [`Diagnostics`]
-//! with the [`term::emit`] function.
-//!
-//! Simple implementations of this trait are implemented:
-//!
-//! - [`SimpleFile`]: For single-file use-cases
-//! - [`SimpleFiles`]: For multi-file use-cases
-//!
-//! These data structures provide a pretty minimal API, however,
-//! so end-users are encouraged to create their own implementations for their
-//! own specific use-cases, such as an implementation that accesses the file
-//! system directly (and caches the line start locations), or an implementation
-//! using an incremental compilation library like [`salsa`].
-//!
-//! [`term::emit`]: crate::term::emit
-//! [`Diagnostics`]: crate::labels::Diagnostic
-//! [`Files`]: Files
-//! [`SimpleFile`]: SimpleFile
-//! [`SimpleFiles`]: SimpleFiles
-//!
-//! [`salsa`]: https://crates.io/crates/salsa
+use std::error::{Error};
+use std::fmt::{Display, Formatter};
+use std::ops::Range;
+use diagnostic::{Diagnostic, DiagnosticLevel, FileID, FileSpan, Label};
 
-pub mod simple;
-pub mod validation;
-
-use std::{error::Error, fmt::Display};
-
-pub type DiagnosticResult<T = ()> = Result<T, DiagnosticError>;
-
-/// An enum representing an error that happened while looking up a file or a piece of content in that file.
-#[derive(Debug)]
-#[non_exhaustive]
-pub enum DiagnosticError {
-    /// A required file is not in the file database.
-    FileMissing,
-    /// The file is present, but does not contain the specified byte index.
-    IndexTooLarge { given: usize, max: usize },
-    /// The file is present, but does not contain the specified line index.
-    LineTooLarge { given: usize, max: usize },
-    /// The file is present and contains the specified line index, but the line does not contain the specified column index.
-    ColumnTooLarge { given: usize, max: usize },
-    /// The given index is contained in the file, but is not a boundary of a UTF-8 code point.
-    InvalidCharBoundary { given: usize },
-    /// There was a error while doing IO.
-    IOError(std::io::Error),
+#[derive(Clone, Debug)]
+pub struct SyntaxError {
+    pub info: String,
+    pub span: FileSpan<u32>,
+    pub level: DiagnosticLevel,
 }
 
-impl From<std::io::Error> for DiagnosticError {
-    fn from(err: std::io::Error) -> DiagnosticError {
-        DiagnosticError::IOError(err)
+impl Error for SyntaxError {}
+
+impl Display for SyntaxError {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
+        f.write_str(&self.info)
     }
 }
 
-impl Display for DiagnosticError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            DiagnosticError::FileMissing => write!(f, "File ID not found"),
-            DiagnosticError::IndexTooLarge { given, max } => {
-                write!(f, "invalid index {}, maximum index is {}", given, max)
-            }
-            DiagnosticError::LineTooLarge { given, max } => {
-                write!(f, "invalid line {}, maximum line is {}", given, max)
-            }
-            DiagnosticError::ColumnTooLarge { given, max } => {
-                write!(f, "invalid column {}, maximum column {}", given, max)
-            }
-            DiagnosticError::InvalidCharBoundary { .. } => write!(f, "index is not a code point boundary"),
-            DiagnosticError::IOError(err) => write!(f, "{}", err),
-        }
+impl SyntaxError {
+    pub fn new(file: FileID) -> Self {
+        Self { span: file.with_range(0..0), info: String::new(), level: DiagnosticLevel::Error }
     }
-}
-
-impl Error for DiagnosticError {
-    fn source(&self) -> Option<&(dyn Error + 'static)> {
-        match &self {
-            DiagnosticError::IOError(err) => Some(err),
-            _ => None,
-        }
+    pub fn with_message<T>(mut self, info: T) -> Self
+        where
+            T: ToString,
+    {
+        self.info = info.to_string();
+        self
+    }
+    pub fn with_range(mut self, range: Range<u32>) -> Self {
+        self.span.set_range(range);
+        self
+    }
+    pub fn with_span(mut self, span: FileSpan<u32>) -> Self {
+        self.span = span;
+        self
+    }
+    pub fn with_level(mut self, level: DiagnosticLevel) -> Self {
+        self.level = level;
+        self
+    }
+    pub fn as_report(&self) -> Diagnostic {
+        // let mut report = Diagnostic::new(self.level, self.span.get_file(), self.span.get_range().start);
+        // report.set_message(self.to_string());
+        // let label = Label::new(self.span);
+        // report.add_label(label);
+        // report.finish()
+        todo!()
     }
 }

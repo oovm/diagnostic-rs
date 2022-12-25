@@ -1,3 +1,4 @@
+use std::ops::Range;
 use std::rc::Rc;
 
 use super::*;
@@ -22,6 +23,26 @@ mod try_from;
 #[derive(Eq, Clone)]
 pub struct FileID {
     hash: Rc<str>,
+}
+
+impl FileID {
+    pub fn with_range<T>(&self, range: Range<T>) -> FileSpan<T> {
+        FileSpan { id: self.clone(), start_offset: range.start, end_offset: range.end }
+    }
+}
+
+#[derive(PartialEq, Eq, Clone, Debug)]
+pub struct FileSpan<T> {
+    id: FileID,
+    start_offset: T,
+    end_offset: T,
+}
+
+impl<T> FileSpan<T> {
+    pub fn set_range(&mut self, range: Range<T>) {
+        self.start_offset = range.start;
+        self.end_offset = range.end;
+    }
 }
 
 impl Default for FileID {

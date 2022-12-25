@@ -1,5 +1,5 @@
 [package]
-name = "diagnostic"
+name = "validatus"
 version = "0.5.0"
 readme = "Readme.md"
 license = "Apache-2.0"
