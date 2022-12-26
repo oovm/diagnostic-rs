@@ -1,21 +1,5 @@
-#![doc = include_str!("../Readme.md")]
+#![doc = include_str!("../readme.md")]
 
-pub use self::{
-    errors::{
-        simple::{ErrorWithFile, ErrorWithFileSpan},
-        validation::Validation::{self, Failure, Success},
-        DiagnosticError, DiagnosticResult,
-    },
-    text_cache::{
-        file_id::{FileID, FileSpan},
-        labels::{Label, LabelStyle},
-        level::{Diagnostic, DiagnosticLevel},
-        location::{column_index, line_starts, Location, Span},
-        TextCache, TextStorage,
-    },
-};
+mod validates;
 
-pub mod term;
-
-mod errors;
-mod text_cache;
+pub use self::validates::Validation;

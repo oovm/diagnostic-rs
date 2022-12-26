@@ -4,15 +4,13 @@ use std::{
     mem::take,
 };
 
-use serde::{Deserialize, Serialize};
-
-use crate::{Diagnostic, DiagnosticLevel, Failure, Success};
+use crate::Validation::{Failure, Success};
 
 #[cfg(feature = "nightly")]
 mod try_from;
 
 /// A validation result with multiple diagnostics.
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug)]
 pub enum Validation<T, E> {
     /// Verification process complete
     Success {
@@ -230,27 +228,27 @@ impl<T, E> Validation<T, E> {
             }
         }
     }
-    /// Collect all diagnostics, with final fatal error if exists
-    pub fn collect_diagnostics<'s>(&'s self) -> Vec<Diagnostic>
-    where
-        Diagnostic: From<&'s E>,
-    {
-        let mut out = vec![];
-        match self {
-            Success { value: _, diagnostics } => {
-                for diagnostic in diagnostics {
-                    out.push(diagnostic.into())
-                }
-            }
-            Failure { fatal, diagnostics } => {
-                for diagnostic in diagnostics {
-                    out.push(diagnostic.into())
-                }
-                let mut last = Diagnostic::from(fatal);
-                last.severity = DiagnosticLevel::Fatal;
-                out.push(last)
-            }
-        }
-        out
-    }
+    // /// Collect all diagnostics, with final fatal error if exists
+    // pub fn collect_diagnostics<'s>(&'s self) -> Vec<Diagnostic>
+    // where
+    //     Diagnostic: From<&'s E>,
+    // {
+    //     let mut out = vec![];
+    //     match self {
+    //         Success { value: _, diagnostics } => {
+    //             for diagnostic in diagnostics {
+    //                 out.push(diagnostic.into())
+    //             }
+    //         }
+    //         Failure { fatal, diagnostics } => {
+    //             for diagnostic in diagnostics {
+    //                 out.push(diagnostic.into())
+    //             }
+    //             let mut last = Diagnostic::from(fatal);
+    //             last.severity = DiagnosticLevel::Fatal;
+    //             out.push(last)
+    //         }
+    //     }
+    //     out
+    // }
 }
