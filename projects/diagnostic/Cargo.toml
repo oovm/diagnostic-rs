@@ -1,26 +1,23 @@
 [package]
 name = "diagnostic"
-version = "0.5.0"
-readme = "Readme.md"
-license = "Apache-2.0"
-authors = ["Aster <192607617@qq.com>", "Brendan Zabarauskas <bjzaba@yahoo.com.au>"]
-description = "Beautiful diagnostic reporting for text-based programming languages"
-homepage = "https://github.com/oovm/diagnostic-rs"
-repository = "https://github.com/oovm/diagnostic-rs"
+version = "0.5.2"
+authors = ["Aster <192607617@qq.com>"]
+description = "Syntax error report"
+repository = "https://github.com/oovm/sub_projects"
 documentation = "https://docs.rs/diagnostic"
-exclude = ["tests/**"]
+readme = "Readme.md"
+license = "MPL-2.0"
 edition = "2021"
+exclude = ["package.json", "tests/**"]
 
 [dependencies]
-serde = { version = "1.0.163", features = ["derive"] }
-termcolor = "1.2.0"
+yansi = "0.5.1"
 unicode-width = "0.1.10"
-log = "0.4.17"
 
 [dev-dependencies]
-unindent = "0.2.1"
 
 [features]
 default = []
-nightly = []
-ascii-only = []
+
+[package.metadata.docs.rs]
+all-features = true
