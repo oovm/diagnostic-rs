@@ -1,4 +1,5 @@
 use super::*;
+
 #[test]
 fn main() {
     let mut colors = Palette::new();

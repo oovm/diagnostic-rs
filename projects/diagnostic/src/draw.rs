@@ -1,5 +1,5 @@
 use super::*;
-use yansi::Paint;
+use crate::style::{Color, Paint};
 
 pub struct Characters {
     pub hbar: char,

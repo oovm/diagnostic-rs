@@ -11,7 +11,6 @@ edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
-yansi = "0.5.1"
 unicode-width = "0.1.10"
 
 [dev-dependencies]

@@ -4,6 +4,7 @@
 mod display;
 mod draw;
 mod source;
+mod style;
 mod write;
 
 pub use crate::{
@@ -11,7 +12,7 @@ pub use crate::{
     source::{FileCache, Line, Source},
 };
 use std::fmt::{Debug, Display, Formatter};
-pub use yansi::Color;
+pub use style::{Color, Style};
 
 use crate::display::*;
 use std::{
@@ -469,7 +470,9 @@ pub struct Config {
     compact: bool,
     underlines: bool,
     multiline_arrows: bool,
-    color: bool,
+    pub color_enable: bool,
+    pub margin_color: Option<(Color, Color)>,
+    pub unimportant_color: Option<Color>,
     tab_width: usize,
     char_set: CharSet,
 }
@@ -516,7 +519,7 @@ impl Config {
     ///
     /// If unspecified, this defaults to [`true`].
     pub fn with_color(mut self, color: bool) -> Self {
-        self.color = color;
+        self.color_enable = color;
         self
     }
     /// How many characters width should tab characters be?
@@ -535,19 +538,31 @@ impl Config {
     }
 
     fn margin_color(&self) -> Option<Color> {
-        Some(Color::Fixed(246)).filter(|_| self.color)
+        Some(match self.margin_color {
+            None => Color::Fixed(246),
+            Some(s) => s.0,
+        })
+        .filter(|_| self.color_enable)
     }
     fn skipped_margin_color(&self) -> Option<Color> {
-        Some(Color::Fixed(240)).filter(|_| self.color)
+        Some(match self.margin_color {
+            None => Color::Fixed(240),
+            Some(s) => s.1,
+        })
+        .filter(|_| self.color_enable)
     }
     fn unimportant_color(&self) -> Option<Color> {
-        Some(Color::Fixed(249)).filter(|_| self.color)
+        Some(match self.unimportant_color {
+            None => Color::Fixed(249),
+            Some(s) => s,
+        })
+        .filter(|_| self.color_enable)
     }
     fn note_color(&self) -> Option<Color> {
-        Some(Color::Fixed(115)).filter(|_| self.color)
+        Some(Color::Fixed(115)).filter(|_| self.color_enable)
     }
     fn filter_color(&self, color: Option<Color>) -> Option<Color> {
-        color.filter(|_| self.color)
+        color.filter(|_| self.color_enable)
     }
 
     // Find the character that should be drawn and the number of times it should be drawn for each char
@@ -572,7 +587,9 @@ impl Default for Config {
             compact: false,
             underlines: true,
             multiline_arrows: true,
-            color: true,
+            color_enable: true,
+            margin_color: None,
+            unimportant_color: None,
             tab_width: 4,
             char_set: CharSet::Unicode,
         }
