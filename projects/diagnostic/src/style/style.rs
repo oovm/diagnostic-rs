@@ -100,7 +100,7 @@ impl Iterator for Iter {
 /// These methods can be chained:
 ///
 /// ```rust
-/// use yansi::{
+/// use diagnostic::{
 ///     Color::{Magenta, Red},
 ///     Style,
 /// };
@@ -166,7 +166,7 @@ macro_rules! checker_for {
         #[doc = concat!(
             "Returns `true` if the _", stringify!($name), "_ property is set on `self`.\n",
             "```rust\n",
-            "use yansi::Style;\n",
+            "use diagnostic::Style;\n",
             "\n",
             "let plain = Style::default();\n",
             "assert!(!plain.", stringify!($fn_name), "());\n",
@@ -198,7 +198,7 @@ impl Style {
     /// properties.
     ///
     /// ```rust
-    /// use yansi::Style;
+    /// use diagnostic::Style;
     ///
     /// let plain = Style::default();
     /// assert_eq!(plain, Style::default());
@@ -211,7 +211,7 @@ impl Style {
     /// Sets the foreground to `color`.
     ///
     /// ```rust
-    /// use yansi::{Color, Style};
+    /// use diagnostic::{Color, Style};
     ///
     /// let red_fg = Style::default().fg(Color::Red);
     /// ```
@@ -224,7 +224,7 @@ impl Style {
     /// Sets the background to `color`.
     ///
     /// ```rust
-    /// use yansi::{Color, Style};
+    /// use diagnostic::{Color, Style};
     ///
     /// let red_bg = Style::default().bg(Color::Red);
     /// ```
@@ -241,7 +241,7 @@ impl Style {
     /// enabled, masking has no effect.
     ///
     /// ```rust
-    /// use yansi::Style;
+    /// use diagnostic::Style;
     ///
     /// let masked = Style::default().mask();
     ///
@@ -267,7 +267,7 @@ impl Style {
     /// wrapped value is likely to result in a heap allocation and copy.
     ///
     /// ```rust
-    /// use yansi::{Color, Paint, Style};
+    /// use diagnostic::{Color, Paint, Style};
     ///
     /// let inner = format!("{} and {}", Paint::red("Stop"), Paint::green("Go"));
     /// let wrapping = Style::new(Color::Blue).wrap();
@@ -292,7 +292,7 @@ impl Style {
     /// style set to `self`.
     ///
     /// ```rust
-    /// use yansi::{Color, Style};
+    /// use diagnostic::{Color, Style};
     ///
     /// let alert = Style::new(Color::Red).bold().underline();
     /// println!("Alert: {}", alert.paint("This thing happened!"));
@@ -305,7 +305,7 @@ impl Style {
     /// Returns the foreground color of `self`.
     ///
     /// ```rust
-    /// use yansi::{Color, Style};
+    /// use diagnostic::{Color, Style};
     ///
     /// let plain = Style::default();
     /// assert_eq!(plain.fg_color(), Color::Unset);
@@ -321,7 +321,7 @@ impl Style {
     /// Returns the foreground color of `self`.
     ///
     /// ```rust
-    /// use yansi::{Color, Style};
+    /// use diagnostic::{Color, Style};
     ///
     /// let plain = Style::default();
     /// assert_eq!(plain.bg_color(), Color::Unset);
@@ -337,7 +337,7 @@ impl Style {
     /// Returns `true` if `self` is masked.
     ///
     /// ```rust
-    /// use yansi::Style;
+    /// use diagnostic::Style;
     ///
     /// let plain = Style::default();
     /// assert!(!plain.is_masked());
@@ -353,7 +353,7 @@ impl Style {
     /// Returns `true` if `self` is wrapping.
     ///
     /// ```rust
-    /// use yansi::Style;
+    /// use diagnostic::Style;
     ///
     /// let plain = Style::default();
     /// assert!(!plain.is_wrapping());
@@ -395,8 +395,8 @@ impl Style {
     /// # Example
     ///
     /// ```rust
+    /// use diagnostic::Style;
     /// use std::fmt;
-    /// use yansi::Style;
     ///
     /// struct CustomItem {
     ///     item: u32,
@@ -457,8 +457,8 @@ impl Style {
     /// # Example
     ///
     /// ```rust
+    /// use diagnostic::Style;
     /// use std::fmt;
-    /// use yansi::Style;
     ///
     /// struct CustomItem {
     ///     item: u32,

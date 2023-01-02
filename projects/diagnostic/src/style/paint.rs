@@ -60,7 +60,7 @@ use std::fmt;
 /// These methods can be chained:
 ///
 /// ```rust
-/// use yansi::Paint;
+/// use diagnostic::Paint;
 ///
 /// Paint::new("hi").underline().invert().italic().dimmed().bold();
 /// ```
@@ -85,7 +85,7 @@ macro_rules! constructors_for {
             "Constructs a new `Paint` structure encapsulating `item` with the foreground color\n",
             "set to ", stringify!($name), ".\n",
             "```rust\n",
-            "use yansi::Paint;\n",
+            "use diagnostic::Paint;\n",
             "\n",
             "println!(\"This is going to be ", stringify!($name),
                 ": {}\", Paint::", stringify!($name), "(\"yay!\"));\n",
@@ -103,7 +103,7 @@ impl<T> Paint<T> {
     /// styling.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// assert_eq!(Paint::new("hello!").to_string(), "hello!".to_string());
     /// ```
@@ -116,7 +116,7 @@ impl<T> Paint<T> {
     /// terminal's default foreground and background.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// println!("This is going to use {}!", Paint::default("default colors"));
     /// ```
@@ -133,7 +133,7 @@ impl<T> Paint<T> {
     /// no effect.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // The emoji won't be printed when coloring is disabled.
     /// println!("{}Sprout!", Paint::masked("🌱 "));
@@ -159,7 +159,7 @@ impl<T> Paint<T> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::{Color, Paint};
+    /// use diagnostic::{Color, Paint};
     ///
     /// let inner = format!("{} and {}", Paint::red("Stop"), Paint::green("Go"));
     ///
@@ -177,7 +177,7 @@ impl<T> Paint<T> {
     /// foreground color set to the RGB color `r`, `g`, `b`.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// println!("This is going to be funky: {}", Paint::rgb(70, 130, 122, "hi!"));
     /// ```
@@ -190,7 +190,7 @@ impl<T> Paint<T> {
     /// foreground color set to the fixed 8-bit color `color`.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// println!("This is going to be funky: {}", Paint::fixed(100, "hi!"));
     /// ```
@@ -205,7 +205,7 @@ impl<T> Paint<T> {
     /// Retrieves the style currently set on `self`.
     ///
     /// ```rust
-    /// use yansi::{Color, Paint, Style};
+    /// use diagnostic::{Color, Paint, Style};
     ///
     /// let alert = Style::new(Color::Red).bold().underline();
     /// let painted = Paint::red("hi").bold().underline();
@@ -220,7 +220,7 @@ impl<T> Paint<T> {
     /// Retrieves a borrow to the inner item.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// let x = Paint::red("Hello, world!");
     /// assert_eq!(*x.inner(), "Hello, world!");
@@ -237,7 +237,7 @@ impl<T> Paint<T> {
     /// `Style`.
     ///
     /// ```rust
-    /// use yansi::{Color, Paint, Style};
+    /// use diagnostic::{Color, Paint, Style};
     ///
     /// let s = Style::new(Color::Red).bold().underline();
     ///
@@ -260,7 +260,7 @@ impl<T> Paint<T> {
     /// no effect.
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // "Whoops! " will only print when coloring is enabled.
     /// println!("{}Something happened.", Paint::red("Whoops! ").mask());
@@ -286,7 +286,7 @@ impl<T> Paint<T> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::{Color, Paint};
+    /// use diagnostic::{Color, Paint};
     ///
     /// let inner = format!("{} and {}", Paint::red("Stop"), Paint::green("Go"));
     ///
@@ -304,7 +304,7 @@ impl<T> Paint<T> {
     /// Sets the foreground to `color`.
     ///
     /// ```rust
-    /// use yansi::{Color::Red, Paint};
+    /// use diagnostic::{Color::Red, Paint};
     ///
     /// println!("Red foreground: {}", Paint::new("hi!").fg(Red));
     /// ```
@@ -317,7 +317,7 @@ impl<T> Paint<T> {
     /// Sets the background to `color`.
     ///
     /// ```rust
-    /// use yansi::{Color::Yellow, Paint};
+    /// use diagnostic::{Color::Yellow, Paint};
     ///
     /// println!("Yellow background: {}", Paint::new("hi!").bg(Yellow));
     /// ```
@@ -377,7 +377,7 @@ impl Paint<()> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // With coloring enabled, ANSI color codes are emitted.
     /// assert_ne!(Paint::green("go").to_string(), "go".to_string());
@@ -396,7 +396,7 @@ impl Paint<()> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // With coloring disabled, ANSI color codes are _not_ emitted.
     /// Paint::disable();
@@ -420,7 +420,7 @@ impl Paint<()> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // Coloring is enabled by default.
     /// assert!(Paint::is_enabled());
@@ -449,7 +449,7 @@ impl Paint<()> {
     /// # Example
     ///
     /// ```rust
-    /// use yansi::Paint;
+    /// use diagnostic::Paint;
     ///
     /// // A best-effort Windows ASCII terminal support enabling.
     /// Paint::enable_windows_ascii();

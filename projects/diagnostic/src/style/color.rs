@@ -45,7 +45,7 @@ impl Color {
     /// foreground color set to the color `self`.
     ///
     /// ```rust
-    /// use yansi::Color::Blue;
+    /// use diagnostic::Color::Blue;
     ///
     /// println!("This is going to be blue: {}", Blue.paint("yay!"));
     /// ```
@@ -58,7 +58,7 @@ impl Color {
     /// color `self`.
     ///
     /// ```rust
-    /// use yansi::Color::Green;
+    /// use diagnostic::Color::Green;
     ///
     /// let success = Green.style().bold();
     /// println!("Hey! {}", success.paint("Success!"));

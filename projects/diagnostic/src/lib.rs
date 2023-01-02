@@ -7,20 +7,22 @@ mod source;
 mod style;
 mod write;
 
+mod characters;
+
+use crate::display::*;
 pub use crate::{
+    characters::{BuiltinSymbol, Characters},
     draw::{Fmt, Palette},
     source::{FileCache, Line, Source},
 };
-use std::fmt::{Debug, Display, Formatter};
-pub use style::{Color, Style};
-
-use crate::display::*;
 use std::{
     cmp::{Eq, PartialEq},
+    fmt::{Debug, Display, Formatter},
     hash::Hash,
     io::Write,
     ops::Range,
 };
+pub use style::{Color, Paint, Style};
 use unicode_width::UnicodeWidthChar;
 
 /// A type representing a single line of a [`Source`].
@@ -453,15 +455,6 @@ pub enum LabelAttach {
     End,
 }
 
-/// Possible character sets to use when rendering diagnostics.
-#[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum CharSet {
-    /// Unicode characters (an attempt is made to use only commonly-supported characters).
-    Unicode,
-    /// ASCII-only characters.
-    Ascii,
-}
-
 /// A type used to configure a report
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Config {
@@ -470,11 +463,14 @@ pub struct Config {
     compact: bool,
     underlines: bool,
     multiline_arrows: bool,
+    /// is enable
     pub color_enable: bool,
+    /// custom margin color
     pub margin_color: Option<(Color, Color)>,
+    /// custom important
     pub unimportant_color: Option<Color>,
     tab_width: usize,
-    char_set: CharSet,
+    char_set: BuiltinSymbol,
 }
 
 impl Config {
@@ -531,8 +527,8 @@ impl Config {
     }
     /// What character set should be used to display dynamic elements such as boxes and arrows?
     ///
-    /// If unspecified, this defaults to [`CharSet::Unicode`].
-    pub fn with_char_set(mut self, char_set: CharSet) -> Self {
+    /// If unspecified, this defaults to [`BuiltinSymbol::Unicode`].
+    pub fn with_char_set(mut self, char_set: BuiltinSymbol) -> Self {
         self.char_set = char_set;
         self
     }
@@ -591,7 +587,7 @@ impl Default for Config {
             margin_color: None,
             unimportant_color: None,
             tab_width: 4,
-            char_set: CharSet::Unicode,
+            char_set: BuiltinSymbol::Unicode,
         }
     }
 }
