@@ -2,16 +2,16 @@
 name = "diagnostic"
 version = "0.5.2"
 authors = ["Aster <192607617@qq.com>"]
-description = "Syntax error report"
-repository = "https://github.com/oovm/sub_projects"
+description = "Pretty diagnostic report"
+repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/diagnostic"
 documentation = "https://docs.rs/diagnostic"
-readme = "Readme.md"
+readme = "readme.md"
 license = "MPL-2.0"
 edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
-unicode-width = "0.1.10"
+unicode-width = "0.1.11"
 
 [dev-dependencies]
 

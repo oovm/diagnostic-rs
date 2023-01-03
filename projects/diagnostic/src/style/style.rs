@@ -1,4 +1,4 @@
-use crate::style::{Color, Paint};
+use crate::{Color, Paint};
 use std::{
     fmt::{self, Display},
     hash::{Hash, Hasher},

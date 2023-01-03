@@ -2,8 +2,10 @@
 mod windows_console {
     use std::os::raw::c_void;
 
-    #[allow(non_camel_case_types)] type c_ulong = u32;
-    #[allow(non_camel_case_types)] type c_int = i32;
+    #[allow(non_camel_case_types)]
+    type c_ulong = u32;
+    #[allow(non_camel_case_types)]
+    type c_int = i32;
     type DWORD = c_ulong;
     type LPDWORD = *mut DWORD;
     type HANDLE = *mut c_void;
@@ -26,7 +28,7 @@ mod windows_console {
     unsafe fn get_handle(handle_num: DWORD) -> Result<HANDLE, ()> {
         match GetStdHandle(handle_num) {
             handle if handle == INVALID_HANDLE_VALUE => Err(()),
-            handle => Ok(handle)
+            handle => Ok(handle),
         }
     }
 
@@ -39,7 +41,7 @@ mod windows_console {
         dw_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
         match SetConsoleMode(handle, dw_mode) {
             result if result == TRUE => Ok(()),
-            _ => Err(())
+            _ => Err(()),
         }
     }
 
@@ -63,7 +65,44 @@ mod windows_console {
 
 #[cfg(not(windows))]
 mod windows_console {
-    pub fn enable_ascii_colors() -> bool { true }
+    pub fn enable_ascii_colors() -> bool {
+        true
+    }
 }
 
-pub use self::windows_console::enable_ascii_colors;
+/// Enables ASCII terminal escape sequences on Windows consoles when
+/// possible. Returns `true` if escape sequence support was successfully
+/// enabled and `false` otherwise. On non-Windows targets, this method
+/// always returns `true`.
+///
+/// Support for escape sequences in Windows consoles was added in the
+/// Windows 10 anniversary update. For targets with older Windows
+/// installations, this method is expected to return `false`.
+///
+/// # Example
+///
+/// ```rust
+/// use diagnostic::enable_ansi_color;
+///
+/// // A best-effort Windows ASCII terminal support enabling.
+/// enable_ansi_color();
+/// ```
+#[inline]
+pub fn enable_ansi_color() -> bool {
+    match std::env::var("DIAGNOSTIC_COLOR") {
+        Ok(o) if accept(&o) => windows_console::enable_ascii_colors(),
+        _ => false,
+    }
+}
+
+fn accept(s: &str) -> bool {
+    if s.eq("1") {
+        true
+    }
+    else if s.eq_ignore_ascii_case("true") {
+        true
+    }
+    else {
+        false
+    }
+}

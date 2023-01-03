@@ -1,9 +1,9 @@
-use crate::{Characters, FileCache, FileID};
+use crate::{FileCache, FileID};
 use std::ops::Range;
 
 use super::{
-    draw::{self, StreamAwareFmt, StreamType},
-    BuiltinSymbol, Diagnostic, Label, LabelAttach, Show, Span, Write,
+    draw::{StreamAwareFmt, StreamType},
+    Diagnostic, Label, LabelAttach, Show, Span, Write,
 };
 
 // A WARNING, FOR ALL YE WHO VENTURE IN HERE
@@ -86,10 +86,7 @@ impl Diagnostic {
     /// Write this diagnostic to an implementor of [`Write`], assuming that the output is ultimately going to be printed
     /// to the given output stream (`stdout` or `stderr`).
     fn write_for_stream<W: Write>(&self, mut cache: FileCache, mut w: W, s: StreamType) -> std::io::Result<()> {
-        let draw = match self.config.char_set {
-            BuiltinSymbol::Unicode => Characters::unicode(),
-            BuiltinSymbol::Ascii => Characters::ascii(),
-        };
+        let draw = self.config.characters;
 
         // --- Header ---
         let kind_color = self.kind.get_color();

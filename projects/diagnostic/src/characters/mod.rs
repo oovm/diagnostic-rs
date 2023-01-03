@@ -14,7 +14,7 @@ pub trait CharacterSet {
 impl CharacterSet for BuiltinSymbol {
     fn get_characters(&self) -> Characters {
         match self {
-            BuiltinSymbol::Unicode => Self {
+            BuiltinSymbol::Unicode => Characters {
                 hbar: '─',
                 vbar: '│',
                 xbar: '┼',
@@ -35,7 +35,7 @@ impl CharacterSet for BuiltinSymbol {
                 underbar: '┬',
                 underline: '─',
             },
-            BuiltinSymbol::Ascii => Self {
+            BuiltinSymbol::Ascii => Characters {
                 hbar: '-',
                 vbar: '|',
                 xbar: '+',
@@ -60,6 +60,9 @@ impl CharacterSet for BuiltinSymbol {
     }
 }
 
+/// The character set used by formatter
+#[allow(missing_docs)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Characters {
     pub hbar: char,
     pub vbar: char,
@@ -85,54 +88,4 @@ pub struct Characters {
 
     pub underbar: char,
     pub underline: char,
-}
-
-impl Characters {
-    pub fn unicode() -> Self {
-        Self {
-            hbar: '─',
-            vbar: '│',
-            xbar: '┼',
-            vbar_break: '┆',
-            vbar_gap: '┆',
-            uarrow: '🭯',
-            rarrow: '▶',
-            ltop: '╭',
-            mtop: '┬',
-            rtop: '╮',
-            lbot: '╰',
-            mbot: '┴',
-            rbot: '╯',
-            lbox: '[',
-            rbox: ']',
-            lcross: '├',
-            rcross: '┤',
-            underbar: '┬',
-            underline: '─',
-        }
-    }
-
-    pub fn ascii() -> Self {
-        Self {
-            hbar: '-',
-            vbar: '|',
-            xbar: '+',
-            vbar_break: '*',
-            vbar_gap: ':',
-            uarrow: '^',
-            rarrow: '>',
-            ltop: ',',
-            mtop: 'v',
-            rtop: '.',
-            lbot: '`',
-            mbot: '^',
-            rbot: '\'',
-            lbox: '[',
-            rbox: ']',
-            lcross: '|',
-            rcross: '|',
-            underbar: '|',
-            underline: '^',
-        }
-    }
 }

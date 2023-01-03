@@ -366,7 +366,7 @@ macro_rules! impl_fmt_trait {
 impl_fmt_trait!(Display, "{}");
 impl_fmt_trait!(Debug, "{:?}");
 
-use crate::style::{windows::enable_ascii_colors, Color, Style};
+use crate::{Color, Style};
 use std::sync::atomic::{AtomicBool, Ordering};
 
 static ENABLED: AtomicBool = AtomicBool::new(true);
@@ -435,27 +435,5 @@ impl Paint<()> {
     /// ```
     pub fn is_enabled() -> bool {
         ENABLED.load(Ordering::Acquire)
-    }
-
-    /// Enables ASCII terminal escape sequences on Windows consoles when
-    /// possible. Returns `true` if escape sequence support was successfully
-    /// enabled and `false` otherwise. On non-Windows targets, this method
-    /// always returns `true`.
-    ///
-    /// Support for escape sequences in Windows consoles was added in the
-    /// Windows 10 anniversary update. For targets with older Windows
-    /// installations, this method is expected to return `false`.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use diagnostic::Paint;
-    ///
-    /// // A best-effort Windows ASCII terminal support enabling.
-    /// Paint::enable_windows_ascii();
-    /// ```
-    #[inline]
-    pub fn enable_windows_ascii() -> bool {
-        enable_ascii_colors()
     }
 }

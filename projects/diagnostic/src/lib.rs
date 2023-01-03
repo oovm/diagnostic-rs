@@ -8,12 +8,15 @@ mod style;
 mod write;
 
 mod characters;
+mod windows;
 
-use crate::display::*;
+use crate::{characters::CharacterSet, display::*};
 pub use crate::{
     characters::{BuiltinSymbol, Characters},
-    draw::{Fmt, Palette},
+    draw::{Console, Palette},
     source::{FileCache, Line, Source},
+    style::{color::Color, paint::Paint, style::Style},
+    windows::enable_ansi_color,
 };
 use std::{
     cmp::{Eq, PartialEq},
@@ -22,7 +25,6 @@ use std::{
     io::Write,
     ops::Range,
 };
-pub use style::{Color, Paint, Style};
 use unicode_width::UnicodeWidthChar;
 
 /// A type representing a single line of a [`Source`].
@@ -470,7 +472,8 @@ pub struct Config {
     /// custom important
     pub unimportant_color: Option<Color>,
     tab_width: usize,
-    char_set: BuiltinSymbol,
+    /// Custom character sets
+    pub characters: Characters,
 }
 
 impl Config {
@@ -528,8 +531,8 @@ impl Config {
     /// What character set should be used to display dynamic elements such as boxes and arrows?
     ///
     /// If unspecified, this defaults to [`BuiltinSymbol::Unicode`].
-    pub fn with_char_set(mut self, char_set: BuiltinSymbol) -> Self {
-        self.char_set = char_set;
+    pub fn with_characters(mut self, set: impl CharacterSet) -> Self {
+        self.characters = set.get_characters();
         self
     }
 
@@ -587,7 +590,7 @@ impl Default for Config {
             margin_color: None,
             unimportant_color: None,
             tab_width: 4,
-            char_set: BuiltinSymbol::Unicode,
+            characters: BuiltinSymbol::Unicode.get_characters(),
         }
     }
 }

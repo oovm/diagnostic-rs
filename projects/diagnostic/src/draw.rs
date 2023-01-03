@@ -1,5 +1,4 @@
 use super::*;
-use crate::style::{Color, Paint};
 
 /// Output stream to check for whether color is enabled.
 #[derive(Clone, Copy, Debug)]
@@ -42,7 +41,7 @@ impl<T: Display> StreamAwareFmt for T {}
 ///
 /// Attributes specified through this trait are not composable (i.e: the behaviour of two nested attributes each with a
 /// conflicting attribute is left unspecified).
-pub trait Fmt: Sized {
+pub trait Console: Sized {
     /// Give this value the specified foreground colour.
     fn fg<C: Into<Option<Color>>>(self, color: C) -> Foreground<Self>
     where
@@ -70,7 +69,7 @@ pub trait Fmt: Sized {
     }
 }
 
-impl<T: Display> Fmt for T {}
+impl<T: Display> Console for T {}
 
 #[derive(Copy, Clone, Debug)]
 pub struct Foreground<T>(T, Option<Color>);

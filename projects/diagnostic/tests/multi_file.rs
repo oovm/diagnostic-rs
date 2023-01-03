@@ -1,7 +1,9 @@
 use super::*;
+use diagnostic::enable_ansi_color;
 
 #[test]
 fn main() {
+    enable_ansi_color();
     let mut colors = Palette::new();
 
     // Generate some colours for each of our elements
