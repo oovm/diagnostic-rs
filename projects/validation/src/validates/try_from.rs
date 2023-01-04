@@ -9,15 +9,18 @@ where
 {
     fn from_residual(residual: Result<Infallible, E>) -> Self {
         match residual {
-            Ok(o) => unreachable!(),
+            Ok(_) => unreachable!(),
             Err(e) => Failure { fatal: e.into(), diagnostics: vec![] },
         }
     }
 }
 
-impl<T, F> FromResidual for Validation<T, F> {
-    fn from_residual(residual: <Self as Try>::Residual) -> Self {
-        todo!()
+impl<T, E, A> FromResidual<Validation<A, E>> for Validation<T, E> {
+    fn from_residual(residual: Validation<A, E>) -> Self {
+        match residual {
+            Success { .. } => unreachable!(),
+            Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
+        }
     }
 }
 
@@ -26,13 +29,13 @@ impl<T, F> Try for Validation<T, F> {
     type Residual = Validation<T, F>;
 
     fn from_output(output: Self::Output) -> Self {
-        todo!()
+        Success { value: output, diagnostics: vec![] }
     }
 
     fn branch(self) -> ControlFlow<Self::Residual, Self::Output> {
         match self {
-            Validation::Success { value, diagnostics: _ } => ControlFlow::Continue(value),
-            Validation::Failure { fatal, diagnostics } => ControlFlow::Break(Validation::Failure { fatal, diagnostics }),
+            Success { value, diagnostics: _ } => ControlFlow::Continue(value),
+            Failure { fatal, diagnostics } => ControlFlow::Break(Failure { fatal, diagnostics }),
         }
     }
 }

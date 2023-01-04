@@ -9,6 +9,8 @@ use crate::Validation::{Failure, Success};
 #[cfg(feature = "nightly")]
 mod try_from;
 
+pub mod convert;
+
 /// A validation result with multiple diagnostics.
 #[derive(Debug)]
 pub enum Validation<T, E> {

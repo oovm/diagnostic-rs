@@ -1,6 +1,6 @@
 [package]
 name = "validatus"
-version = "0.0.0"
+version = "0.0.1"
 readme = "readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>"]

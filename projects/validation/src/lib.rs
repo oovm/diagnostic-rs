@@ -3,4 +3,4 @@
 
 mod validates;
 
-pub use self::validates::Validation;
+pub use crate::validates::{convert::Validate, Validation};

@@ -70,6 +70,12 @@ impl Debug for FileSpan {
     }
 }
 
+impl Default for FileSpan {
+    fn default() -> Self {
+        Self { start: 0, end: 0, file: FileID { hash: 0 } }
+    }
+}
+
 impl FileSpan {
     /// Create a new span with the given start and end offsets, and the given file.
     pub unsafe fn new(start: usize, end: usize, file: FileID) -> Self {
@@ -78,6 +84,14 @@ impl FileSpan {
     /// Create a new span with the given start and end offsets, and the given file.
     pub fn get_range(&self) -> Range<usize> {
         self.start..self.end
+    }
+    /// Get start offset of the span
+    pub fn get_start(&self) -> usize {
+        self.start
+    }
+    /// Get end offset of the span
+    pub fn get_end(&self) -> usize {
+        self.end
     }
     /// Create a new span with the given start and end offsets, and the given file.
     pub fn set_range(&mut self, range: Range<usize>) {
@@ -99,6 +113,10 @@ impl FileSpan {
     /// Create a new span with the given start and end offsets, and the given file.
     pub fn with_file(self, file: FileID) -> Self {
         Self { file, ..self }
+    }
+    /// Create a label from span
+    pub fn as_label<S: ToString>(&self, message: S) -> Label {
+        Label::new(self.clone()).with_message(message)
     }
 }
 
@@ -218,7 +236,6 @@ pub struct Diagnostic {
     labels: Vec<Label>,
     config: Config,
 }
-
 impl Diagnostic {
     /// Begin building a new [`Diagnostic`].
     pub fn new<R>(kind: R, src_id: FileID, offset: usize) -> DiagnosticBuilder
@@ -236,7 +253,8 @@ impl Diagnostic {
             config: Config::default(),
         }
     }
-
+}
+impl Diagnostic {
     /// Write this diagnostic out to `stderr`.
     pub fn eprint(&self, cache: FileCache) -> std::io::Result<()> {
         self.write(cache, std::io::stderr().lock())
