@@ -16,7 +16,7 @@ fn main() {
     let file_b = store.load_text(include_str!("b.tao"), "b.tao");
 
     Diagnostic::new(ReportKind::Error)
-        .with_location(file_b, None)
+        .with_location(file_b, Some(10))
         .with_code(3)
         .with_message(format!("Cannot add types Nat and Str"))
         .with_label(
@@ -38,6 +38,6 @@ fn main() {
         )
         .with_note(format!("{} is a number and can only be added to other numbers", "Nat".fg(a)))
         .finish()
-        .print(store)
+        .print(&store)
         .unwrap();
 }

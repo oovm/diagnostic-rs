@@ -12,6 +12,6 @@ fn main() {
         .with_label(Label::new(sample.with_range(32..33)).with_message("This is of type Nat"))
         .with_label(Label::new(sample.with_range(42..45)).with_message("This is of type Str"))
         .finish()
-        .print(files)
+        .print(&files)
         .unwrap();
 }

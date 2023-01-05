@@ -40,6 +40,6 @@ fn main() {
         )
         .with_note(format!("Outputs of {} expressions must coerce to the same type", "match".fg(out)))
         .finish()
-        .print(files)
+        .print(&files)
         .unwrap();
 }
