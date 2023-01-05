@@ -155,7 +155,7 @@ impl FileCache {
     /// Create a new [`FileCache`].
     pub fn load_local<P>(&mut self, path: P) -> Result<FileID, std::io::Error>
     where
-        P: AsRef<PathBuf>,
+        P: AsRef<Path>,
     {
         let path = path.as_ref();
         let hasher = self.files.hasher();

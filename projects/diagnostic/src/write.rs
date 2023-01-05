@@ -1,4 +1,4 @@
-use crate::{FileCache, FileID};
+use crate::{FileCache, FileID, Source};
 use std::ops::Range;
 
 use super::{
@@ -137,14 +137,8 @@ impl Diagnostic {
             };
 
             let line_range = src.get_line_range(&span);
-
+            let line_ref = self.get_line_column(src_id, &labels, src);
             // File name & reference
-            let location = if src_id == &self.location.0 { self.location.1 } else { labels[0].label.span.start() };
-            let (line_no, col_no) = src
-                .get_offset_line(location)
-                .map(|(_, idx, col)| (format!("{}", idx + 1), format!("{}", col + 1)))
-                .unwrap_or_else(|| ('?'.to_string(), '?'.to_string()));
-            let line_ref = format!(":{}:{}", line_no, col_no);
             writeln!(
                 w,
                 "{}{}{}{}{}{}{}",
@@ -638,6 +632,23 @@ impl Diagnostic {
             }
         }
         Ok(())
+    }
+
+    fn get_line_column(&self, src_id: &FileID, labels: &[LabelInfo], src: &Source) -> String {
+        let location = if src_id == &self.file {
+            match self.location {
+                Some(s) => s,
+                None => return String::new(),
+            }
+        }
+        else {
+            labels[0].label.span.start()
+        };
+        let (line_no, col_no) = src
+            .get_offset_line(location)
+            .map(|(_, idx, col)| (format!("{}", idx + 1), format!("{}", col + 1)))
+            .unwrap_or_else(|| ('?'.to_string(), '?'.to_string()));
+        format!(":{}:{}", line_no, col_no)
     }
 }
 

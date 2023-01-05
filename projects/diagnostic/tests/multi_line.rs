@@ -13,7 +13,8 @@ fn main() {
     let mut files = FileCache::default();
     let sample = files.load_text(include_str!("sample.tao"), "sample.tao");
 
-    Diagnostic::new(ReportKind::Error, sample, 12)
+    Diagnostic::new(ReportKind::Error)
+        .with_location(sample, Some(12))
         .with_code(3)
         .with_message(format!("Incompatible types"))
         .with_label(

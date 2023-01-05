@@ -33,9 +33,16 @@ pub struct FileID {
     hash: u64,
 }
 
+impl Default for FileID {
+    /// Text without source file
+    fn default() -> Self {
+        Self { hash: 0 }
+    }
+}
+
 impl Display for FileID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileID({})", self.hash)
+        write!(f, "FileID({:X})", self.hash)
     }
 }
 
@@ -232,25 +239,35 @@ pub struct Diagnostic {
     message: String,
     note: Option<String>,
     help: Option<String>,
-    location: (FileID, usize),
+    file: FileID,
+    location: Option<usize>,
     labels: Vec<Label>,
     config: Config,
 }
+
+/// A type used to build a [`Diagnostic`].
+pub struct DiagnosticBuilder {
+    inner: Diagnostic,
+}
+
 impl Diagnostic {
     /// Begin building a new [`Diagnostic`].
-    pub fn new<R>(kind: R, src_id: FileID, offset: usize) -> DiagnosticBuilder
+    pub fn new<R>(kind: R) -> DiagnosticBuilder
     where
         R: ReportLevel + 'static,
     {
         DiagnosticBuilder {
-            kind: Box::new(kind),
-            code: None,
-            message: String::new(),
-            note: None,
-            help: None,
-            location: (src_id.into(), offset),
-            labels: Vec::new(),
-            config: Config::default(),
+            inner: Diagnostic {
+                kind: Box::new(kind),
+                code: None,
+                message: "".to_string(),
+                note: None,
+                help: None,
+                file: Default::default(),
+                location: None,
+                labels: vec![],
+                config: Default::default(),
+            },
         }
     }
 }
@@ -348,23 +365,12 @@ pub enum ReportKind {
     Fatal,
 }
 
-/// A type used to build a [`Diagnostic`].
-pub struct DiagnosticBuilder {
-    kind: Box<dyn ReportLevel>,
-    code: Option<usize>,
-    message: String,
-    note: Option<String>,
-    help: Option<String>,
-    location: (FileID, usize),
-    labels: Vec<Label>,
-    config: Config,
-}
-
 impl DiagnosticBuilder {
     /// Set the kind of this report.
     pub fn set_code(&mut self, code: Option<usize>) {
-        self.code = code;
+        self.inner.code = code;
     }
+
     /// Give this report a numerical code that may be used to more precisely look up the error in documentation.
     pub fn with_code(mut self, code: usize) -> Self {
         self.set_code(Some(code));
@@ -373,18 +379,28 @@ impl DiagnosticBuilder {
 
     /// Set the message of this report.
     pub fn set_message<M: ToString>(&mut self, message: M) {
-        self.message = message.to_string();
+        self.inner.message = message.to_string();
     }
 
     /// Add a message to this report.
     pub fn with_message<M: ToString>(mut self, message: M) -> Self {
-        self.message = message.to_string();
+        self.inner.message = message.to_string();
+        self
+    }
+    /// Set the location of this report.
+    pub fn set_location(&mut self, file: FileID, start: Option<usize>) {
+        self.inner.file = file;
+        self.inner.location = start;
+    }
+    /// Set the location of this report.
+    pub fn with_location(mut self, file: FileID, start: Option<usize>) -> Self {
+        self.set_location(file, start);
         self
     }
 
     /// Set the note of this report.
     pub fn set_note<N: ToString>(&mut self, note: N) {
-        self.note = Some(note.to_string());
+        self.inner.note = Some(note.to_string());
     }
 
     /// Set the note of this report.
@@ -395,7 +411,7 @@ impl DiagnosticBuilder {
 
     /// Set the help message of this report.
     pub fn set_help<N: ToString>(&mut self, note: N) {
-        self.help = Some(note.to_string());
+        self.inner.help = Some(note.to_string());
     }
 
     /// Set the help message of this report.
@@ -411,8 +427,8 @@ impl DiagnosticBuilder {
 
     /// Add multiple labels to the report.
     pub fn add_labels<L: IntoIterator<Item = Label>>(&mut self, labels: L) {
-        let config = &self.config; // This would not be necessary in Rust 2021 edition
-        self.labels.extend(labels.into_iter().map(|mut label| {
+        let config = &self.inner.config; // This would not be necessary in Rust 2021 edition
+        self.inner.labels.extend(labels.into_iter().map(|mut label| {
             label.color = config.filter_color(label.color);
             label
         }));
@@ -432,35 +448,19 @@ impl DiagnosticBuilder {
 
     /// Use the given [`Config`] to determine diagnostic attributes.
     pub fn with_config(mut self, config: Config) -> Self {
-        self.config = config;
+        self.inner.config = config;
         self
     }
 
     /// Finish building the [`Diagnostic`].
     pub fn finish(self) -> Diagnostic {
-        Diagnostic {
-            kind: self.kind,
-            code: self.code,
-            message: self.message,
-            note: self.note,
-            help: self.help,
-            location: self.location,
-            labels: self.labels,
-            config: self.config,
-        }
+        self.inner
     }
 }
 
 impl Debug for DiagnosticBuilder {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ReportBuilder")
-            .field("kind", &self.kind)
-            .field("code", &self.code)
-            .field("msg", &self.message)
-            .field("note", &self.note)
-            .field("help", &self.help)
-            .field("config", &self.config)
-            .finish()
+        Debug::fmt(&self.inner, f)
     }
 }
 

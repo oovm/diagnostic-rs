@@ -15,7 +15,8 @@ fn main() {
     let file_a = store.load_text(include_str!("a.tao"), "a.tao");
     let file_b = store.load_text(include_str!("b.tao"), "b.tao");
 
-    Diagnostic::new(ReportKind::Error, file_b, 10)
+    Diagnostic::new(ReportKind::Error)
+        .with_location(file_b, None)
         .with_code(3)
         .with_message(format!("Cannot add types Nat and Str"))
         .with_label(

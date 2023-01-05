@@ -7,7 +7,8 @@ fn main() {
 
     let mut colors = Palette::new();
 
-    Diagnostic::new(ReportKind::Error, stress, 13)
+    Diagnostic::new(ReportKind::Error)
+        .with_location(stress, Some(13))
         .with_code(3)
         .with_message(format!("Incompatible types"))
         .with_label(Label::new(stress.with_range(0..1)).with_message("Color").with_color(colors.random()))
