@@ -12,9 +12,9 @@ mod windows;
 
 mod location;
 
-use crate::{characters::CharacterSet, display::*};
+use crate::{characters::Draw, display::*};
 pub use crate::{
-    characters::{BuiltinSymbol, Characters},
+    characters::{BuiltinDrawer, DrawElements},
     draw::{Console, Palette},
     location::{FileID, FileSpan},
     source::{FileCache, Line, Source},
@@ -347,7 +347,7 @@ pub struct Config {
     pub unimportant_color: Option<Color>,
     tab_width: usize,
     /// Custom character sets
-    pub characters: Characters,
+    pub characters: DrawElements,
 }
 
 impl Config {
@@ -404,9 +404,9 @@ impl Config {
     }
     /// What character set should be used to display dynamic elements such as boxes and arrows?
     ///
-    /// If unspecified, this defaults to [`BuiltinSymbol::Unicode`].
-    pub fn with_characters(mut self, set: impl CharacterSet) -> Self {
-        self.characters = set.get_characters();
+    /// If unspecified, this defaults to [`BuiltinDrawer::Unicode`].
+    pub fn with_characters(mut self, set: impl Draw) -> Self {
+        self.characters = set.get_elements();
         self
     }
 
@@ -464,7 +464,7 @@ impl Default for Config {
             margin_color: None,
             unimportant_color: None,
             tab_width: 4,
-            characters: BuiltinSymbol::Unicode.get_characters(),
+            characters: BuiltinDrawer::Unicode.get_elements(),
         }
     }
 }

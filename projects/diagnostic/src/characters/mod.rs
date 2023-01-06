@@ -1,20 +1,22 @@
 /// Possible character sets to use when rendering diagnostics.
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub enum BuiltinSymbol {
+pub enum BuiltinDrawer {
     /// Unicode characters (an attempt is made to use only commonly-supported characters).
     Unicode,
     /// ASCII-only characters.
     Ascii,
 }
 
-pub trait CharacterSet {
-    fn get_characters(&self) -> Characters;
+/// A trait for types that can be used to draw diagnostics.
+pub trait Draw {
+    /// Get the character set to use when rendering diagnostics.
+    fn get_elements(&self) -> DrawElements;
 }
 
-impl CharacterSet for BuiltinSymbol {
-    fn get_characters(&self) -> Characters {
+impl Draw for BuiltinDrawer {
+    fn get_elements(&self) -> DrawElements {
         match self {
-            BuiltinSymbol::Unicode => Characters {
+            BuiltinDrawer::Unicode => DrawElements {
                 hbar: '─',
                 vbar: '│',
                 xbar: '┼',
@@ -35,7 +37,7 @@ impl CharacterSet for BuiltinSymbol {
                 underbar: '┬',
                 underline: '─',
             },
-            BuiltinSymbol::Ascii => Characters {
+            BuiltinDrawer::Ascii => DrawElements {
                 hbar: '-',
                 vbar: '|',
                 xbar: '+',
@@ -63,29 +65,43 @@ impl CharacterSet for BuiltinSymbol {
 /// The character set used by formatter
 #[allow(missing_docs)]
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
-pub struct Characters {
+pub struct DrawElements {
+    /// Horizontal bar, eg: `─, -`
     pub hbar: char,
+    /// Vertical bar, eg: `│, |`
     pub vbar: char,
+    /// Cross bar, eg: `┼, +`
     pub xbar: char,
+    /// Vertical bar break, eg: `┆, *`
     pub vbar_break: char,
+    /// Vertical bar gap, eg: `┆, :`
     pub vbar_gap: char,
-
+    /// Up arrow, eg: `🭯, ^`
     pub uarrow: char,
+    /// Right arrow, eg: `▶, >`
     pub rarrow: char,
-
+    /// Left top corner, eg: `╭, ,`
     pub ltop: char,
+    /// Middle top, eg: `┬, v`
     pub mtop: char,
+    /// Right top corner, eg: `╮, .`
     pub rtop: char,
+    /// Left bottom corner, eg: `╰, ``
     pub lbot: char,
+    /// Middle bottom, eg: `┴, ^`
     pub rbot: char,
+    /// Right bottom corner, eg: `╯, '`
     pub mbot: char,
-
+    /// Left box, eg: `[`
     pub lbox: char,
+    /// Right box, eg: `]`
     pub rbox: char,
-
+    /// Left cross, eg: `├, |`
     pub lcross: char,
+    /// Right cross, eg: `┤, |`
     pub rcross: char,
-
+    /// Under bar, eg: `┬, |`
     pub underbar: char,
+    /// Underline, eg: `─, ^`
     pub underline: char,
 }
