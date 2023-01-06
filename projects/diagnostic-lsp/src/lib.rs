@@ -6,7 +6,7 @@
 // absolute no-no, breaking much of what we enjoy about Cargo!
 use lsp_types::{Position, Range};
 
-use diagnostic::{DiagnosticError, DiagnosticResult, FileID, Span, TextStorage};
+use diagnostic::{DiagnosticError, DiagnosticResult, FileCache, FileID, Span, TextStorage};
 
 pub use diagnostic;
 pub use lsp_types;
@@ -47,7 +47,7 @@ pub fn byte_index_to_position(files: &TextStorage, file_id: &FileID, byte_index:
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range(files: &TextStorage, file_id: &FileID, span: Span) -> DiagnosticResult<Range> {
+pub fn byte_span_to_range(files: &FileCache, file_id: &FileID, span: FileID) -> DiagnosticResult<Range> {
     Ok(Range {
         start: byte_index_to_position(files, file_id, span.start)?,
         end: byte_index_to_position(files, file_id, span.end)?,

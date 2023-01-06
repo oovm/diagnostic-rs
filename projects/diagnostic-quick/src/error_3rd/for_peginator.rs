@@ -1,6 +1,6 @@
 use peginator::ParseError;
 
-use diagnostic::Span;
+use diagnostic::{FileSpan, Span};
 
 use crate::{errors::SyntaxError, QError, QErrorKind};
 
@@ -9,7 +9,7 @@ impl From<ParseError> for QError {
         let syntax = SyntaxError {
             message: error.specifics.to_string(),
             file: Default::default(),
-            span: Span { start: error.position, end: error.position },
+            span: FileSpan { start: error.position, end: error.position },
         };
         Self { error: Box::new(QErrorKind::Syntax(syntax)), level: Default::default(), source: Some(Box::new(error)) }
     }

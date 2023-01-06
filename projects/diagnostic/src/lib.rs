@@ -10,10 +10,13 @@ mod write;
 mod characters;
 mod windows;
 
+mod location;
+
 use crate::{characters::CharacterSet, display::*};
 pub use crate::{
     characters::{BuiltinSymbol, Characters},
     draw::{Console, Palette},
+    location::{FileID, FileSpan},
     source::{FileCache, Line, Source},
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
@@ -26,152 +29,6 @@ use std::{
     ops::Range,
 };
 use unicode_width::UnicodeWidthChar;
-
-/// A type representing a single line of a [`Source`].
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub struct FileID {
-    hash: u64,
-}
-
-impl Default for FileID {
-    /// Text without source file
-    fn default() -> Self {
-        Self { hash: 0 }
-    }
-}
-impl Debug for FileID {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileID(0x{:X})", self.hash)
-    }
-}
-
-impl Display for FileID {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileID({})", self.hash)
-    }
-}
-
-impl FileID {
-    /// Create a new [`FileID`] with the given ID.
-    pub unsafe fn new(id: u64) -> Self {
-        Self { hash: id }
-    }
-    /// Create a new [`FileID`] with the given ID.
-    pub fn with_range(self, range: Range<usize>) -> FileSpan {
-        FileSpan { start: range.start, end: range.end, file: self }
-    }
-}
-
-/// A type representing a single line of a [`Source`].
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-pub struct FileSpan {
-    start: usize,
-    end: usize,
-    file: FileID,
-}
-
-impl Debug for FileSpan {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("FileSpan").field("start", &self.start).field("end", &self.end).field("file", &self.file).finish()
-    }
-}
-
-impl Default for FileSpan {
-    fn default() -> Self {
-        Self { start: 0, end: 0, file: FileID { hash: 0 } }
-    }
-}
-
-impl FileSpan {
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub unsafe fn new(start: usize, end: usize, file: FileID) -> Self {
-        Self { start, end, file }
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn get_range(&self) -> Range<usize> {
-        self.start..self.end
-    }
-    /// Get start offset of the span
-    pub fn get_start(&self) -> usize {
-        self.start
-    }
-    /// Get end offset of the span
-    pub fn get_end(&self) -> usize {
-        self.end
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn set_range(&mut self, range: Range<usize>) {
-        self.start = range.start;
-        self.end = range.end;
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn with_range(self, range: Range<usize>) -> Self {
-        Self { start: range.start, end: range.end, ..self }
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn get_file(&self) -> FileID {
-        self.file
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn set_file(&mut self, file: FileID) {
-        self.file = file;
-    }
-    /// Create a new span with the given start and end offsets, and the given file.
-    pub fn with_file(self, file: FileID) -> Self {
-        Self { file, ..self }
-    }
-    /// Create a label from span
-    pub fn as_label<S: ToString>(&self, message: S) -> Label {
-        Label::new(self.clone()).with_message(message)
-    }
-}
-
-/// A trait implemented by spans within a character-based source.
-pub trait Span {
-    /// The identifier used to uniquely refer to a source. In most cases, this is the fully-qualified path of the file.
-    type SourceId: PartialEq + ToOwned + ?Sized;
-
-    /// Get the identifier of the source that this span refers to.
-    fn source(&self) -> &Self::SourceId;
-
-    /// Get the start offset of this span.
-    ///
-    /// Offsets are zero-indexed character offsets from the beginning of the source.
-    fn start(&self) -> usize;
-
-    /// Get the (exclusive) end offset of this span.
-    ///
-    /// The end offset should *always* be greater than or equal to the start offset as given by [`Span::start`].
-    ///
-    /// Offsets are zero-indexed character offsets from the beginning of the source.
-    fn end(&self) -> usize;
-
-    /// Get the length of this span (difference between the start of the span and the end of the span).
-    fn len(&self) -> usize {
-        self.end().saturating_sub(self.start())
-    }
-
-    /// Determine whether the span contains the given offset.
-    fn contains(&self, offset: usize) -> bool {
-        (self.start()..self.end()).contains(&offset)
-    }
-}
-
-impl Span for FileSpan {
-    type SourceId = FileID;
-
-    fn source(&self) -> &Self::SourceId {
-        &self.file
-    }
-
-    fn start(&self) -> usize {
-        self.start
-    }
-
-    fn end(&self) -> usize {
-        self.end
-    }
-}
 
 /// A type that represents a labelled section of source code.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

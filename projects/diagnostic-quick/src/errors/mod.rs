@@ -10,7 +10,7 @@ use diagnostic::{
         termcolor::{ColorChoice, StandardStream},
         TerminalConfig,
     },
-    DiagnosticLevel, FileID, Span, TextStorage,
+    DiagnosticLevel, FileID, FileSpan, Span, TextStorage,
 };
 
 pub mod display;
@@ -40,8 +40,7 @@ pub enum QErrorKind {
 #[derive(Debug)]
 pub struct SyntaxError {
     pub message: String,
-    pub file: FileID,
-    pub span: Span,
+    pub span: FileSpan,
 }
 
 /// An error that occurs during runtime.
