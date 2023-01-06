@@ -1,8 +1,9 @@
-use std::{
-    error::Error,
+use alloc::vec::Vec;
+use core::{
     fmt::{Debug, Display, Formatter},
     mem::take,
 };
+use std::error::Error;
 
 use crate::Validation::{Failure, Success};
 
@@ -35,7 +36,7 @@ where
     T: Debug,
     E: Error,
 {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut Formatter<'_>) -> core::fmt::Result {
         Debug::fmt(self, f)
     }
 }
@@ -114,6 +115,26 @@ impl<T, E> Validation<T, E> {
             Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
         }
     }
+
+    pub fn and_then<U, F>(self, f: F) -> Validation<U, E>
+    where
+        F: FnOnce(T) -> Validation<U, E>,
+    {
+        match self {
+            Success { value, mut diagnostics } => match f(value) {
+                Success { value, diagnostics: new } => {
+                    diagnostics.extend(new);
+                    Success { value, diagnostics }
+                }
+                Failure { fatal, diagnostics: new } => {
+                    diagnostics.extend(new);
+                    Failure { fatal, diagnostics }
+                }
+            },
+            Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
+        }
+    }
+
     /// Calls a closure on each element of an iterator.
     ///
     /// This is equivalent to using a [`for`] loop on the iterator, although

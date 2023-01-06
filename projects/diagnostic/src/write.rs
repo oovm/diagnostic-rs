@@ -644,11 +644,14 @@ impl Diagnostic {
         else {
             labels[0].label.span.start()
         };
-        let (line_no, col_no) = src
-            .get_offset_line(location)
-            .map(|(_, idx, col)| (format!("{}", idx + 1), format!("{}", col + 1)))
-            .unwrap_or_else(|| ('?'.to_string(), '?'.to_string()));
-        format!(":{}:{}", line_no, col_no)
+        match src.get_offset_line(location) {
+            None => {
+                format!(":{}!", location)
+            }
+            Some((_, idx, col)) => {
+                format!(":{}:{}", idx + 1, col + 1)
+            }
+        }
     }
 }
 

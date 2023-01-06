@@ -1,10 +1,10 @@
 [package]
 name = "validatus"
-version = "0.0.2"
+version = "0.0.4"
 readme = "readme.md"
 license = "Apache-2.0"
 authors = ["Aster <192607617@qq.com>"]
-description = "Beautiful diagnostic reporting for text-based programming languages"
+description = "Validator types, returns multiple tolerable errors at once"
 homepage = "https://github.com/oovm/diagnostic-rs"
 repository = "https://github.com/oovm/diagnostic-rs"
 documentation = "https://docs.rs/diagnostic"

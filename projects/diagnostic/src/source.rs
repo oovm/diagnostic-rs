@@ -47,7 +47,7 @@ impl Line {
 /// In most cases, a source is a single input file.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Source {
-    file_name: String,
+    display_path: String,
     lines: Vec<Line>,
     /// bytes in source
     length: usize,
@@ -55,8 +55,9 @@ pub struct Source {
 
 impl Display for Source {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for c in self.chars() {
-            f.write_char(c)?
+        for c in self.lines() {
+            f.write_str(&c.chars)?;
+            f.write_char('\n')?;
         }
         Ok(())
     }
@@ -105,7 +106,7 @@ impl<S: AsRef<str>> From<S> for Source {
             lines.push(l);
         }
 
-        Self { file_name: String::new(), lines, length: offset }
+        Self { display_path: String::new(), lines, length: offset }
     }
 }
 
@@ -146,12 +147,12 @@ impl Source {
     }
     /// Set path name of source
     pub fn set_path(&mut self, path: &Path) {
-        self.file_name.clear();
+        self.display_path.clear();
         for (i, j) in path.iter().enumerate() {
             match j.to_str() {
                 Some(s) => {
                     if cfg!(target_os = "windows") && i == 0 {
-                        self.file_name.push_str(s.trim_start_matches(r#"\\?\"#));
+                        self.display_path.push_str(s.trim_start_matches(r#"\\?\"#));
                         continue;
                     }
                     if cfg!(target_os = "windows") {
@@ -160,9 +161,9 @@ impl Source {
                         }
                     }
                     if i != 0 {
-                        self.file_name.push('/');
+                        self.display_path.push('/');
                     }
-                    self.file_name.push_str(s);
+                    self.display_path.push_str(s);
                 }
                 None => continue,
             }
@@ -223,9 +224,19 @@ impl FileCache {
             FileID { hash: hasher.finish() }
         };
         let mut source = Source::from(text.to_string());
-        source.file_name = name;
+        source.display_path = name;
         self.files.insert(name_hash, source);
         name_hash
+    }
+    /// Set the file source buy not update the context
+    pub unsafe fn set_source(&mut self, file: FileID, source: String) -> bool {
+        match self.files.get_mut(&file) {
+            Some(s) => {
+                s.display_path = source;
+                true
+            }
+            None => false,
+        }
     }
     /// Create a new [`FileCache`].
     pub fn fetch(&self, file: &FileID) -> Result<&Source, std::io::Error> {
@@ -236,6 +247,6 @@ impl FileCache {
     }
     /// Create a new [`FileCache`].
     pub fn display(&self, file: &FileID) -> Option<&str> {
-        Some(self.files.get(file)?.file_name.as_str())
+        Some(self.files.get(file)?.display_path.as_str())
     }
 }

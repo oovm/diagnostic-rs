@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic"
-version = "0.5.5"
+version = "0.5.6"
 authors = ["Aster <192607617@qq.com>"]
 description = "Pretty diagnostic report"
 repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/diagnostic"
@@ -11,6 +11,7 @@ edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
+#url = "2.4.1"
 unicode-width = "0.1.11"
 
 [dev-dependencies]

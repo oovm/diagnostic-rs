@@ -1,4 +1,5 @@
 use crate::Validation;
+use alloc::{vec, vec::Vec};
 use Validation::{Failure, Success};
 
 pub trait Validate<T, E> {
