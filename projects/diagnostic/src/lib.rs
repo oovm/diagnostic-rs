@@ -39,10 +39,15 @@ impl Default for FileID {
         Self { hash: 0 }
     }
 }
+impl Debug for FileID {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FileID(0x{:X})", self.hash)
+    }
+}
 
 impl Display for FileID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "FileID({:X})", self.hash)
+        write!(f, "FileID({})", self.hash)
     }
 }
 
@@ -63,12 +68,6 @@ pub struct FileSpan {
     start: usize,
     end: usize,
     file: FileID,
-}
-
-impl Debug for FileID {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("FileID").field("id", &self.hash).finish()
-    }
 }
 
 impl Debug for FileSpan {
@@ -273,7 +272,7 @@ impl Diagnostic {
 }
 impl Diagnostic {
     /// Write this diagnostic out to `stderr`.
-    pub fn eprint(&self, cache: FileCache) -> std::io::Result<()> {
+    pub fn eprint(&self, cache: &FileCache) -> std::io::Result<()> {
         self.write(cache, std::io::stderr().lock())
     }
 
@@ -281,7 +280,7 @@ impl Diagnostic {
     ///
     /// In most cases, [`Diagnostic::eprint`] is the
     /// ['more correct'](https://en.wikipedia.org/wiki/Standard_streams#Standard_error_(stderr)) function to use.
-    pub fn print(&self, cache: FileCache) -> std::io::Result<()> {
+    pub fn print(&self, cache: &FileCache) -> std::io::Result<()> {
         self.write_for_stdout(cache, std::io::stdout().lock())
     }
 }

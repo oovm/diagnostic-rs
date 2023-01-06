@@ -2,9 +2,10 @@ use super::*;
 
 use std::{
     collections::HashMap,
+    fmt::Write,
     hash::{BuildHasher, Hasher},
     mem::replace,
-    path::PathBuf,
+    path::Path,
 };
 
 /// A type representing a single line of a [`Source`].
@@ -48,7 +49,17 @@ impl Line {
 pub struct Source {
     file_name: String,
     lines: Vec<Line>,
-    len: usize,
+    /// bytes in source
+    length: usize,
+}
+
+impl Display for Source {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        for c in self.chars() {
+            f.write_char(c)?
+        }
+        Ok(())
+    }
 }
 
 impl<S: AsRef<str>> From<S> for Source {
@@ -94,14 +105,14 @@ impl<S: AsRef<str>> From<S> for Source {
             lines.push(l);
         }
 
-        Self { file_name: "<anonymous>".to_string(), lines, len: offset }
+        Self { file_name: String::new(), lines, length: offset }
     }
 }
 
 impl Source {
     /// Get the length of the total number of characters in the source.
     pub fn length(&self) -> usize {
-        self.len
+        self.length
     }
 
     /// Return an iterator over the characters in the source.
@@ -123,7 +134,7 @@ impl Source {
     ///
     /// Note that the line/column numbers are zero-indexed.
     pub fn get_offset_line(&self, offset: usize) -> Option<(&Line, usize, usize)> {
-        if offset <= self.len {
+        if offset <= self.length {
             let idx = self.lines.binary_search_by_key(&offset, |line| line.offset).unwrap_or_else(|idx| idx.saturating_sub(1));
             let line = &self.lines[idx];
             assert!(offset >= line.offset, "offset = {}, line.offset = {}", offset, line.offset);
@@ -132,6 +143,35 @@ impl Source {
         else {
             None
         }
+    }
+    /// Set path name of source
+    pub fn set_path(&mut self, path: &Path) {
+        self.file_name.clear();
+        for (i, j) in path.iter().enumerate() {
+            match j.to_str() {
+                Some(s) => {
+                    if cfg!(target_os = "windows") && i == 0 {
+                        self.file_name.push_str(s.trim_start_matches(r#"\\?\"#));
+                        continue;
+                    }
+                    if cfg!(target_os = "windows") {
+                        if j.eq("\\") {
+                            continue;
+                        }
+                    }
+                    if i != 0 {
+                        self.file_name.push('/');
+                    }
+                    self.file_name.push_str(s);
+                }
+                None => continue,
+            }
+        }
+    }
+    /// Get path name of source
+    pub fn with_path(mut self, path: &Path) -> Self {
+        self.set_path(path);
+        self
     }
 
     /// Get the range of lines that this span runs across.
@@ -164,8 +204,8 @@ impl FileCache {
             path.hash(&mut hasher);
             FileID { hash: hasher.finish() }
         };
-        let text = std::fs::read_to_string(path)?;
-        let source = Source::from(text);
+        let text = std::fs::read_to_string(&path)?;
+        let source = Source::from(text).with_path(path);
         self.files.insert(name_hash, source);
         Ok(name_hash)
     }
@@ -188,7 +228,7 @@ impl FileCache {
         name_hash
     }
     /// Create a new [`FileCache`].
-    pub fn fetch(&mut self, file: &FileID) -> Result<&Source, std::io::Error> {
+    pub fn fetch(&self, file: &FileID) -> Result<&Source, std::io::Error> {
         match self.files.get(file) {
             Some(source) => Ok(source),
             None => Err(std::io::Error::new(std::io::ErrorKind::NotFound, format!("File {:?} not found", file))),

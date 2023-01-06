@@ -31,7 +31,7 @@ struct SourceGroup<'a> {
 }
 
 impl Diagnostic {
-    fn get_source_groups(&self, cache: &mut FileCache) -> Vec<SourceGroup> {
+    fn get_source_groups(&self, cache: &FileCache) -> Vec<SourceGroup> {
         let mut groups = Vec::new();
         for label in self.labels.iter() {
             let src = match cache.fetch(label.span.source()) {
@@ -73,19 +73,19 @@ impl Diagnostic {
     /// `stderr`.  If you are printing to `stdout`, use the [`write_for_stdout`](Self::write_for_stdout) method instead.
     ///
     /// If you wish to write to `stderr` or `stdout`, you can do so via [`Diagnostic::eprint`] or [`Diagnostic::print`] respectively.
-    pub fn write<W: Write>(&self, cache: FileCache, w: W) -> std::io::Result<()> {
+    pub fn write<W: Write>(&self, cache: &FileCache, w: W) -> std::io::Result<()> {
         self.write_for_stream(cache, w, StreamType::Stderr)
     }
 
     /// Write this diagnostic to an implementor of [`Write`], assuming that the output is ultimately going to be printed
     /// to `stdout`.
-    pub fn write_for_stdout<W: Write>(&self, cache: FileCache, w: W) -> std::io::Result<()> {
+    pub fn write_for_stdout<W: Write>(&self, cache: &FileCache, w: W) -> std::io::Result<()> {
         self.write_for_stream(cache, w, StreamType::Stdout)
     }
 
     /// Write this diagnostic to an implementor of [`Write`], assuming that the output is ultimately going to be printed
     /// to the given output stream (`stdout` or `stderr`).
-    fn write_for_stream<W: Write>(&self, mut cache: FileCache, mut w: W, s: StreamType) -> std::io::Result<()> {
+    fn write_for_stream<W: Write>(&self, cache: &FileCache, mut w: W, s: StreamType) -> std::io::Result<()> {
         let draw = self.config.characters;
 
         // --- Header ---
@@ -101,7 +101,7 @@ impl Diagnostic {
         else {
             writeln!(w, " {}", self.message)?;
         }
-        let groups = self.get_source_groups(&mut cache);
+        let groups = self.get_source_groups(&cache);
 
         // Line number maximum width
         let line_no_width = groups
