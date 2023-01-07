@@ -342,7 +342,9 @@ pub struct Config {
     /// is enable
     pub color_enable: bool,
     /// custom margin color
-    pub margin_color: Option<(Color, Color)>,
+    pub margin_color: Option<Color>,
+    /// custom margin skip color
+    pub margin_skip_color: Option<Color>,
     /// custom important
     pub unimportant_color: Option<Color>,
     tab_width: usize,
@@ -412,15 +414,15 @@ impl Config {
 
     fn margin_color(&self) -> Option<Color> {
         Some(match self.margin_color {
-            None => Color::Fixed(246),
-            Some(s) => s.0,
+            None => Color::Fixed(27),
+            Some(s) => s,
         })
         .filter(|_| self.color_enable)
     }
     fn skipped_margin_color(&self) -> Option<Color> {
-        Some(match self.margin_color {
-            None => Color::Fixed(240),
-            Some(s) => s.1,
+        Some(match self.margin_skip_color {
+            None => Color::Fixed(27),
+            Some(s) => s,
         })
         .filter(|_| self.color_enable)
     }
@@ -462,6 +464,7 @@ impl Default for Config {
             multiline_arrows: true,
             color_enable: true,
             margin_color: None,
+            margin_skip_color: None,
             unimportant_color: None,
             tab_width: 4,
             characters: BuiltinDrawer::Unicode.get_elements(),
