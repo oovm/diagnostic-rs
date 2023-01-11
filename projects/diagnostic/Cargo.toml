@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic"
-version = "0.6.0"
+version = "0.6.2"
 authors = ["Aster <192607617@qq.com>"]
 description = "Pretty diagnostic report"
 repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/diagnostic"

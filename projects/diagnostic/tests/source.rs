@@ -10,13 +10,13 @@ fn source_from() {
 
         let mut offset = 0;
         for (source_line, raw_line) in zip(source.lines().into_iter(), lines.into_iter()) {
-            assert_eq!(source_line.offset(), offset);
-            assert_eq!(source_line.len(), raw_line.len());
+            assert_eq!(source_line.offset as usize, offset);
+            assert_eq!(source_line.get_length(), raw_line.len());
             assert_eq!(source_line.view(), raw_line.trim_end());
-            offset += source_line.len();
+            offset += source_line.get_length();
         }
 
-        assert_eq!(source.length(), offset);
+        assert_eq!(source.get_length(), offset);
     }
 
     test(vec![]); // Empty string

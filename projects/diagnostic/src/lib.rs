@@ -101,7 +101,7 @@ pub struct Diagnostic {
     note: Option<String>,
     help: Option<String>,
     file: FileID,
-    location: Option<usize>,
+    location: Option<u32>,
     labels: Vec<Label>,
     config: Config,
 }
@@ -249,12 +249,12 @@ impl DiagnosticBuilder {
         self
     }
     /// Set the location of this report.
-    pub fn set_location(&mut self, file: FileID, start: Option<usize>) {
+    pub fn set_location(&mut self, file: FileID, start: Option<u32>) {
         self.inner.file = file;
         self.inner.location = start;
     }
     /// Set the location of this report.
-    pub fn with_location(mut self, file: FileID, start: Option<usize>) -> Self {
+    pub fn with_location(mut self, file: FileID, start: Option<u32>) -> Self {
         self.set_location(file, start);
         self
     }

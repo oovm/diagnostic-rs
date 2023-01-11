@@ -7,25 +7,22 @@ use std::fmt::Write;
 /// A type representing a single line of a [`Source`].
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Line {
-    offset: usize,
-    len: usize,
+    /// Get the offset of this line in the original [`Source`] (i.e: the number of characters that precede it).
+    pub offset: u32,
+    /// Get the character length of this line.
+    pub length: u32,
     chars: String,
 }
 
 impl Line {
-    /// Get the offset of this line in the original [`Source`] (i.e: the number of characters that precede it).
-    pub fn offset(&self) -> usize {
-        self.offset
-    }
-
     /// Get the character length of this line.
-    pub fn len(&self) -> usize {
-        self.len
+    pub fn get_length(&self) -> usize {
+        self.length as usize
     }
 
     /// Get the offset span of this line in the original [`Source`].
-    pub fn span(&self) -> Range<usize> {
-        self.offset..self.offset + self.len
+    pub fn get_range(&self) -> Range<u32> {
+        self.offset..self.offset + self.length
     }
 
     /// Return an iterator over the characters in the line, excluding trailing whitespace.
@@ -46,7 +43,7 @@ pub struct Source {
     display_path: SourcePath,
     lines: Vec<Line>,
     /// bytes in source
-    length: usize,
+    pub length: u32,
 }
 
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -92,7 +89,7 @@ impl<S: AsRef<str>> From<S> for Source {
 
                 if let Some((last, ends_with_cr)) = last_line.as_mut() {
                     if *ends_with_cr && line == "\n" {
-                        last.len += 1;
+                        last.length += 1;
                         offset += 1;
                         return replace(&mut last_line, None).map(|(l, _)| l);
                     }
@@ -100,8 +97,8 @@ impl<S: AsRef<str>> From<S> for Source {
 
                 let len = line.len();
                 let ends_with_cr = line.ends_with('\r');
-                let line = Line { offset, len, chars: line.trim_end().to_owned() };
-                offset += line.len();
+                let line = Line { offset, length: len as u32, chars: line.trim_end().to_owned() };
+                offset += line.length;
                 replace(&mut last_line, Some((line, ends_with_cr))).map(|(l, _)| l)
             })
             .collect();
@@ -116,8 +113,8 @@ impl<S: AsRef<str>> From<S> for Source {
 
 impl Source {
     /// Get the length of the total number of characters in the source.
-    pub fn length(&self) -> usize {
-        self.length
+    pub fn get_length(&self) -> usize {
+        self.length as usize
     }
 
     /// Return an iterator over the characters in the source.
@@ -138,7 +135,7 @@ impl Source {
     /// Get the line that the given offset appears on, and the line/column numbers of the offset.
     ///
     /// Note that the line/column numbers are zero-indexed.
-    pub fn get_offset_line(&self, offset: usize) -> Option<(&Line, usize, usize)> {
+    pub fn get_offset_line(&self, offset: u32) -> Option<(&Line, usize, u32)> {
         if offset <= self.length {
             let idx = self.lines.binary_search_by_key(&offset, |line| line.offset).unwrap_or_else(|idx| idx.saturating_sub(1));
             let line = &self.lines[idx];
@@ -172,12 +169,23 @@ impl Source {
         self.set_path(path);
         self
     }
-
+    /// Set path name of source
+    #[cfg(feature = "url")]
+    pub fn set_remote(&mut self, url: Url) -> bool {
+        self.display_path = SourcePath::Remote(url);
+        true
+    }
+    /// Get path name of source
+    #[cfg(feature = "url")]
+    pub fn with_remote(mut self, url: Url) -> Self {
+        self.set_remote(url);
+        self
+    }
     /// Get the range of lines that this span runs across.
     ///
     /// The resulting range is guaranteed to contain valid line indices (i.e: those that can be used for
     /// [`Source::line`]).
-    pub fn get_line_range(&self, span: &Range<usize>) -> Range<usize> {
+    pub fn get_line_range(&self, span: &Range<u32>) -> Range<usize> {
         let start = self.get_offset_line(span.start).map_or(0, |(_, l, _)| l);
         let end = self.get_offset_line(span.end.saturating_sub(1).max(span.start)).map_or(self.lines.len(), |(_, l, _)| l + 1);
         start..end
@@ -208,6 +216,22 @@ impl FileCache {
         self.files.insert(name_hash, source);
         Ok(name_hash)
     }
+    /// Create a new [`FileCache`].
+    #[cfg(feature = "url")]
+    pub fn load_remote(&mut self, url: Url) -> Result<FileID, std::io::Error> {
+        let path = url.as_ref();
+        let hasher = self.files.hasher();
+        let name_hash = {
+            let mut hasher = hasher.build_hasher();
+            path.hash(&mut hasher);
+            FileID { hash: hasher.finish() }
+        };
+        let text = std::fs::read_to_string(&path)?;
+        let source = Source::from(text).with_remote(url);
+        self.files.insert(name_hash, source);
+        Ok(name_hash)
+    }
+
     /// Create a new [`FileCache`].
     pub fn load_text<T, N>(&mut self, text: T, name: N) -> FileID
     where

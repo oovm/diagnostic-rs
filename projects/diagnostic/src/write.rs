@@ -26,7 +26,7 @@ struct LabelInfo<'a> {
 
 struct SourceGroup<'a> {
     src_id: &'a FileID,
-    span: Range<usize>,
+    span: Range<u32>,
     labels: Vec<LabelInfo<'a>>,
 }
 
@@ -59,7 +59,7 @@ impl Diagnostic {
             else {
                 groups.push(SourceGroup {
                     src_id: &label.span.file,
-                    span: label.span.start..label.span.end,
+                    span: Range { start: label.span.start, end: label.span.end },
                     labels: vec![label_info],
                 });
             }
@@ -156,7 +156,7 @@ impl Diagnostic {
             }
 
             struct LineLabel<'a> {
-                col: usize,
+                column: u32,
                 label: &'a Label,
                 multi: bool,
                 draw_msg: bool,
@@ -203,7 +203,7 @@ impl Diagnostic {
                         let mut margin_ptr = None;
 
                         let multi_label = multi_labels.get(col);
-                        let line_span = src.line(idx).unwrap().span();
+                        let line_span = src.line(idx).unwrap().get_range();
 
                         for (i, label) in multi_labels[0..(col + 1).min(multi_labels.len())].iter().enumerate() {
                             let margin = margin_label.as_ref().filter(|m| **label as *const _ == m.label as *const _);
@@ -318,12 +318,12 @@ impl Diagnostic {
                     .iter()
                     .enumerate()
                     .filter_map(|(_i, label)| {
-                        let is_start = line.span().contains(&label.span.start);
-                        let is_end = line.span().contains(&label.last_offset());
+                        let is_start = line.get_range().contains(&label.span.start);
+                        let is_end = line.get_range().contains(&label.last_offset());
                         if is_start {
                             // TODO: Check to see whether multi is the first on the start line or first on the end line
                             Some(LineLabel {
-                                col: label.span.start - line.offset(),
+                                column: label.span.start - line.offset,
                                 label: **label,
                                 multi: true,
                                 draw_msg: false, // Multi-line spans don;t have their messages drawn at the start
@@ -331,7 +331,7 @@ impl Diagnostic {
                         }
                         else if is_end {
                             Some(LineLabel {
-                                col: label.last_offset() - line.offset(),
+                                column: label.last_offset() - line.offset,
                                 label: **label,
                                 multi: true,
                                 draw_msg: true, // Multi-line spans have their messages drawn at the end
@@ -341,19 +341,19 @@ impl Diagnostic {
                             None
                         }
                     })
-                    .min_by_key(|ll| (ll.col, !ll.label.span.start));
+                    .min_by_key(|ll| (ll.column, !ll.label.span.start));
 
                 // Generate a list of labels for this line, along with their label columns
                 let mut line_labels = multi_labels
                     .iter()
                     .enumerate()
                     .filter_map(|(_i, label)| {
-                        let is_start = line.span().contains(&label.span.start);
-                        let is_end = line.span().contains(&label.last_offset());
+                        let is_start = line.get_range().contains(&label.span.start);
+                        let is_end = line.get_range().contains(&label.last_offset());
                         if is_start && margin_label.as_ref().map_or(true, |m| **label as *const _ != m.label as *const _) {
                             // TODO: Check to see whether multi is the first on the start line or first on the end line
                             Some(LineLabel {
-                                col: label.span.start - line.offset(),
+                                column: label.span.start - line.offset,
                                 label: **label,
                                 multi: true,
                                 draw_msg: false, // Multi-line spans don;t have their messages drawn at the start
@@ -361,7 +361,7 @@ impl Diagnostic {
                         }
                         else if is_end {
                             Some(LineLabel {
-                                col: label.last_offset() - line.offset(),
+                                column: label.last_offset() - line.offset,
                                 label: **label,
                                 multi: true,
                                 draw_msg: true, // Multi-line spans have their messages drawn at the end
@@ -373,18 +373,19 @@ impl Diagnostic {
                     })
                     .collect::<Vec<_>>();
 
-                for label_info in
-                    labels.iter().filter(|l| l.label.span.start >= line.span().start && l.label.span.end <= line.span().end)
+                for label_info in labels
+                    .iter()
+                    .filter(|l| l.label.span.start >= line.get_range().start && l.label.span.end <= line.get_range().end)
                 {
                     if matches!(label_info.kind, LabelKind::Inline) {
                         line_labels.push(LineLabel {
-                            col: match &self.config.label_attach {
+                            column: match &self.config.label_attach {
                                 LabelAttach::Start => label_info.label.span.start,
                                 LabelAttach::Middle => (label_info.label.span.start + label_info.label.span.end) / 2,
                                 LabelAttach::End => label_info.label.last_offset(),
                             }
                             .max(label_info.label.span.start)
-                                - line.offset(),
+                                - line.offset,
                             label: label_info.label,
                             multi: false,
                             draw_msg: true,
@@ -394,7 +395,7 @@ impl Diagnostic {
 
                 // Skip this line if we don't have labels for it
                 if line_labels.len() == 0 && margin_label.is_none() {
-                    let within_label = multi_labels.iter().any(|label| label.span.contains(line.span().start));
+                    let within_label = multi_labels.iter().any(|label| label.span.contains(line.get_range().start));
                     if !is_ellipsis && within_label {
                         is_ellipsis = true;
                     }
@@ -412,13 +413,14 @@ impl Diagnostic {
                 }
 
                 // Sort the labels by their columns
-                line_labels.sort_by_key(|ll| (ll.label.order, ll.col, !ll.label.span.start));
+                line_labels.sort_by_key(|ll| (ll.label.order, ll.column, !ll.label.span.start));
 
                 // Determine label bounds so we know where to put error messages
                 let arrow_end_space = if self.config.compact { 1 } else { 2 };
-                let arrow_len = line_labels.iter().fold(0, |l, ll| {
-                    if ll.multi { line.len() } else { l.max(ll.label.span.end.saturating_sub(line.offset())) }
-                }) + arrow_end_space;
+                let arrow_len = line_labels
+                    .iter()
+                    .fold(0, |l, ll| if ll.multi { line.length } else { l.max(ll.label.span.end.saturating_sub(line.offset)) })
+                    + arrow_end_space;
 
                 // Should we draw a vertical bar as part of a label arrow on this line?
                 let get_vbar = |col, row| {
@@ -430,17 +432,17 @@ impl Diagnostic {
                             ll.label.msg.is_some()
                                 && margin_label.as_ref().map_or(true, |m| ll.label as *const _ != m.label as *const _)
                         })
-                        .find(|(j, ll)| ll.col == col && ((row <= *j && !ll.multi) || (row <= *j && ll.multi)))
+                        .find(|(j, ll)| ll.column == col && ((row <= *j && !ll.multi) || (row <= *j && ll.multi)))
                         .map(|(_, ll)| ll)
                 };
 
-                let get_highlight = |col| {
+                let get_highlight = |col: u32| {
                     margin_label
                         .iter()
                         .map(|ll| ll.label)
                         .chain(multi_labels.iter().map(|l| **l))
                         .chain(line_labels.iter().map(|l| l.label))
-                        .filter(|l| l.span.contains(line.offset() + col))
+                        .filter(|l| l.span.contains(line.offset + col))
                         // Prioritise displaying smaller spans
                         .min_by_key(|l| (-l.priority, l.span.length()))
                 };
@@ -452,7 +454,7 @@ impl Diagnostic {
                             self.config.underlines
                                 // Underlines only occur for inline spans (highlighting can occur for all spans)
                                 && !ll.multi
-                                && ll.label.span.contains(line.offset() + col)
+                                && ll.label.span.contains(line.offset + col)
                         })
                         // Prioritise displaying smaller spans
                         .min_by_key(|ll| (-ll.label.priority, ll.label.span.length()))
@@ -464,7 +466,7 @@ impl Diagnostic {
                 // Line
                 if !is_ellipsis {
                     for (col, c) in line.chars().enumerate() {
-                        let color = if let Some(highlight) = get_highlight(col) {
+                        let color = if let Some(highlight) = get_highlight(col as u32) {
                             highlight.color
                         }
                         else {
@@ -493,7 +495,7 @@ impl Diagnostic {
                         // Lines alternate
                         let mut chars = line.chars();
                         for col in 0..arrow_len {
-                            let width = chars.next().map_or(1, |c| self.config.char_width(c, col).1);
+                            let width = chars.next().map_or(1, |c| self.config.char_width(c, col as usize).1);
 
                             let vbar = get_vbar(col, row);
                             let underline = get_underline(col).filter(|_| row == 0);
@@ -503,10 +505,10 @@ impl Diagnostic {
                                     if vbar_ll.label.span.length() <= 1 || true {
                                         [draw.underbar, draw.underline]
                                     }
-                                    else if line.offset() + col == vbar_ll.label.span.start {
+                                    else if line.offset + col == vbar_ll.label.span.start {
                                         [draw.ltop, draw.underbar]
                                     }
-                                    else if line.offset() + col == vbar_ll.label.last_offset() {
+                                    else if line.offset + col == vbar_ll.label.last_offset() {
                                         [draw.rtop, draw.underbar]
                                     }
                                     else {
@@ -540,12 +542,12 @@ impl Diagnostic {
                     // Lines
                     let mut chars = line.chars();
                     for col in 0..arrow_len {
-                        let width = chars.next().map_or(1, |c| self.config.char_width(c, col).1);
+                        let width = chars.next().map_or(1, |c| self.config.char_width(c, col as usize).1);
 
-                        let is_hbar = (((col > line_label.col) ^ line_label.multi)
-                            || (line_label.label.msg.is_some() && line_label.draw_msg && col > line_label.col))
+                        let is_hbar = (((col > line_label.column) ^ line_label.multi)
+                            || (line_label.label.msg.is_some() && line_label.draw_msg && col > line_label.column))
                             && line_label.label.msg.is_some();
-                        let [c, tail] = if col == line_label.col
+                        let [c, tail] = if col == line_label.column
                             && line_label.label.msg.is_some()
                             && margin_label.as_ref().map_or(true, |m| line_label.label as *const _ != m.label as *const _)
                         {
@@ -561,7 +563,7 @@ impl Diagnostic {
                             ]
                         }
                         else if let Some(vbar_ll) =
-                            get_vbar(col, row).filter(|_| (col != line_label.col || line_label.label.msg.is_some()))
+                            get_vbar(col, row).filter(|_| (col != line_label.column || line_label.label.msg.is_some()))
                         {
                             if !self.config.cross_gap && is_hbar {
                                 [draw.xbar.fg(line_label.label.color, s), ' '.fg(line_label.label.color, s)]
@@ -656,7 +658,7 @@ impl Diagnostic {
 }
 
 impl Label {
-    fn last_offset(&self) -> usize {
+    fn last_offset(&self) -> u32 {
         self.span.end.saturating_sub(1).max(self.span.start)
     }
 }

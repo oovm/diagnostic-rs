@@ -8,8 +8,8 @@ use std::{
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct FileSpan {
-    pub(crate) start: usize,
-    pub(crate) end: usize,
+    pub(crate) start: u32,
+    pub(crate) end: u32,
     pub(crate) file: FileID,
 }
 
@@ -64,24 +64,24 @@ impl FileID {
     }
 
     /// Create a new [`FileID`] with the given ID.
-    pub fn with_range(self, range: Range<usize>) -> FileSpan {
+    pub fn with_range(self, range: Range<u32>) -> FileSpan {
         FileSpan { start: range.start, end: range.end, file: self }
     }
 }
 
 impl FileSpan {
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn new(file: FileID, start: usize, end: usize) -> Self {
+    pub fn new(file: FileID, start: u32, end: u32) -> Self {
         Self { start, end, file }
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn get_range(&self) -> Range<usize> {
+    pub fn get_range(&self) -> Range<u32> {
         self.start..self.end
     }
     /// Get the start offset of this span.
     ///
     /// Offsets are zero-indexed character offsets from the beginning of the source.
-    pub fn get_start(&self) -> usize {
+    pub fn get_start(&self) -> u32 {
         self.start
     }
 
@@ -90,16 +90,16 @@ impl FileSpan {
     /// The end offset should *always* be greater than or equal to the start offset as given by [`Span::start`].
     ///
     /// Offsets are zero-indexed character offsets from the beginning of the source.
-    pub fn get_end(&self) -> usize {
+    pub fn get_end(&self) -> u32 {
         self.end
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn set_range(&mut self, range: Range<usize>) {
+    pub fn set_range(&mut self, range: Range<u32>) {
         self.start = range.start;
         self.end = range.end;
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn with_range(self, range: Range<usize>) -> Self {
+    pub fn with_range(self, range: Range<u32>) -> Self {
         Self { start: range.start, end: range.end, ..self }
     }
     /// Create a new span with the given start and end offsets, and the given file.
@@ -119,11 +119,11 @@ impl FileSpan {
         Label::new(self.clone()).with_message(message)
     }
     /// Get the length of this span (difference between the start of the span and the end of the span).
-    pub fn length(&self) -> usize {
+    pub fn length(&self) -> u32 {
         self.end.saturating_sub(self.start)
     }
     /// Determine whether the span contains the given offset.
-    pub fn contains(&self, offset: usize) -> bool {
+    pub fn contains(&self, offset: u32) -> bool {
         self.get_range().contains(&offset)
     }
 }
