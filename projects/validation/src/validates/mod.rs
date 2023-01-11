@@ -1,8 +1,5 @@
 use alloc::vec::Vec;
-use core::{
-    fmt::{Debug, Display, Formatter},
-    mem::take,
-};
+use core::fmt::{Debug, Display, Formatter};
 use std::error::Error;
 
 use crate::Validation::{Failure, Success};
@@ -46,6 +43,45 @@ where
     T: Debug,
     E: Error,
 {
+}
+
+/// Constructors and collectors of Validation
+impl<T, E> Validation<T, E> {
+    /// A value error occurred
+    pub fn fine<I>(value: I) -> Self
+    where
+        I: Into<T>,
+    {
+        Success { value: value.into(), diagnostics: vec![] }
+    }
+    /// A fatal error occurred
+    pub fn fail<I>(error: I) -> Self
+    where
+        I: Into<E>,
+    {
+        Failure { fatal: error.into(), diagnostics: vec![] }
+    }
+    pub fn push<I>(&mut self, error: I)
+    where
+        I: Into<E>,
+    {
+        match self {
+            Success { diagnostics, .. } => diagnostics.push(error.into()),
+            Failure { diagnostics, .. } => diagnostics.push(error.into()),
+        }
+    }
+}
+
+impl<T, E> Extend<E> for Validation<T, E> {
+    fn extend<I>(&mut self, errors: I)
+    where
+        I: IntoIterator<Item = E>,
+    {
+        match self {
+            Success { diagnostics, .. } => diagnostics.extend(errors),
+            Failure { diagnostics, .. } => diagnostics.extend(errors),
+        }
+    }
 }
 
 impl<T, E> Validation<T, E> {
@@ -107,35 +143,12 @@ impl<T, E> Validation<T, E> {
     where
         F: FnOnce(T) -> U,
     {
-        // let a = Ok(1);
-        // a.map_or();
-
         match self {
             Success { value, diagnostics } => Success { value: f(value), diagnostics },
             Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
         }
     }
-
-    pub fn and_then<U, F>(self, f: F) -> Validation<U, E>
-    where
-        F: FnOnce(T) -> Validation<U, E>,
-    {
-        match self {
-            Success { value, mut diagnostics } => match f(value) {
-                Success { value, diagnostics: new } => {
-                    diagnostics.extend(new);
-                    Success { value, diagnostics }
-                }
-                Failure { fatal, diagnostics: new } => {
-                    diagnostics.extend(new);
-                    Failure { fatal, diagnostics }
-                }
-            },
-            Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
-        }
-    }
-
-    /// Calls a closure on each element of an iterator.
+    /// Append the result to goods and fails
     ///
     /// This is equivalent to using a [`for`] loop on the iterator, although
     /// `break` and `continue` are not possible from a closure. It's generally
@@ -170,26 +183,72 @@ impl<T, E> Validation<T, E> {
     ///     .filter(|&(i, x)| (i + x) % 3 == 0)
     ///     .for_each(|(i, x)| println!("{i}:{x}"));
     /// ```
-    pub fn take_diagnostics<U>(&mut self, out: &mut Vec<U>)
+    pub fn and_then<U, F>(self, f: F) -> Validation<U, E>
     where
-        U: From<E>,
+        F: FnOnce(T) -> Validation<U, E>,
     {
-        let diagnostics = match self {
-            Success { diagnostics, .. } => take(diagnostics),
-            Failure { diagnostics, .. } => take(diagnostics),
-        };
-        out.extend(diagnostics.into_iter().map(U::from))
+        match self {
+            Success { value, mut diagnostics } => match f(value) {
+                Success { value, diagnostics: new } => {
+                    diagnostics.extend(new);
+                    Success { value, diagnostics }
+                }
+                Failure { fatal, diagnostics: new } => {
+                    diagnostics.extend(new);
+                    Failure { fatal, diagnostics }
+                }
+            },
+            Failure { fatal, diagnostics } => Failure { fatal, diagnostics },
+        }
     }
     /// Append the result to goods and fails
-    pub fn append(self, goods: &mut Vec<T>, fails: &mut Vec<E>) {
+    ///
+    /// This is equivalent to using a [`for`] loop on the iterator, although
+    /// `break` and `continue` are not possible from a closure. It's generally
+    /// more idiomatic to use a `for` loop, but `for_each` may be more legible
+    /// when processing items at the end of longer iterator chains. In some
+    /// cases `for_each` may also be faster than a loop, because it will use
+    /// internal iteration on adapters like `Chain`.
+    ///
+    /// [`for`]: ../../book/ch03-05-control-flow.html#looping-through-a-collection-with-for
+    ///
+    /// # Examples
+    ///
+    /// Basic usage:
+    ///
+    /// ```
+    /// use std::sync::mpsc::channel;
+    ///
+    /// let (tx, rx) = channel();
+    /// (0..5).map(|x| x * 2 + 1).for_each(move |x| tx.send(x).unwrap());
+    ///
+    /// let v: Vec<_> = rx.iter().collect();
+    /// assert_eq!(v, vec![1, 3, 5, 7, 9]);
+    /// ```
+    ///
+    /// For such a small example, a `for` loop may be cleaner, but `for_each`
+    /// might be preferable to keep a functional style with longer iterators:
+    ///
+    /// ```
+    /// (0..5)
+    ///     .flat_map(|x| x * 100..x * 110)
+    ///     .enumerate()
+    ///     .filter(|&(i, x)| (i + x) % 3 == 0)
+    ///     .for_each(|(i, x)| println!("{i}:{x}"));
+    /// ```
+    pub fn sending<G, F>(self, goods: &mut G, fails: &mut F)
+    where
+        G: Extend<T>,
+        F: Extend<E>,
+    {
         match self {
             Success { value, diagnostics } => {
                 fails.extend(diagnostics);
-                goods.push(value);
+                goods.extend(Some(value));
             }
             Failure { fatal, diagnostics } => {
                 fails.extend(diagnostics);
-                fails.push(fatal)
+                fails.extend(Some(fatal))
             }
         }
     }
@@ -225,13 +284,6 @@ impl<T, E> Validation<T, E> {
 }
 
 impl<T, E> Validation<T, E> {
-    /// A fatal error occurred
-    pub fn fatal<I>(error: I, diagnostics: Vec<E>) -> Self
-    where
-        I: Into<E>,
-    {
-        Failure { fatal: error.into(), diagnostics }
-    }
     /// Turn a [`Validation`] into a [`Result`]
     pub fn result<F>(self, f: F) -> Result<T, E>
     where
@@ -249,7 +301,7 @@ impl<T, E> Validation<T, E> {
         }
     }
     /// Turn a [`Validation`] into a [`Option`]
-    pub fn option<F>(self, f: F) -> Option<T>
+    pub fn option<F>(self, mut f: F) -> Option<T>
     where
         F: FnMut(E) -> (),
     {
@@ -258,33 +310,30 @@ impl<T, E> Validation<T, E> {
                 diagnostics.into_iter().for_each(f);
                 Some(value)
             }
-            Failure { fatal: _, diagnostics } => {
-                diagnostics.into_iter().for_each(f);
+            Failure { fatal, diagnostics } => {
+                for error in diagnostics.into_iter() {
+                    f(error);
+                }
+                f(fatal);
                 None
             }
         }
     }
-    // /// Collect all diagnostics, with final fatal error if exists
-    // pub fn collect_diagnostics<'s>(&'s self) -> Vec<Diagnostic>
-    // where
-    //     Diagnostic: From<&'s E>,
-    // {
-    //     let mut out = vec![];
-    //     match self {
-    //         Success { value: _, diagnostics } => {
-    //             for diagnostic in diagnostics {
-    //                 out.push(diagnostic.into())
-    //             }
-    //         }
-    //         Failure { fatal, diagnostics } => {
-    //             for diagnostic in diagnostics {
-    //                 out.push(diagnostic.into())
-    //             }
-    //             let mut last = Diagnostic::from(fatal);
-    //             last.severity = DiagnosticLevel::Fatal;
-    //             out.push(last)
-    //         }
-    //     }
-    //     out
-    // }
+    /// Turn a [`Validation`] into a [`Option`]
+    pub fn each_error<F>(self, mut f: F)
+    where
+        F: FnMut(E) -> (),
+    {
+        match self {
+            Success { value: _, diagnostics } => {
+                diagnostics.into_iter().for_each(f);
+            }
+            Failure { fatal, diagnostics } => {
+                for error in diagnostics.into_iter() {
+                    f(error);
+                }
+                f(fatal);
+            }
+        }
+    }
 }

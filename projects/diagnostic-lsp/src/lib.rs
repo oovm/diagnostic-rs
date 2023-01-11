@@ -6,7 +6,7 @@
 // absolute no-no, breaking much of what we enjoy about Cargo!
 use lsp_types::{Position, Range};
 
-use diagnostic::{DiagnosticError, DiagnosticResult, FileCache, FileID, Span, TextStorage};
+use diagnostic::{FileCache, FileID};
 
 pub use diagnostic;
 pub use lsp_types;
@@ -79,7 +79,7 @@ fn character_to_line_offset(line: &str, character: u32) -> DiagnosticResult<usiz
     }
 }
 
-pub fn position_to_byte_index(files: &TextStorage, file_id: &FileID, position: &Position) -> DiagnosticResult<usize> {
+pub fn position_to_byte_index(files: &FileCache, file_id: &FileID, position: &Position) -> DiagnosticResult<usize> {
     let source = files.get_text(file_id)?;
 
     let line_span = files.line_range(file_id, position.line as usize).unwrap();
@@ -90,6 +90,6 @@ pub fn position_to_byte_index(files: &TextStorage, file_id: &FileID, position: &
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<F>(files: &TextStorage, file_id: &FileID, range: &Range) -> DiagnosticResult<Span> {
+pub fn range_to_byte_span<F>(files: &FileCache, file_id: &FileID, range: &Range) -> DiagnosticResult<Span> {
     Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }
