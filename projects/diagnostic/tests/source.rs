@@ -11,7 +11,7 @@ fn source_from() {
         let mut offset = 0;
         for (source_line, raw_line) in zip(source.lines().into_iter(), lines.into_iter()) {
             assert_eq!(source_line.offset(), offset);
-            assert_eq!(source_line.len(), raw_line.chars().count());
+            assert_eq!(source_line.len(), raw_line.len());
             assert_eq!(source_line.view(), raw_line.trim_end());
             offset += source_line.len();
         }

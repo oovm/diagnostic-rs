@@ -21,14 +21,19 @@ pub use crate::{
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
 };
-use std::{
+use core::{
     cmp::{Eq, PartialEq},
     fmt::{Debug, Display, Formatter},
-    hash::Hash,
-    io::Write,
+    hash::{BuildHasher, Hash, Hasher},
+    mem::replace,
     ops::Range,
 };
+#[cfg(not(feature = "url"))]
+use std::path::PathBuf;
+use std::{collections::HashMap, io::Write, path::Path};
 use unicode_width::UnicodeWidthChar;
+#[cfg(feature = "url")]
+pub use url::Url;
 
 /// A type that represents a labelled section of source code.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]

@@ -180,7 +180,20 @@ impl<T, E> Validation<T, E> {
         };
         out.extend(diagnostics.into_iter().map(U::from))
     }
-    ///
+    /// Append the result to goods and fails
+    pub fn append(self, goods: &mut Vec<T>, fails: &mut Vec<E>) {
+        match self {
+            Success { value, diagnostics } => {
+                fails.extend(diagnostics);
+                goods.push(value);
+            }
+            Failure { fatal, diagnostics } => {
+                fails.extend(diagnostics);
+                fails.push(fatal)
+            }
+        }
+    }
+    /// Omit the result
     pub fn omit(self) {}
     /// Returns the provided default (if [`Err`]), or
     /// applies a function to the contained value (if [`Ok`]),

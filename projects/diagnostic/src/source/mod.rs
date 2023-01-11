@@ -1,12 +1,8 @@
 use super::*;
 
-use std::{
-    collections::HashMap,
-    fmt::Write,
-    hash::{BuildHasher, Hasher},
-    mem::replace,
-    path::Path,
-};
+mod display;
+
+use std::fmt::Write;
 
 /// A type representing a single line of a [`Source`].
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -47,10 +43,42 @@ impl Line {
 /// In most cases, a source is a single input file.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Source {
-    display_path: String,
+    display_path: SourcePath,
     lines: Vec<Line>,
     /// bytes in source
     length: usize,
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
+pub enum SourcePath {
+    Anonymous,
+    Snippet(String),
+    #[cfg(not(feature = "url"))]
+    Path(PathBuf),
+    #[cfg(feature = "url")]
+    Local(Url),
+    #[cfg(feature = "url")]
+    Remote(Url),
+}
+
+impl Default for SourcePath {
+    fn default() -> Self {
+        Self::Anonymous
+    }
+}
+impl Display for SourcePath {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            SourcePath::Anonymous => f.write_str("<anonymous>"),
+            SourcePath::Snippet(s) => f.write_str(s),
+            #[cfg(not(feature = "url"))]
+            SourcePath::Path(s) => write!(f, "{:?}", s),
+            #[cfg(feature = "url")]
+            SourcePath::Local(s) => f.write_str(s.as_str()),
+            #[cfg(feature = "url")]
+            SourcePath::Remote(s) => f.write_str(s.as_str()),
+        }
+    }
 }
 
 impl Display for Source {
@@ -94,10 +122,10 @@ impl<S: AsRef<str>> From<S> for Source {
                     }
                 }
 
-                let len = line.chars().count();
+                let len = line.len();
                 let ends_with_cr = line.ends_with('\r');
                 let line = Line { offset, len, chars: line.trim_end().to_owned() };
-                offset += len;
+                offset += line.len();
                 replace(&mut last_line, Some((line, ends_with_cr))).map(|(l, _)| l)
             })
             .collect();
@@ -106,7 +134,7 @@ impl<S: AsRef<str>> From<S> for Source {
             lines.push(l);
         }
 
-        Self { display_path: String::new(), lines, length: offset }
+        Self { display_path: SourcePath::Anonymous, lines, length: offset }
     }
 }
 
@@ -146,27 +174,21 @@ impl Source {
         }
     }
     /// Set path name of source
-    pub fn set_path(&mut self, path: &Path) {
-        self.display_path.clear();
-        for (i, j) in path.iter().enumerate() {
-            match j.to_str() {
-                Some(s) => {
-                    if cfg!(target_os = "windows") && i == 0 {
-                        self.display_path.push_str(s.trim_start_matches(r#"\\?\"#));
-                        continue;
-                    }
-                    if cfg!(target_os = "windows") {
-                        if j.eq("\\") {
-                            continue;
-                        }
-                    }
-                    if i != 0 {
-                        self.display_path.push('/');
-                    }
-                    self.display_path.push_str(s);
+    pub fn set_path(&mut self, path: &Path) -> bool {
+        #[cfg(feature = "url")]
+        {
+            match Url::from_file_path(path) {
+                Ok(o) => {
+                    SourcePath::Local(o);
+                    true
                 }
-                None => continue,
+                Err(_) => false,
             }
+        }
+        #[cfg(not(feature = "url"))]
+        {
+            self.display_path = SourcePath::Path(path.to_path_buf());
+            true
         }
     }
     /// Get path name of source
@@ -224,7 +246,7 @@ impl FileCache {
             FileID { hash: hasher.finish() }
         };
         let mut source = Source::from(text.to_string());
-        source.display_path = name;
+        source.display_path = SourcePath::Snippet(name);
         self.files.insert(name_hash, source);
         name_hash
     }
@@ -232,7 +254,7 @@ impl FileCache {
     pub unsafe fn set_source(&mut self, file: FileID, source: String) -> bool {
         match self.files.get_mut(&file) {
             Some(s) => {
-                s.display_path = source;
+                s.display_path = SourcePath::Snippet(source);
                 true
             }
             None => false,
@@ -246,7 +268,7 @@ impl FileCache {
         }
     }
     /// Create a new [`FileCache`].
-    pub fn display(&self, file: &FileID) -> Option<&str> {
-        Some(self.files.get(file)?.display_path.as_str())
+    pub fn source_path(&self, file: &FileID) -> Option<&SourcePath> {
+        Some(&self.files.get(file)?.display_path)
     }
 }

@@ -62,6 +62,7 @@ impl FileID {
     pub unsafe fn new(id: u64) -> Self {
         Self { hash: id }
     }
+
     /// Create a new [`FileID`] with the given ID.
     pub fn with_range(self, range: Range<usize>) -> FileSpan {
         FileSpan { start: range.start, end: range.end, file: self }

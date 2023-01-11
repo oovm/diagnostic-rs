@@ -37,7 +37,7 @@ impl Diagnostic {
             let src = match cache.fetch(&label.span.file) {
                 Ok(src) => src,
                 Err(e) => {
-                    let src_display = cache.display(&label.span.file);
+                    let src_display = cache.source_path(&label.span.file);
                     eprintln!("Unable to fetch source '{}': {:?}", Show(src_display), e);
                     continue;
                 }
@@ -107,7 +107,7 @@ impl Diagnostic {
         let line_no_width = groups
             .iter()
             .filter_map(|SourceGroup { span, src_id, .. }| {
-                let src_name = cache.display(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
+                let src_name = cache.source_path(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
 
                 let src = match cache.fetch(src_id) {
                     Ok(src) => src,
@@ -126,7 +126,7 @@ impl Diagnostic {
         // --- Source sections ---
         let groups_len = groups.len();
         for (group_idx, SourceGroup { src_id, span, labels }) in groups.into_iter().enumerate() {
-            let src_name = cache.display(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
+            let src_name = cache.source_path(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
 
             let src = match cache.fetch(src_id) {
                 Ok(src) => src,

@@ -1,6 +1,6 @@
 [package]
 name = "diagnostic"
-version = "0.5.8"
+version = "0.6.0"
 authors = ["Aster <192607617@qq.com>"]
 description = "Pretty diagnostic report"
 repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/diagnostic"
@@ -11,6 +11,7 @@ edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
+url = { version = "2.4.1", features = [], optional = true }
 serde = { version = "1.0.180", features = ["derive"], optional = true }
 unicode-width = "0.1.11"
 
@@ -18,6 +19,7 @@ unicode-width = "0.1.11"
 
 [features]
 default = []
+serde = ["dep:serde", "url?/serde"]
 
 [package.metadata.docs.rs]
 all-features = true
