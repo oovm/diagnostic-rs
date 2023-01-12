@@ -12,7 +12,7 @@ exclude = ["tests/**"]
 edition = "2021"
 
 [dependencies]
-serde = { version = "1.0.188", optional = true }
+serde = { version = "1.0.197", optional = true }
 
 [dev-dependencies]
 unindent = "0.2.3"

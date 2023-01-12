@@ -11,8 +11,8 @@ edition = "2021"
 exclude = ["package.json", "tests/**"]
 
 [dependencies]
-url = { version = "2.4.1", features = [], optional = true }
-serde = { version = "1.0.180", features = ["derive"], optional = true }
+url = { version = "2.5.0", features = [], optional = true }
+serde = { version = "1.0.197", features = ["derive"], optional = true }
 unicode-width = "0.1.11"
 
 [dev-dependencies]
