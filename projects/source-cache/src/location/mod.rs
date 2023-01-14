@@ -10,23 +10,23 @@ use std::{
 pub struct FileSpan {
     pub(crate) start: u32,
     pub(crate) end: u32,
-    pub(crate) file: FileID,
+    pub(crate) file: SourceID,
 }
 
 /// A type representing a single line of a [`Source`].
 #[derive(Copy, Clone, Eq, PartialEq, Hash)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
-pub struct FileID {
+pub struct SourceID {
     pub(crate) hash: u64,
 }
 
 impl Default for FileSpan {
     fn default() -> Self {
-        Self { start: 0, end: 0, file: FileID::default() }
+        Self { start: 0, end: 0, file: SourceID::default() }
     }
 }
 
-impl Default for FileID {
+impl Default for SourceID {
     /// Text without source file
     fn default() -> Self {
         Self { hash: 0 }
@@ -39,7 +39,7 @@ impl Debug for FileSpan {
     }
 }
 
-impl Debug for FileID {
+impl Debug for SourceID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileID(0x{:X})", self.hash)
     }
@@ -51,19 +51,19 @@ impl Display for FileSpan {
     }
 }
 
-impl Display for FileID {
+impl Display for SourceID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileID({})", self.hash)
     }
 }
 
-impl FileID {
-    /// Create a new [`FileID`] with the given ID.
+impl SourceID {
+    /// Create a new [`SourceID`] with the given ID.
     pub unsafe fn new(id: u64) -> Self {
         Self { hash: id }
     }
 
-    /// Create a new [`FileID`] with the given ID.
+    /// Create a new [`SourceID`] with the given ID.
     pub fn with_range(self, range: Range<u32>) -> FileSpan {
         FileSpan { start: range.start, end: range.end, file: self }
     }
@@ -71,7 +71,7 @@ impl FileID {
 
 impl FileSpan {
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn new(file: FileID, start: u32, end: u32) -> Self {
+    pub fn new(file: SourceID, start: u32, end: u32) -> Self {
         Self { start, end, file }
     }
     /// Create a new span with the given start and end offsets, and the given file.
@@ -103,15 +103,15 @@ impl FileSpan {
         Self { start: range.start, end: range.end, ..self }
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn get_file(&self) -> FileID {
+    pub fn get_file(&self) -> SourceID {
         self.file
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn set_file(&mut self, file: FileID) {
+    pub fn set_file(&mut self, file: SourceID) {
         self.file = file;
     }
     /// Create a new span with the given start and end offsets, and the given file.
-    pub fn with_file(self, file: FileID) -> Self {
+    pub fn with_file(self, file: SourceID) -> Self {
         Self { file, ..self }
     }
     /// Create a label from span

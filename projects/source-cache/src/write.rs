@@ -1,4 +1,4 @@
-use crate::{FileCache, FileID, Source};
+use crate::{FileCache, Source, SourceID};
 use std::ops::Range;
 
 use super::{
@@ -25,7 +25,7 @@ struct LabelInfo<'a> {
 }
 
 struct SourceGroup<'a> {
-    src_id: &'a FileID,
+    src_id: &'a SourceID,
     span: Range<u32>,
     labels: Vec<LabelInfo<'a>>,
 }
@@ -636,7 +636,7 @@ impl Diagnostic {
         Ok(())
     }
 
-    fn get_line_column(&self, src_id: &FileID, labels: &[LabelInfo], src: &Source) -> String {
+    fn get_line_column(&self, src_id: &SourceID, labels: &[LabelInfo], src: &Source) -> String {
         let location = if src_id == &self.file {
             match self.location {
                 Some(s) => s,
