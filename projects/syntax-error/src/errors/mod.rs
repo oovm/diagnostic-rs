@@ -1,7 +1,9 @@
-use std::error::{Error};
-use std::fmt::{Display, Formatter};
-use std::ops::Range;
-use diagnostic::{Diagnostic, DiagnosticLevel, FileID, FileSpan, Label};
+use diagnostic::{Diagnostic, DiagnosticLevel, FileSpan, Label, SourceID};
+use std::{
+    error::Error,
+    fmt::{Display, Formatter},
+    ops::Range,
+};
 
 #[derive(Clone, Debug)]
 pub struct SyntaxError {
@@ -19,12 +21,12 @@ impl Display for SyntaxError {
 }
 
 impl SyntaxError {
-    pub fn new(file: FileID) -> Self {
+    pub fn new(file: SourceID) -> Self {
         Self { span: file.with_range(0..0), info: String::new(), level: DiagnosticLevel::Error }
     }
     pub fn with_message<T>(mut self, info: T) -> Self
-        where
-            T: ToString,
+    where
+        T: ToString,
     {
         self.info = info.to_string();
         self

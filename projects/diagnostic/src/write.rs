@@ -1,4 +1,4 @@
-use crate::{FileCache, FileID, Source};
+use crate::{FileCache, Source, SourceID};
 use std::ops::Range;
 
 use super::{
@@ -25,7 +25,7 @@ struct LabelInfo<'a> {
 }
 
 struct SourceGroup<'a> {
-    src_id: &'a FileID,
+    src_id: &'a SourceID,
     span: Range<u32>,
     labels: Vec<LabelInfo<'a>>,
 }
@@ -38,7 +38,7 @@ impl Diagnostic {
                 Ok(src) => src,
                 Err(e) => {
                     let src_display = cache.source_path(&label.span.file);
-                    eprintln!("Unable to fetch source '{}': {:?}", Show(src_display), e);
+                    eprintln!("Unable to fetch identifier '{}': {:?}", Show(src_display), e);
                     continue;
                 }
             };
@@ -112,7 +112,7 @@ impl Diagnostic {
                 let src = match cache.fetch(src_id) {
                     Ok(src) => src,
                     Err(e) => {
-                        eprintln!("Unable to fetch source {}: {:?}", src_name, e);
+                        eprintln!("Unable to fetch identifier {}: {:?}", src_name, e);
                         return None;
                     }
                 };
@@ -131,7 +131,7 @@ impl Diagnostic {
             let src = match cache.fetch(src_id) {
                 Ok(src) => src,
                 Err(e) => {
-                    eprintln!("Unable to fetch source {}: {:?}", src_name, e);
+                    eprintln!("Unable to fetch identifier {}: {:?}", src_name, e);
                     continue;
                 }
             };
@@ -636,7 +636,7 @@ impl Diagnostic {
         Ok(())
     }
 
-    fn get_line_column(&self, src_id: &FileID, labels: &[LabelInfo], src: &Source) -> String {
+    fn get_line_column(&self, src_id: &SourceID, labels: &[LabelInfo], src: &Source) -> String {
         let location = if src_id == &self.file {
             match self.location {
                 Some(s) => s,

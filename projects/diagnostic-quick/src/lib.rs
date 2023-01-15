@@ -2,7 +2,7 @@
 #![doc = include_str!("../Readme.md")]
 
 pub use diagnostic::{
-    DiagnosticLevel, FileID, Span, TextStorage,
+    DiagnosticLevel, SourceID, Span, TextStorage,
     Validation::{Failure, Success},
 };
 

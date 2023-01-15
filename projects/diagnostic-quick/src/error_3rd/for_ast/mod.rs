@@ -5,7 +5,7 @@ use std::{
 
 use serde::{Deserialize, Serialize};
 
-use diagnostic::FileID;
+use diagnostic::SourceID;
 
 /// Represents an AST object with position
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -15,12 +15,12 @@ pub struct NodeLocation<T> {
     /// The Start offset and end offset
     pub range: Range<usize>,
     /// Absolute path to the file where the node resides
-    pub file: FileID,
+    pub file: SourceID,
 }
 
 impl<T> NodeLocation<T> {
     #[inline]
-    pub fn new(value: T, range: &Range<usize>, file: &FileID) -> Self {
+    pub fn new(value: T, range: &Range<usize>, file: &SourceID) -> Self {
         Self { value, range: range.clone(), file: file.clone() }
     }
     #[inline]
@@ -29,7 +29,7 @@ impl<T> NodeLocation<T> {
         self
     }
     #[inline]
-    pub fn with_file(mut self, file: &FileID) -> Self {
+    pub fn with_file(mut self, file: &SourceID) -> Self {
         self.file = file.clone();
         self
     }

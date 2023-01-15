@@ -1,7 +1,9 @@
 use super::*;
+use std::borrow::Cow;
 
 mod display;
 
+use source_cache::SourcePath;
 use std::fmt::Write;
 
 /// A type representing a single line of a [`Source`].
@@ -35,33 +37,15 @@ impl Line {
     }
 }
 
-/// A type representing a single source that may be referred to by [`Span`]s.
+/// A type representing a single identifier that may be referred to by [`Span`]s.
 ///
-/// In most cases, a source is a single input file.
+/// In most cases, a identifier is a single input file.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Source {
     display_path: SourcePath,
     lines: Vec<Line>,
-    /// bytes in source
+    /// bytes in identifier
     pub length: u32,
-}
-
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub enum SourcePath {
-    Anonymous,
-    Snippet(String),
-    #[cfg(not(feature = "url"))]
-    Path(PathBuf),
-    #[cfg(feature = "url")]
-    Local(Url),
-    #[cfg(feature = "url")]
-    Remote(Url),
-}
-
-impl Default for SourcePath {
-    fn default() -> Self {
-        Self::Anonymous
-    }
 }
 
 impl<S: AsRef<str>> From<S> for Source {
@@ -112,12 +96,12 @@ impl<S: AsRef<str>> From<S> for Source {
 }
 
 impl Source {
-    /// Get the length of the total number of characters in the source.
+    /// Get the length of the total number of characters in the identifier.
     pub fn get_length(&self) -> usize {
         self.length as usize
     }
 
-    /// Return an iterator over the characters in the source.
+    /// Return an iterator over the characters in the identifier.
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.lines.iter().map(|l| l.chars()).flatten()
     }
@@ -127,7 +111,7 @@ impl Source {
         self.lines.get(idx)
     }
 
-    /// Return an iterator over the [`Line`]s in this source.
+    /// Return an iterator over the [`Line`]s in this identifier.
     pub fn lines(&self) -> impl ExactSizeIterator<Item = &Line> + '_ {
         self.lines.iter()
     }
@@ -146,36 +130,23 @@ impl Source {
             None
         }
     }
-    /// Set path name of source
+    /// Set path name of identifier
     pub fn set_path(&mut self, path: &Path) -> bool {
-        #[cfg(feature = "url")]
-        {
-            match Url::from_file_path(path) {
-                Ok(o) => {
-                    SourcePath::Local(o);
-                    true
-                }
-                Err(_) => false,
-            }
-        }
-        #[cfg(not(feature = "url"))]
-        {
-            self.display_path = SourcePath::Path(path.to_path_buf());
-            true
-        }
+        self.display_path = SourcePath::Local(path.to_path_buf());
+        true
     }
-    /// Get path name of source
+    /// Get path name of identifier
     pub fn with_path(mut self, path: &Path) -> Self {
         self.set_path(path);
         self
     }
-    /// Set path name of source
+    /// Set path name of identifier
     #[cfg(feature = "url")]
     pub fn set_remote(&mut self, url: Url) -> bool {
         self.display_path = SourcePath::Remote(url);
         true
     }
-    /// Get path name of source
+    /// Get path name of identifier
     #[cfg(feature = "url")]
     pub fn with_remote(mut self, url: Url) -> Self {
         self.set_remote(url);
@@ -195,80 +166,65 @@ impl Source {
 /// A [`Cache`] that fetches [`Source`]s from the filesystem.
 #[derive(Default, Debug, Clone)]
 pub struct FileCache {
-    files: HashMap<FileID, Source>,
+    files: HashMap<SourceID, Source>,
 }
 
 impl FileCache {
     /// Create a new [`FileCache`].
-    pub fn load_local<P>(&mut self, path: P) -> Result<FileID, std::io::Error>
+    pub fn load_local<P>(&mut self, path: P) -> Result<SourceID, std::io::Error>
     where
         P: AsRef<Path>,
     {
         let path = path.as_ref();
-        let hasher = self.files.hasher();
-        let name_hash = {
-            let mut hasher = hasher.build_hasher();
-            path.hash(&mut hasher);
-            FileID { hash: hasher.finish() }
-        };
         let text = std::fs::read_to_string(&path)?;
         let source = Source::from(text).with_path(path);
+        let name_hash = source.display_path.source_id();
         self.files.insert(name_hash, source);
         Ok(name_hash)
     }
     /// Create a new [`FileCache`].
     #[cfg(feature = "url")]
-    pub fn load_remote(&mut self, url: Url) -> Result<FileID, std::io::Error> {
+    pub fn load_remote(&mut self, url: Url) -> Result<SourceID, std::io::Error> {
         let path = url.as_ref();
-        let hasher = self.files.hasher();
-        let name_hash = {
-            let mut hasher = hasher.build_hasher();
-            path.hash(&mut hasher);
-            FileID { hash: hasher.finish() }
-        };
         let text = std::fs::read_to_string(&path)?;
         let source = Source::from(text).with_remote(url);
+        let name_hash = source.display_path.source_id();
         self.files.insert(name_hash, source);
         Ok(name_hash)
     }
 
     /// Create a new [`FileCache`].
-    pub fn load_text<T, N>(&mut self, text: T, name: N) -> FileID
+    pub fn load_text<T, N>(&mut self, text: T, name: N) -> SourceID
     where
         T: ToString,
         N: ToString,
     {
-        let name = name.to_string();
-        let hasher = self.files.hasher();
-        let name_hash = {
-            let mut hasher = hasher.build_hasher();
-            name.hash(&mut hasher);
-            FileID { hash: hasher.finish() }
-        };
         let mut source = Source::from(text.to_string());
-        source.display_path = SourcePath::Snippet(name);
+        let name = name.to_string();
+        source.display_path = SourcePath::Snippet(Cow::Owned(name));
+        let name_hash = source.display_path.source_id();
         self.files.insert(name_hash, source);
         name_hash
     }
-    /// Set the file source buy not update the context
-    pub unsafe fn set_source(&mut self, file: FileID, source: String) -> bool {
+    /// Set the file identifier buy not update the context
+    pub unsafe fn set_source(&mut self, file: SourceID, source: String) -> bool {
         match self.files.get_mut(&file) {
             Some(s) => {
-                s.display_path = SourcePath::Snippet(source);
+                s.display_path = SourcePath::Snippet(Cow::Owned(source));
                 true
             }
             None => false,
         }
     }
     /// Create a new [`FileCache`].
-    pub fn fetch(&self, file: &FileID) -> Result<&Source, std::io::Error> {
+    pub fn fetch(&self, file: &SourceID) -> Result<&Source, std::io::Error> {
         match self.files.get(file) {
             Some(source) => Ok(source),
             None => Err(std::io::Error::new(std::io::ErrorKind::NotFound, format!("File {:?} not found", file))),
         }
     }
     /// Create a new [`FileCache`].
-    pub fn source_path(&self, file: &FileID) -> Option<&SourcePath> {
+    pub fn source_path(&self, file: &SourceID) -> Option<&SourcePath> {
         Some(&self.files.get(file)?.display_path)
     }
 }

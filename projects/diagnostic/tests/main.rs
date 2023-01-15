@@ -1,5 +1,5 @@
 #![allow(unused, dead_code)]
-use diagnostic::{Color, Config, Console, Diagnostic, FileCache, FileID, Label, Palette, ReportKind, Source};
+use diagnostic::{Color, Config, Console, Diagnostic, FileCache, Label, Palette, ReportKind, Source, SourceID};
 use std::{iter::zip, ops::Range};
 
 mod multi_file;

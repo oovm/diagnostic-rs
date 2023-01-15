@@ -16,7 +16,6 @@ use crate::{characters::Draw, display::*};
 pub use crate::{
     characters::{BuiltinDrawer, DrawElements},
     draw::{Console, Palette},
-    location::{FileID, FileSpan},
     source::{FileCache, Line, Source},
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
@@ -24,10 +23,11 @@ pub use crate::{
 use core::{
     cmp::{Eq, PartialEq},
     fmt::{Debug, Display, Formatter},
-    hash::{BuildHasher, Hash, Hasher},
+    hash::{BuildHasher, Hash},
     mem::replace,
     ops::Range,
 };
+pub use source_cache::{FileSpan, SourceID};
 #[cfg(not(feature = "url"))]
 use std::path::PathBuf;
 use std::{collections::HashMap, io::Write, path::Path};
@@ -35,7 +35,7 @@ use unicode_width::UnicodeWidthChar;
 #[cfg(feature = "url")]
 pub use url::Url;
 
-/// A type that represents a labelled section of source code.
+/// A type that represents a labelled section of identifier code.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Label {
     span: FileSpan,
@@ -100,7 +100,7 @@ pub struct Diagnostic {
     message: String,
     note: Option<String>,
     help: Option<String>,
-    file: FileID,
+    file: SourceID,
     location: Option<u32>,
     labels: Vec<Label>,
     config: Config,
@@ -248,13 +248,13 @@ impl DiagnosticBuilder {
         self.inner.message = message.to_string();
         self
     }
-    /// Set the location of this report.
-    pub fn set_location(&mut self, file: FileID, start: Option<u32>) {
+    /// Set the span of this report.
+    pub fn set_location(&mut self, file: SourceID, start: Option<u32>) {
         self.inner.file = file;
         self.inner.location = start;
     }
-    /// Set the location of this report.
-    pub fn with_location(mut self, file: FileID, start: Option<u32>) -> Self {
+    /// Set the span of this report.
+    pub fn with_location(mut self, file: SourceID, start: Option<u32>) -> Self {
         self.set_location(file, start);
         self
     }

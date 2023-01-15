@@ -38,7 +38,7 @@ impl Diagnostic {
                 Ok(src) => src,
                 Err(e) => {
                     let src_display = cache.source_path(&label.span.file);
-                    eprintln!("Unable to fetch source '{}': {:?}", Show(src_display), e);
+                    eprintln!("Unable to fetch identifier '{}': {:?}", Show(src_display), e);
                     continue;
                 }
             };
@@ -112,7 +112,7 @@ impl Diagnostic {
                 let src = match cache.fetch(src_id) {
                     Ok(src) => src,
                     Err(e) => {
-                        eprintln!("Unable to fetch source {}: {:?}", src_name, e);
+                        eprintln!("Unable to fetch identifier {}: {:?}", src_name, e);
                         return None;
                     }
                 };
@@ -131,7 +131,7 @@ impl Diagnostic {
             let src = match cache.fetch(src_id) {
                 Ok(src) => src,
                 Err(e) => {
-                    eprintln!("Unable to fetch source {}: {:?}", src_name, e);
+                    eprintln!("Unable to fetch identifier {}: {:?}", src_name, e);
                     continue;
                 }
             };

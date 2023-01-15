@@ -10,7 +10,7 @@ use diagnostic::{
         termcolor::{ColorChoice, StandardStream},
         TerminalConfig,
     },
-    DiagnosticLevel, FileID, FileSpan, Span, TextStorage,
+    DiagnosticLevel, FileSpan, SourceID, Span, TextStorage,
 };
 
 pub mod display;
@@ -65,7 +65,7 @@ pub struct RuntimeError {
 #[derive(Debug)]
 pub struct IOError {
     pub message: String,
-    pub file: FileID,
+    pub file: SourceID,
 }
 
 impl QError {
@@ -80,7 +80,7 @@ impl QError {
     pub fn kind(&self) -> &QErrorKind {
         &*self.error
     }
-    pub fn with_file(mut self, file: &FileID) -> Self {
+    pub fn with_file(mut self, file: &SourceID) -> Self {
         match &mut *self.error {
             QErrorKind::IO(v) => {
                 v.file = file.clone();

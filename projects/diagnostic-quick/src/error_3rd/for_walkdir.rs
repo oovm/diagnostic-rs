@@ -1,6 +1,6 @@
 use walkdir::Error;
 
-use diagnostic::FileID;
+use diagnostic::SourceID;
 
 use crate::{IOError, QError, QErrorKind, RuntimeError};
 
@@ -9,7 +9,7 @@ impl From<Error> for QError {
         match value.io_error() {
             Some(s) => {
                 let file = match value.path() {
-                    Some(s) => match FileID::try_from(s) {
+                    Some(s) => match SourceID::try_from(s) {
                         Ok(o) => o,
                         Err(_) => Default::default(),
                     },
