@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn main() {
-    let mut files = FileCache::default();
+    let mut files = SourceCache::default();
     let stress = files.load_text(include_str!("stresstest.tao"), "stresstest.tao");
 
     let mut colors = Palette::new();

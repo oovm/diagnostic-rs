@@ -1,4 +1,4 @@
-use diagnostic::{Diagnostic, DiagnosticLevel, FileSpan, Label, SourceID};
+use diagnostic::{Diagnostic, DiagnosticLevel, Label, SourceID, SourceSpan};
 use std::{
     error::Error,
     fmt::{Display, Formatter},
@@ -8,7 +8,7 @@ use std::{
 #[derive(Clone, Debug)]
 pub struct SyntaxError {
     pub info: String,
-    pub span: FileSpan<u32>,
+    pub span: SourceSpan<u32>,
     pub level: DiagnosticLevel,
 }
 
@@ -35,7 +35,7 @@ impl SyntaxError {
         self.span.set_range(range);
         self
     }
-    pub fn with_span(mut self, span: FileSpan<u32>) -> Self {
+    pub fn with_span(mut self, span: SourceSpan<u32>) -> Self {
         self.span = span;
         self
     }
@@ -44,9 +44,9 @@ impl SyntaxError {
         self
     }
     pub fn as_report(&self) -> Diagnostic {
-        // let mut report = Diagnostic::new(self.level, self.span.get_file(), self.span.get_range().start);
+        // let mut report = Diagnostic::new(self.level, self.source_span.get_file(), self.source_span.get_range().start);
         // report.set_message(self.to_string());
-        // let label = Label::new(self.span);
+        // let label = Label::new(self.source_span);
         // report.add_label(label);
         // report.finish()
         todo!()

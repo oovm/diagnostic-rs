@@ -10,7 +10,7 @@ fn main() {
     let out = Color::Fixed(81);
     let out2 = colors.random();
 
-    let mut files = FileCache::default();
+    let mut files = SourceCache::default();
     let sample = files.load_text(include_str!("sample.tao"), "sample.tao");
 
     Diagnostic::new(ReportKind::Error)

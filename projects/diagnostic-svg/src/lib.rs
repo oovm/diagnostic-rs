@@ -278,17 +278,17 @@ impl<W: Write> WriteColor for SvgWriter<W> {
         }
         else {
             if !self.color.is_none() {
-                write!(self, "</span>")?;
+                write!(self, "</source_span>")?;
             }
             self.color = spec.clone();
         }
 
         if spec.is_none() {
-            write!(self, "</span>")?;
+            write!(self, "</source_span>")?;
             return Ok(());
         }
         else {
-            write!(self, "<span class=\"")?;
+            write!(self, "<source_span class=\"")?;
         }
 
         let mut first = true;
@@ -352,7 +352,7 @@ impl<W: Write> WriteColor for SvgWriter<W> {
         let color = self.color.clone();
 
         if color != ColorSpec::new() {
-            write!(self, "</span>")?;
+            write!(self, "</source_span>")?;
             self.color = ColorSpec::new();
         }
 

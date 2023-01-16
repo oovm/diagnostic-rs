@@ -1,7 +1,8 @@
 mod identifier;
-mod span;
+mod source_span;
 
 pub use crate::{
     identifier::{SourceID, SourcePath},
-    span::FileSpan,
+    source_span::SourceSpan,
 };
+pub use url::Url;

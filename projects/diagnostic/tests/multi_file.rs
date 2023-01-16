@@ -11,7 +11,7 @@ fn main() {
     let b = colors.random();
     let c = colors.random();
 
-    let mut store = FileCache::default();
+    let mut store = SourceCache::default();
     let file_a = store.load_text(include_str!("a.tao"), "a.tao");
     let file_b = store.load_text(include_str!("b.tao"), "b.tao");
 

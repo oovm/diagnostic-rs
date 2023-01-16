@@ -10,7 +10,6 @@ impl Display for SourcePath {
         }
     }
 }
-
 impl Debug for SourceID {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(f, "FileID(0x{:X})", self.hash)

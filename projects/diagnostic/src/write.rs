@@ -1,4 +1,4 @@
-use crate::{FileCache, Source, SourceID};
+use crate::{SourceCache, SourceID, SourceText};
 use std::ops::Range;
 
 use super::{
@@ -31,7 +31,7 @@ struct SourceGroup<'a> {
 }
 
 impl Diagnostic {
-    fn get_source_groups(&self, cache: &FileCache) -> Vec<SourceGroup> {
+    fn get_source_groups(&self, cache: &SourceCache) -> Vec<SourceGroup> {
         let mut groups = Vec::new();
         for label in self.labels.iter() {
             let src = match cache.fetch(&label.span.file) {
@@ -73,19 +73,19 @@ impl Diagnostic {
     /// `stderr`.  If you are printing to `stdout`, use the [`write_for_stdout`](Self::write_for_stdout) method instead.
     ///
     /// If you wish to write to `stderr` or `stdout`, you can do so via [`Diagnostic::eprint`] or [`Diagnostic::print`] respectively.
-    pub fn write<W: Write>(&self, cache: &FileCache, w: W) -> std::io::Result<()> {
+    pub fn write<W: Write>(&self, cache: &SourceCache, w: W) -> std::io::Result<()> {
         self.write_for_stream(cache, w, StreamType::Stderr)
     }
 
     /// Write this diagnostic to an implementor of [`Write`], assuming that the output is ultimately going to be printed
     /// to `stdout`.
-    pub fn write_for_stdout<W: Write>(&self, cache: &FileCache, w: W) -> std::io::Result<()> {
+    pub fn write_for_stdout<W: Write>(&self, cache: &SourceCache, w: W) -> std::io::Result<()> {
         self.write_for_stream(cache, w, StreamType::Stdout)
     }
 
     /// Write this diagnostic to an implementor of [`Write`], assuming that the output is ultimately going to be printed
     /// to the given output stream (`stdout` or `stderr`).
-    fn write_for_stream<W: Write>(&self, cache: &FileCache, mut w: W, s: StreamType) -> std::io::Result<()> {
+    fn write_for_stream<W: Write>(&self, cache: &SourceCache, mut w: W, s: StreamType) -> std::io::Result<()> {
         let draw = self.config.characters;
 
         // --- Header ---
@@ -203,7 +203,7 @@ impl Diagnostic {
                         let mut margin_ptr = None;
 
                         let multi_label = multi_labels.get(col);
-                        let line_span = src.line(idx).unwrap().get_range();
+                        let line_span = src.line(idx).unwrap().range();
 
                         for (i, label) in multi_labels[0..(col + 1).min(multi_labels.len())].iter().enumerate() {
                             let margin = margin_label.as_ref().filter(|m| **label as *const _ == m.label as *const _);
@@ -318,8 +318,8 @@ impl Diagnostic {
                     .iter()
                     .enumerate()
                     .filter_map(|(_i, label)| {
-                        let is_start = line.get_range().contains(&label.span.start);
-                        let is_end = line.get_range().contains(&label.last_offset());
+                        let is_start = line.range().contains(&label.span.start);
+                        let is_end = line.range().contains(&label.last_offset());
                         if is_start {
                             // TODO: Check to see whether multi is the first on the start line or first on the end line
                             Some(LineLabel {
@@ -348,8 +348,8 @@ impl Diagnostic {
                     .iter()
                     .enumerate()
                     .filter_map(|(_i, label)| {
-                        let is_start = line.get_range().contains(&label.span.start);
-                        let is_end = line.get_range().contains(&label.last_offset());
+                        let is_start = line.range().contains(&label.span.start);
+                        let is_end = line.range().contains(&label.last_offset());
                         if is_start && margin_label.as_ref().map_or(true, |m| **label as *const _ != m.label as *const _) {
                             // TODO: Check to see whether multi is the first on the start line or first on the end line
                             Some(LineLabel {
@@ -373,9 +373,8 @@ impl Diagnostic {
                     })
                     .collect::<Vec<_>>();
 
-                for label_info in labels
-                    .iter()
-                    .filter(|l| l.label.span.start >= line.get_range().start && l.label.span.end <= line.get_range().end)
+                for label_info in
+                    labels.iter().filter(|l| l.label.span.start >= line.range().start && l.label.span.end <= line.range().end)
                 {
                     if matches!(label_info.kind, LabelKind::Inline) {
                         line_labels.push(LineLabel {
@@ -395,7 +394,7 @@ impl Diagnostic {
 
                 // Skip this line if we don't have labels for it
                 if line_labels.len() == 0 && margin_label.is_none() {
-                    let within_label = multi_labels.iter().any(|label| label.span.contains(line.get_range().start));
+                    let within_label = multi_labels.iter().any(|label| label.span.contains(line.range().start));
                     if !is_ellipsis && within_label {
                         is_ellipsis = true;
                     }
@@ -636,7 +635,7 @@ impl Diagnostic {
         Ok(())
     }
 
-    fn get_line_column(&self, src_id: &SourceID, labels: &[LabelInfo], src: &Source) -> String {
+    fn get_line_column(&self, src_id: &SourceID, labels: &[LabelInfo], src: &SourceText) -> String {
         let location = if src_id == &self.file {
             match self.location {
                 Some(s) => s,

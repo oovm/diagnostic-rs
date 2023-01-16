@@ -10,24 +10,22 @@ mod write;
 mod characters;
 mod windows;
 
-mod location;
-
 use crate::{characters::Draw, display::*};
 pub use crate::{
     characters::{BuiltinDrawer, DrawElements},
     draw::{Console, Palette},
-    source::{FileCache, Line, Source},
+    source::{SourceCache, SourceLine, SourceText},
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
 };
 use core::{
     cmp::{Eq, PartialEq},
     fmt::{Debug, Display, Formatter},
-    hash::{BuildHasher, Hash},
+    hash::Hash,
     mem::replace,
     ops::Range,
 };
-pub use source_cache::{FileSpan, SourceID};
+pub use source_cache::{SourceID, SourceSpan};
 #[cfg(not(feature = "url"))]
 use std::path::PathBuf;
 use std::{collections::HashMap, io::Write, path::Path};
@@ -38,7 +36,7 @@ pub use url::Url;
 /// A type that represents a labelled section of identifier code.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct Label {
-    span: FileSpan,
+    span: SourceSpan,
     msg: Option<String>,
     color: Option<Color>,
     order: i32,
@@ -47,7 +45,7 @@ pub struct Label {
 
 impl Label {
     /// Create a new [`Label`].
-    pub fn new(span: FileSpan) -> Self {
+    pub fn new(span: SourceSpan) -> Self {
         Self { span, msg: None, color: None, order: 0, priority: 0 }
     }
 
@@ -134,7 +132,7 @@ impl Diagnostic {
 }
 impl Diagnostic {
     /// Write this diagnostic out to `stderr`.
-    pub fn eprint(&self, cache: &FileCache) -> std::io::Result<()> {
+    pub fn eprint(&self, cache: &SourceCache) -> std::io::Result<()> {
         self.write(cache, std::io::stderr().lock())
     }
 
@@ -142,7 +140,7 @@ impl Diagnostic {
     ///
     /// In most cases, [`Diagnostic::eprint`] is the
     /// ['more correct'](https://en.wikipedia.org/wiki/Standard_streams#Standard_error_(stderr)) function to use.
-    pub fn print(&self, cache: &FileCache) -> std::io::Result<()> {
+    pub fn print(&self, cache: &SourceCache) -> std::io::Result<()> {
         self.write_for_stdout(cache, std::io::stdout().lock())
     }
 }
@@ -248,12 +246,12 @@ impl DiagnosticBuilder {
         self.inner.message = message.to_string();
         self
     }
-    /// Set the span of this report.
+    /// Set the source_span of this report.
     pub fn set_location(&mut self, file: SourceID, start: Option<u32>) {
         self.inner.file = file;
         self.inner.location = start;
     }
-    /// Set the span of this report.
+    /// Set the source_span of this report.
     pub fn with_location(mut self, file: SourceID, start: Option<u32>) -> Self {
         self.set_location(file, start);
         self
@@ -328,11 +326,11 @@ impl Debug for DiagnosticBuilder {
 /// The attachment point of inline label arrows
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum LabelAttach {
-    /// Arrows should attach to the start of the label span.
+    /// Arrows should attach to the start of the label source_span.
     Start,
-    /// Arrows should attach to the middle of the label span (or as close to the middle as we can get).
+    /// Arrows should attach to the middle of the label source_span (or as close to the middle as we can get).
     Middle,
-    /// Arrows should attach to the end of the label span.
+    /// Arrows should attach to the end of the label source_span.
     End,
 }
 
@@ -381,7 +379,7 @@ impl Config {
         self.compact = compact;
         self
     }
-    /// Should underlines be used for label span where possible?
+    /// Should underlines be used for label source_span where possible?
     ///
     /// If unspecified, this defaults to [`true`].
     pub fn with_underlines(mut self, underlines: bool) -> Self {

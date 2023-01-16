@@ -16,7 +16,7 @@ serde = { version = "1.0.197", features = ["derive"], optional = true }
 unicode-width = "0.1.11"
 
 [dependencies.source-cache]
-version = "0.0.*"
+version = "0.1.*"
 path = "../source-cache"
 
 

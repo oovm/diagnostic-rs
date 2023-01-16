@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn main() {
-    let mut files = FileCache::default();
+    let mut files = SourceCache::default();
     let sample = files.load_text(include_str!("sample.tao"), "sample.tao");
 
     Diagnostic::new(ReportKind::Blame)

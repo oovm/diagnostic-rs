@@ -6,7 +6,7 @@
 // absolute no-no, breaking much of what we enjoy about Cargo!
 use lsp_types::{Position, Range};
 
-use diagnostic::{FileCache, SourceID};
+use diagnostic::{SourceCache, SourceID};
 
 pub use diagnostic;
 pub use lsp_types;
@@ -47,7 +47,7 @@ pub fn byte_index_to_position(files: &TextStorage, file_id: &SourceID, byte_inde
     location_to_position(line_str, line_index, column, byte_index)
 }
 
-pub fn byte_span_to_range(files: &FileCache, file_id: &SourceID, span: SourceID) -> DiagnosticResult<Range> {
+pub fn byte_span_to_range(files: &SourceCache, file_id: &SourceID, span: SourceID) -> DiagnosticResult<Range> {
     Ok(Range {
         start: byte_index_to_position(files, file_id, span.start)?,
         end: byte_index_to_position(files, file_id, span.end)?,
@@ -79,7 +79,7 @@ fn character_to_line_offset(line: &str, character: u32) -> DiagnosticResult<usiz
     }
 }
 
-pub fn position_to_byte_index(files: &FileCache, file_id: &SourceID, position: &Position) -> DiagnosticResult<usize> {
+pub fn position_to_byte_index(files: &SourceCache, file_id: &SourceID, position: &Position) -> DiagnosticResult<usize> {
     let source = files.get_text(file_id)?;
 
     let line_span = files.line_range(file_id, position.line as usize).unwrap();
@@ -90,6 +90,6 @@ pub fn position_to_byte_index(files: &FileCache, file_id: &SourceID, position: &
     Ok(line_span.start + byte_offset)
 }
 
-pub fn range_to_byte_span<F>(files: &FileCache, file_id: &SourceID, range: &Range) -> DiagnosticResult<Span> {
+pub fn range_to_byte_span<F>(files: &SourceCache, file_id: &SourceID, range: &Range) -> DiagnosticResult<Span> {
     Ok(position_to_byte_index(files, file_id, &range.start)?..position_to_byte_index(files, file_id, &range.end)?)
 }
