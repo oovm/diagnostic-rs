@@ -1,43 +1,28 @@
-use super::*;
-use std::borrow::Cow;
-
+use source_cache::{SourceID, SourceLine, SourcePath, Url};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    fmt::{Display, Formatter, Write},
+    ops::Range,
+    path::Path,
+};
 mod display;
-
-use source_cache::SourcePath;
-use std::fmt::Write;
-
-/// A type representing a single line of a [`SourceText`].
-#[derive(Clone, Debug, Hash, PartialEq, Eq)]
-pub struct SourceLine {
-    /// Get the offset of this line in the original [`SourceText`] (i.e: the number of characters that precede it).
-    pub offset: u32,
-    /// Get the character length of this line.
-    pub length: u32,
-    /// Get the view of this line in the original [`SourceText`].
-    pub text: String,
-}
-
-impl SourceLine {
-    /// Get the offset source_span of this line in the original [`SourceText`].
-    pub fn range(&self) -> Range<u32> {
-        self.offset..self.offset + self.length
-    }
-
-    /// Return an iterator over the characters in the line, excluding trailing whitespace.
-    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.text.chars()
-    }
-}
 
 /// A type representing a single identifier that may be referred to by [`Span`]s.
 ///
 /// In most cases, a identifier is a single input file.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct SourceText {
-    path: SourcePath,
-    lines: Vec<SourceLine>,
+    /// The path of the identifier.
+    pub path: SourcePath,
+    /// The text
+    pub text: String,
+    /// The lines of the identifier.
+    pub lines: Vec<SourceLine>,
     /// bytes in identifier
     pub length: u32,
+    /// Is the data dirty
+    pub dirty: bool,
 }
 
 impl SourceText {
@@ -46,21 +31,46 @@ impl SourceText {
         self.length as usize
     }
 
+    /// Get access to a specific, zero-indexed [`SourceLine`].
+    pub fn get_line(&self, idx: usize) -> Option<&SourceLine> {
+        self.lines.get(idx)
+    }
+
+    /// Set path name of identifier
+    pub fn set_path(&mut self, path: &Path) -> bool {
+        self.path = SourcePath::Local(path.to_path_buf());
+        true
+    }
+    /// Get path name of identifier
+    pub fn with_path(self, path: &Path) -> Self {
+        Self { path: SourcePath::Local(path.to_path_buf()), ..self }
+    }
+    /// Set path name of identifier
+    pub fn set_remote(&mut self, url: Url) -> bool {
+        self.path = SourcePath::Remote(url);
+        true
+    }
+    /// Get path name of identifier
+    pub fn with_remote(self, url: Url) -> Self {
+        Self { path: SourcePath::Remote(url), ..self }
+    }
+
     /// Return an iterator over the characters in the identifier.
     pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
         self.lines.iter().map(|l| l.chars()).flatten()
     }
-
-    /// Get access to a specific, zero-indexed [`SourceLine`].
-    pub fn line(&self, idx: usize) -> Option<&SourceLine> {
-        self.lines.get(idx)
-    }
-
     /// Return an iterator over the [`SourceLine`]s in this identifier.
     pub fn lines(&self) -> impl ExactSizeIterator<Item = &SourceLine> + '_ {
         self.lines.iter()
     }
-
+    /// Clear the source cache
+    pub fn clear(&mut self) {
+        self.text.clear();
+        self.lines.clear();
+        self.dirty = true;
+    }
+}
+impl SourceText {
     /// Get the line that the given offset appears on, and the line/column numbers of the offset.
     ///
     /// Note that the line/column numbers are zero-indexed.
@@ -75,32 +85,10 @@ impl SourceText {
             None
         }
     }
-    /// Set path name of identifier
-    pub fn set_path(&mut self, path: &Path) -> bool {
-        self.path = SourcePath::Local(path.to_path_buf());
-        true
-    }
-    /// Get path name of identifier
-    pub fn with_path(mut self, path: &Path) -> Self {
-        self.set_path(path);
-        self
-    }
-    /// Set path name of identifier
-    #[cfg(feature = "url")]
-    pub fn set_remote(&mut self, url: Url) -> bool {
-        self.path = SourcePath::Remote(url);
-        true
-    }
-    /// Get path name of identifier
-    #[cfg(feature = "url")]
-    pub fn with_remote(mut self, url: Url) -> Self {
-        self.set_remote(url);
-        self
-    }
-    /// Get the range of lines that this source_span runs across.
+    /// Get the range of lines that this source_text runs across.
     ///
     /// The resulting range is guaranteed to contain valid line indices (i.e: those that can be used for
-    /// [`SourceText::line`]).
+    /// [`SourceText::get_line`]).
     pub fn get_line_range(&self, span: &Range<u32>) -> Range<usize> {
         let start = self.get_offset_line(span.start).map_or(0, |(_, l, _)| l);
         let end = self.get_offset_line(span.end.saturating_sub(1).max(span.start)).map_or(self.lines.len(), |(_, l, _)| l + 1);

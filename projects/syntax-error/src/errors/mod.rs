@@ -44,9 +44,9 @@ impl SyntaxError {
         self
     }
     pub fn as_report(&self) -> Diagnostic {
-        // let mut report = Diagnostic::new(self.level, self.source_span.get_file(), self.source_span.get_range().start);
+        // let mut report = Diagnostic::new(self.level, self.source_text.get_file(), self.source_text.get_range().start);
         // report.set_message(self.to_string());
-        // let label = Label::new(self.source_span);
+        // let label = Label::new(self.source_text);
         // report.add_label(label);
         // report.finish()
         todo!()

@@ -1,7 +1,9 @@
+use crate::SourceSpan;
 use std::{
     borrow::Cow,
     fmt::{Debug, Display, Formatter},
     hash::{DefaultHasher, Hash, Hasher},
+    ops::Range,
     path::PathBuf,
 };
 use url::Url;
@@ -35,5 +37,17 @@ impl SourcePath {
         let mut hasher = DefaultHasher::new();
         self.hash(&mut hasher);
         SourceID { hash: hasher.finish() }
+    }
+}
+
+impl SourceID {
+    /// Create a new [`SourceID`] with the given ID.
+    pub unsafe fn new(id: u64) -> Self {
+        Self { hash: id }
+    }
+
+    /// Create a new [`SourceID`] with the given ID.
+    pub fn with_range(self, range: Range<u32>) -> SourceSpan {
+        SourceSpan { start: range.start, end: range.end, file: self }
     }
 }

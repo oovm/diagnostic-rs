@@ -4,13 +4,13 @@ version = "0.1.0"
 authors = ["Aster <192607617@qq.com>"]
 description = "Error types for valkyrie language"
 repository = "https://github.com/nyar-vm/valkyrie.rs"
-documentation = "https://docs.rs/valkyrie-error"
+documentation = "https://docs.rs/source-cache"
 readme = "readme.md"
 license = "MPL-2.0"
 edition = "2021"
 
 [dependencies]
-url = "2.5.0"
+url = { version = "2.5.0", features = [] }
 serde = { version = "1.0.197", features = ["derive"], optional = true }
 
 
@@ -18,7 +18,7 @@ serde = { version = "1.0.197", features = ["derive"], optional = true }
 
 [features]
 default = []
-
+serde = ["dep:serde", "url/serde"]
 
 [package.metadata.docs.rs]
 all-features = true

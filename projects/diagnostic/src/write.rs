@@ -203,7 +203,7 @@ impl Diagnostic {
                         let mut margin_ptr = None;
 
                         let multi_label = multi_labels.get(col);
-                        let line_span = src.line(idx).unwrap().range();
+                        let line_span = src.get_line(idx).unwrap().range();
 
                         for (i, label) in multi_labels[0..(col + 1).min(multi_labels.len())].iter().enumerate() {
                             let margin = margin_label.as_ref().filter(|m| **label as *const _ == m.label as *const _);
@@ -307,7 +307,7 @@ impl Diagnostic {
 
             let mut is_ellipsis = false;
             for idx in line_range {
-                let line = if let Some(line) = src.line(idx) {
+                let line = if let Some(line) = src.get_line(idx) {
                     line
                 }
                 else {

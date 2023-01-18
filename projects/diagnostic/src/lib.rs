@@ -14,7 +14,7 @@ use crate::{characters::Draw, display::*};
 pub use crate::{
     characters::{BuiltinDrawer, DrawElements},
     draw::{Console, Palette},
-    source::{SourceCache, SourceLine, SourceText},
+    source::{SourceCache, SourceText},
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
 };
@@ -22,16 +22,10 @@ use core::{
     cmp::{Eq, PartialEq},
     fmt::{Debug, Display, Formatter},
     hash::Hash,
-    mem::replace,
-    ops::Range,
 };
 pub use source_cache::{SourceID, SourceSpan};
-#[cfg(not(feature = "url"))]
-use std::path::PathBuf;
-use std::{collections::HashMap, io::Write, path::Path};
+use std::io::Write;
 use unicode_width::UnicodeWidthChar;
-#[cfg(feature = "url")]
-pub use url::Url;
 
 /// A type that represents a labelled section of identifier code.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
@@ -246,12 +240,12 @@ impl DiagnosticBuilder {
         self.inner.message = message.to_string();
         self
     }
-    /// Set the source_span of this report.
+    /// Set the source_text of this report.
     pub fn set_location(&mut self, file: SourceID, start: Option<u32>) {
         self.inner.file = file;
         self.inner.location = start;
     }
-    /// Set the source_span of this report.
+    /// Set the source_text of this report.
     pub fn with_location(mut self, file: SourceID, start: Option<u32>) -> Self {
         self.set_location(file, start);
         self
@@ -326,11 +320,11 @@ impl Debug for DiagnosticBuilder {
 /// The attachment point of inline label arrows
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum LabelAttach {
-    /// Arrows should attach to the start of the label source_span.
+    /// Arrows should attach to the start of the label source_text.
     Start,
-    /// Arrows should attach to the middle of the label source_span (or as close to the middle as we can get).
+    /// Arrows should attach to the middle of the label source_text (or as close to the middle as we can get).
     Middle,
-    /// Arrows should attach to the end of the label source_span.
+    /// Arrows should attach to the end of the label source_text.
     End,
 }
 
@@ -379,7 +373,7 @@ impl Config {
         self.compact = compact;
         self
     }
-    /// Should underlines be used for label source_span where possible?
+    /// Should underlines be used for label source_text where possible?
     ///
     /// If unspecified, this defaults to [`true`].
     pub fn with_underlines(mut self, underlines: bool) -> Self {

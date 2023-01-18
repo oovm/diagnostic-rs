@@ -10,16 +10,16 @@ impl Display for SourceText {
     }
 }
 
-impl<S: AsRef<str>> From<S> for SourceText {
+impl<S: Into<String>> From<S> for SourceText {
     /// Generate a [`SourceText`] from the given [`str`].
     ///
     /// Note that this function can be expensive for long strings. Use an implementor of [`Cache`] where possible.
-    fn from(s: S) -> Self {
+    fn from(source: S) -> Self {
+        let text = source.into();
         let mut offset = 0;
         // (Last line, last line ends with CR)
         let mut last_line: Option<(SourceLine, bool)> = None;
-        let mut lines: Vec<SourceLine> = s
-            .as_ref()
+        let mut lines: Vec<SourceLine> = text
             .split_inclusive([
                 '\r',       // Carriage return
                 '\n',       // Line feed
@@ -37,7 +37,7 @@ impl<S: AsRef<str>> From<S> for SourceText {
                     if *ends_with_cr && line == "\n" {
                         last.length += 1;
                         offset += 1;
-                        return replace(&mut last_line, None).map(|(l, _)| l);
+                        return core::mem::replace(&mut last_line, None).map(|(l, _)| l);
                     }
                 }
 
@@ -45,7 +45,7 @@ impl<S: AsRef<str>> From<S> for SourceText {
                 let ends_with_cr = line.ends_with('\r');
                 let line = SourceLine { offset, length: len as u32, text: line.trim_end().to_owned() };
                 offset += line.length;
-                replace(&mut last_line, Some((line, ends_with_cr))).map(|(l, _)| l)
+                core::mem::replace(&mut last_line, Some((line, ends_with_cr))).map(|(l, _)| l)
             })
             .collect();
 
@@ -53,6 +53,6 @@ impl<S: AsRef<str>> From<S> for SourceText {
             lines.push(l);
         }
 
-        Self { path: SourcePath::Anonymous, lines, length: offset }
+        Self { path: SourcePath::Anonymous, text, lines, length: offset, dirty: false }
     }
 }

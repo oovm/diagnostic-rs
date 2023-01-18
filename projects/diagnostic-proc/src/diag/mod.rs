@@ -40,5 +40,5 @@
 //     for diagnostic in &vec![raw.clone()] {
 //         emit(&mut writer.lock(), &config, &store, diagnostic).unwrap();
 //     }
-//     //  Err(input.source_span().error("there's a problem here..."))
+//     //  Err(input.source_text().error("there's a problem here..."))
 // }
