@@ -11,7 +11,7 @@ mod display;
 
 /// A type representing a single identifier that may be referred to by [`Span`]s.
 ///
-/// In most cases, a identifier is a single input file.
+/// In most cases, an identifier is a single input file.
 #[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub struct SourceText {
     /// The path of the identifier.
@@ -99,13 +99,13 @@ impl SourceText {
         Self { path: SourcePath::Remote(url), ..self }
     }
 
-    /// Return an iterator over the characters in the identifier.
-    pub fn chars(&self) -> impl Iterator<Item = char> + '_ {
-        self.lines.iter().map(|l| l.chars()).flatten()
+    /// Return the raw text fetch from source
+    pub fn text(&self) -> &str {
+        self.raw.as_str()
     }
     /// Return an iterator over the [`SourceLine`]s in this identifier.
-    pub fn lines(&self) -> impl ExactSizeIterator<Item = &SourceLine> + '_ {
-        self.lines.iter()
+    pub fn lines(&self) -> &[SourceLine] {
+        self.lines.as_slice()
     }
     /// Clear the cache cache
     pub fn clear(&mut self) {

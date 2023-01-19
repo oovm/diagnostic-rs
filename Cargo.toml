@@ -2,8 +2,9 @@
 resolver = "2"
 members = ["projects/*"]
 default-members = [
+    "projects/validation",
+    "projects/source-cache",
     "projects/diagnostic",
-    "projects/diagnostic-lsp",
 ]
 exclude = [
     "projects/.DS_Store",

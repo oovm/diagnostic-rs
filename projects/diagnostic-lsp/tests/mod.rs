@@ -1,6 +1,6 @@
 use lsp_types::Position;
 
-use diagnostic::{Location, TextStorage};
+use diagnostic::{SourceCache, SourceSpan};
 use diagnostic_lsp::{byte_index_to_position, position_to_byte_index};
 
 const TEST_TEXT: &str = r#"
@@ -10,7 +10,7 @@ test
 "#;
 #[test]
 fn position() {
-    let mut files = TextStorage::default();
+    let mut files = SourceSpan::default();
     let file_id = files.anonymous(TEST_TEXT);
     let pos = position_to_byte_index(&files, &file_id, &Position { line: 3, character: 2 }).unwrap();
     assert_eq!(
@@ -29,7 +29,7 @@ const UNICODE: &str = "åä t𐐀b";
 
 #[test]
 fn unicode_get_byte_index() {
-    let mut files = TextStorage::default();
+    let mut files = SourceCache::default();
     let file_id = files.anonymous(UNICODE);
 
     let result = position_to_byte_index(&files, &file_id, &Position { line: 0, character: 3 });
@@ -41,7 +41,7 @@ fn unicode_get_byte_index() {
 
 #[test]
 fn unicode_get_position() {
-    let mut files = TextStorage::default();
+    let mut files = SourceCache::default();
     let file_id = files.anonymous(UNICODE.to_string());
     let file_id2 = files.anonymous("\n".to_string() + UNICODE);
 

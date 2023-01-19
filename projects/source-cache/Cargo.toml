@@ -1,6 +1,6 @@
 [package]
 name = "source-cache"
-version = "0.2.1"
+version = "0.2.2"
 authors = ["Aster <192607617@qq.com>"]
 description = "Query the cache of raw text"
 repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/source-cache"
@@ -10,7 +10,8 @@ license = "MPL-2.0"
 edition = "2021"
 
 [dependencies]
-url = { version = "2.5.0", features = [] }
+url = "2.5.0"
+#dashmap = "5.5.3"
 serde = { version = "1.0.197", features = ["derive"], optional = true }
 
 

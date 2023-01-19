@@ -5,7 +5,7 @@ mod display;
 /// A [`Cache`] that fetches [`SourceText`]s from the filesystem.
 #[derive(Default, Debug, Clone)]
 pub struct SourceCache {
-    files: HashMap<SourceID, SourceText>,
+    cache: HashMap<SourceID, SourceText>,
 }
 
 impl SourceCache {
@@ -18,7 +18,7 @@ impl SourceCache {
         let text = std::fs::read_to_string(&path)?;
         let source = SourceText::from(text).with_path(path);
         let name_hash = source.source_id();
-        self.files.insert(name_hash, source);
+        self.cache.insert(name_hash, source);
         Ok(name_hash)
     }
     /// Create a new [`SourceCache`].
@@ -27,7 +27,7 @@ impl SourceCache {
         let text = std::fs::read_to_string(&path)?;
         let source = SourceText::from(text).with_remote(url);
         let name_hash = source.source_id();
-        self.files.insert(name_hash, source);
+        self.cache.insert(name_hash, source);
         Ok(name_hash)
     }
 
@@ -39,7 +39,7 @@ impl SourceCache {
     {
         let source = SourceText::snippet(text.to_string(), name.to_string());
         let name_hash = source.source_id();
-        self.files.insert(name_hash, source);
+        self.cache.insert(name_hash, source);
         name_hash
     }
     /// Set the file identifier buy not update the context
@@ -47,7 +47,7 @@ impl SourceCache {
     where
         N: Into<Cow<'static, str>>,
     {
-        match self.files.get_mut(&file) {
+        match self.cache.get_mut(&file) {
             Some(s) => {
                 s.set_source(SourcePath::Snippet(source.into()));
                 true
@@ -57,13 +57,13 @@ impl SourceCache {
     }
     /// Create a new [`SourceCache`].
     pub fn fetch(&self, file: &SourceID) -> Result<&SourceText, std::io::Error> {
-        match self.files.get(file) {
+        match self.cache.get(file) {
             Some(source) => Ok(source),
             None => Err(std::io::Error::new(std::io::ErrorKind::NotFound, format!("File {:?} not found", file))),
         }
     }
     /// Create a new [`SourceCache`].
     pub fn source_path(&self, file: &SourceID) -> Option<&SourcePath> {
-        Some(&self.files.get(file)?.get_source())
+        Some(&self.cache.get(file)?.get_source())
     }
 }

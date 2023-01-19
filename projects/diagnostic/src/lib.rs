@@ -21,8 +21,7 @@ use core::{
     fmt::{Debug, Display, Formatter},
     hash::Hash,
 };
-use source_cache::SourceCache;
-pub use source_cache::{SourceID, SourceSpan};
+pub use source_cache::{SourceCache, SourceID, SourceSpan};
 use std::io::Write;
 use unicode_width::UnicodeWidthChar;
 
