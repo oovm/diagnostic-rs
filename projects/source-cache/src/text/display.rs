@@ -1,12 +1,14 @@
 use super::*;
 
-impl Display for SourceText {
+impl Debug for SourceSpan {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        for c in self.lines() {
-            f.write_str(&c.text)?;
-            f.write_char('\n')?;
-        }
-        Ok(())
+        f.debug_struct("FileSpan").field("start", &self.start).field("end", &self.end).field("file", &self.file).finish()
+    }
+}
+
+impl Display for SourceSpan {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "FileSpan(0x{:X}, {}..{})", self.file.hash, self.start, self.end)
     }
 }
 
@@ -53,6 +55,6 @@ impl<S: Into<String>> From<S> for SourceText {
             lines.push(l);
         }
 
-        Self { path: SourcePath::Anonymous, text, lines, length: offset, dirty: false }
+        Self { path: SourcePath::Anonymous, raw: text, lines, length: offset, dirty: false }
     }
 }

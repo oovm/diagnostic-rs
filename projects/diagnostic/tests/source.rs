@@ -1,4 +1,5 @@
 use super::*;
+use source_cache::SourceText;
 
 #[test]
 fn source_from() {

@@ -10,6 +10,7 @@ use url::Url;
 
 mod display;
 
+/// The source path
 #[derive(Clone, Debug, Default, Hash, PartialEq, Eq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub enum SourcePath {

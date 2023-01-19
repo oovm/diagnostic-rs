@@ -1,9 +1,9 @@
 [package]
 name = "source-cache"
-version = "0.1.0"
+version = "0.2.1"
 authors = ["Aster <192607617@qq.com>"]
-description = "Error types for valkyrie language"
-repository = "https://github.com/nyar-vm/valkyrie.rs"
+description = "Query the cache of raw text"
+repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/source-cache"
 documentation = "https://docs.rs/source-cache"
 readme = "readme.md"
 license = "MPL-2.0"

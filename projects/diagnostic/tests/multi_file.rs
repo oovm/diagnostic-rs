@@ -1,5 +1,6 @@
 use super::*;
 use diagnostic::enable_ansi_color;
+use source_cache::SourceCache;
 
 #[test]
 fn main() {

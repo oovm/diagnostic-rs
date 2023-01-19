@@ -1,9 +1,13 @@
+#![doc = include_str!("../readme.md")]
+#![warn(missing_docs)]
+
+mod cache;
 mod identifier;
-mod source_text;
-// mod c
+mod text;
 
 pub use crate::{
+    cache::SourceCache,
     identifier::{SourceID, SourcePath},
-    source_text::{SourceLine, SourceSpan},
+    text::{SourceLine, SourceSpan, SourceText},
 };
 pub use url::Url;

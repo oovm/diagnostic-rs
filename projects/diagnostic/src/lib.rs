@@ -3,7 +3,6 @@
 
 mod display;
 mod draw;
-mod source;
 mod style;
 mod write;
 
@@ -14,7 +13,6 @@ use crate::{characters::Draw, display::*};
 pub use crate::{
     characters::{BuiltinDrawer, DrawElements},
     draw::{Console, Palette},
-    source::{SourceCache, SourceText},
     style::{color::Color, paint::Paint, style::Style},
     windows::enable_ansi_color,
 };
@@ -23,6 +21,7 @@ use core::{
     fmt::{Debug, Display, Formatter},
     hash::Hash,
 };
+use source_cache::SourceCache;
 pub use source_cache::{SourceID, SourceSpan};
 use std::io::Write;
 use unicode_width::UnicodeWidthChar;

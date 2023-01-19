@@ -1,4 +1,5 @@
 use super::*;
+use source_cache::SourceCache;
 
 #[test]
 fn main() {

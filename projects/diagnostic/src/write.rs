@@ -1,4 +1,5 @@
-use crate::{SourceCache, SourceID, SourceText};
+use crate::SourceID;
+use source_cache::{SourceCache, SourceText};
 use std::ops::Range;
 
 use super::{
