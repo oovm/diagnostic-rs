@@ -1,6 +1,6 @@
 [package]
 name = "source-cache"
-version = "0.2.2"
+version = "0.2.3"
 authors = ["Aster <192607617@qq.com>"]
 description = "Query the cache of raw text"
 repository = "https://github.com/oovm/diagnostic-rs/tree/dev/projects/source-cache"

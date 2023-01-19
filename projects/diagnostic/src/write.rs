@@ -26,7 +26,7 @@ struct LabelInfo<'a> {
 }
 
 struct SourceGroup<'a> {
-    src_id: &'a SourceID,
+    id: &'a SourceID,
     span: Range<u32>,
     labels: Vec<LabelInfo<'a>>,
 }
@@ -52,14 +52,14 @@ impl Diagnostic {
             let label_info =
                 LabelInfo { kind: if start_line == end_line { LabelKind::Inline } else { LabelKind::Multiline }, label };
 
-            if let Some(group) = groups.iter_mut().find(|g: &&mut SourceGroup| g.src_id == &label.span.file) {
+            if let Some(group) = groups.iter_mut().find(|g: &&mut SourceGroup| g.id == &label.span.file) {
                 group.span.start = group.span.start.min(label.span.start);
                 group.span.end = group.span.end.max(label.span.end);
                 group.labels.push(label_info);
             }
             else {
                 groups.push(SourceGroup {
-                    src_id: &label.span.file,
+                    id: &label.span.file,
                     span: Range { start: label.span.start, end: label.span.end },
                     labels: vec![label_info],
                 });
@@ -107,7 +107,7 @@ impl Diagnostic {
         // Line number maximum width
         let line_no_width = groups
             .iter()
-            .filter_map(|SourceGroup { span, src_id, .. }| {
+            .filter_map(|SourceGroup { span, id: src_id, .. }| {
                 let src_name = cache.source_path(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
 
                 let src = match cache.fetch(src_id) {
@@ -126,7 +126,7 @@ impl Diagnostic {
 
         // --- Source sections ---
         let groups_len = groups.len();
-        for (group_idx, SourceGroup { src_id, span, labels }) in groups.into_iter().enumerate() {
+        for (group_idx, SourceGroup { id: src_id, span, labels }) in groups.into_iter().enumerate() {
             let src_name = cache.source_path(src_id).map(|d| d.to_string()).unwrap_or_else(|| "<unknown>".to_string());
 
             let src = match cache.fetch(src_id) {
