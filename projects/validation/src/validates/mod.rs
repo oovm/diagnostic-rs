@@ -1,6 +1,7 @@
-use alloc::vec::Vec;
+use alloc::{vec, vec::Vec};
+#[cfg(feature = "nightly")]
+use core::error::Error;
 use core::fmt::{Debug, Display, Formatter};
-use std::error::Error;
 
 use crate::Validation::{Failure, Success};
 
@@ -38,6 +39,7 @@ where
     }
 }
 
+#[cfg(feature = "nightly")]
 impl<T, E> Error for Validation<T, E>
 where
     T: Debug,
